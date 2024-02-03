@@ -3,11 +3,8 @@ import "@styles/main.scss";
 import type { TypePageSkeleton } from "@lib/generated/contentful";
 import type { Entry } from "@lib/types";
 import Head from "@components/Head.astro";
-import IntroAnimation from "@components/IntroAnimation.astro";
 import Grain from "@components/Grain.astro";
-import Cloudflare from "@components/Cloudflare.astro";
 import ConsoleArt from "@components/ConsoleArt.astro";
-import GoogleAnalytics from "@components/GoogleAnalytics.astro";
 
 interface Props extends Entry<TypePageSkeleton> {}
 
@@ -18,12 +15,88 @@ const page = Astro.props;
   <Head {...page} />
   <body class="bg-black text-white">
     <Grain />
-    <IntroAnimation />
-    <main>
-      <slot />
+    <main id="container" class="w-screen h-screen overflow-auto">
+      <div id="content" class="w-[500vw] h-[500vh]">
+        <slot />
+      </div>
     </main>
     <ConsoleArt />
-    <Cloudflare />
-    <GoogleAnalytics />
+    <script>
+      const container: HTMLElement = document.querySelector("#container")!;
+
+      // Set cursor to grab
+      container.style.cursor = "grab";
+
+      let startY: number;
+      let startX: number;
+      let scrollLeft: number;
+      let scrollTop: number;
+      let isDown: boolean;
+      let velX: number;
+      let velY: number;
+      let momentumID: number;
+
+      container.addEventListener("mousedown", mouseIsDown);
+      container.addEventListener("mouseup", mouseUp);
+      container.addEventListener("mouseleave", mouseLeave);
+      container.addEventListener("mousemove", mouseMove);
+      container.addEventListener("wheel", cancelMomentumTracking);
+
+      function mouseIsDown(e: MouseEvent) {
+        isDown = true;
+        container.style.cursor = "grabbing";
+        container.classList.add("grabbing");
+        startY = e.pageY - container.offsetTop;
+        startX = e.pageX - container.offsetLeft;
+        scrollLeft = container.scrollLeft;
+        scrollTop = container.scrollTop;
+      }
+      function mouseUp(e: MouseEvent) {
+        isDown = false;
+        beginMomentumTracking();
+      }
+      function mouseLeave(e: MouseEvent) {
+        isDown = false;
+        beginMomentumTracking();
+      }
+      function mouseMove(e: MouseEvent) {
+        if (isDown) {
+          e.preventDefault();
+
+          //Move vertcally
+          const y = e.pageY - container.offsetTop;
+          const walkY = y - startY;
+          const deltaY = scrollTop - walkY;
+          velY = container.scrollTop - deltaY;
+          container.scrollTop = deltaY;
+
+          //Move Horizontally
+          const x = e.pageX - container.offsetLeft;
+          const walkX = x - startX;
+          const deltaX = scrollLeft - walkX;
+          velX = container.scrollLeft - deltaX;
+          container.scrollLeft = scrollLeft - walkX;
+        }
+      }
+      function beginMomentumTracking() {
+        cancelMomentumTracking();
+        container.style.cursor = "grab";
+        container.classList.remove("grabbing");
+        momentumID = requestAnimationFrame(momentumLoop);
+      }
+      function momentumLoop() {
+        container.scrollLeft -= velX;
+        container.scrollTop -= velY;
+        velX *= 0.95;
+        velY *= 0.95;
+
+        if (Math.abs(velX) > 0.5 || Math.abs(velY) > 0.5) {
+          momentumID = requestAnimationFrame(momentumLoop);
+        }
+      }
+      function cancelMomentumTracking() {
+        cancelAnimationFrame(momentumID);
+      }
+    </script>
   </body>
 </html>
