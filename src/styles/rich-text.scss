@@ -1,0 +1,21 @@
+.rich-text {
+  > * {
+    margin-bottom: 1rem;
+    min-height: 3px; // empty paragraphs will occupy space (3px + 1rem)
+  }
+
+  h1 {
+    font-size: 2.5rem; // 40px 
+    font-weight: 700;
+  }
+  h2 {
+    font-size: 2rem; // 32px
+    font-weight: 700;
+  }
+  p {
+    font-size: 1.25rem; // 16px
+  }
+  a {
+    text-decoration: underline;
+  }
+}

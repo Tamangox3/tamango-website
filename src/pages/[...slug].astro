@@ -1,0 +1,36 @@
+---
+import contentful from "@lib/contentful";
+import { type TypePageSkeleton } from "@lib/generated/contentful/index";
+import type { Entry } from "@lib/types";
+import StandardLayout from "src/layouts/StandardLayout.astro";
+
+export async function getStaticPaths() {
+  const pages = await contentful.getEntries<TypePageSkeleton>({
+    content_type: "page",
+    include: 10, // max include depth
+  });
+
+  return pages.items.map((page) => {
+    return {
+      params: { slug: page.fields.slug == "/" ? undefined : page.fields.slug },
+      props: {
+        page: page,
+      },
+    };
+  });
+}
+
+const getLayout = (page: Entry<TypePageSkeleton>) => {
+  switch (page.fields.layout) {
+    case "Standard":
+      return StandardLayout;
+    default:
+      return StandardLayout;
+  }
+};
+
+const { page } = Astro.props;
+const Layout = getLayout(page);
+---
+
+<Layout {...page} />

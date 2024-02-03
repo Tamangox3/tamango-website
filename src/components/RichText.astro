@@ -1,0 +1,49 @@
+---
+import { BLOCKS, INLINES } from "@contentful/rich-text-types";
+import {
+  documentToHtmlString,
+  type Options,
+} from "@contentful/rich-text-html-renderer";
+import { type Document } from "@contentful/rich-text-types";
+
+interface Props {
+  content: Document;
+}
+
+const options: Partial<Options> = {
+  renderMark: {},
+  renderNode: {
+    [BLOCKS.EMBEDDED_ASSET]: ({
+      data: {
+        target: {
+          fields: { title, file },
+        },
+      },
+    }) => {
+      const videoContentTypeRegex = /video\/.*/;
+      if (videoContentTypeRegex.test(file.contentType)) {
+        return `<video nocontrols loop autoplay muted class="mx-auto rounded-[12px]">
+          <source src="${file?.url}" type="${file?.contentType}">
+          Your browser does not support the video tag.
+        </video>`;
+      } else {
+        return `<picture>
+        <source srcset="${file?.url}?fm=webp&q=80&w=1200&h=600 1x, ${file?.url}?fm=webp&q=80&w=2400&h=1200 2x" type="image/webp">
+        <source srcset="${file?.url}?fm=jpg&bg=rgb:2E2E2E&q=80&w=1200&h=600 1x, ${file?.url}?fm=jpg&bg=rgb:2E2E2E&q=80&w=2400&h=1200 2x" type="image/jpeg">
+        <img src="${file?.url}?fm=jpg&bg=rgb:2E2E2E&q=80&w=1200&h=600" alt="${title}" loading="lazy" class="mx-auto rounded-[12px] ">
+      </picture>`;
+      }
+    },
+    [INLINES.HYPERLINK]: ({ data: { uri }, content }, next) => {
+      return `<a class="" href="${uri}">${next(content)}</a>`;
+    },
+  },
+};
+
+const { content } = Astro.props;
+---
+
+<div
+  class="w-full rich-text mx-auto fadeInBottom"
+  set:html={documentToHtmlString(content, options)}
+/>

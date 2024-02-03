@@ -1,0 +1,29 @@
+---
+import "@styles/main.scss";
+import type { TypePageSkeleton } from "@lib/generated/contentful";
+import type { Entry } from "@lib/types";
+import Head from "@components/Head.astro";
+import IntroAnimation from "@components/IntroAnimation.astro";
+import Grain from "@components/Grain.astro";
+import Cloudflare from "@components/Cloudflare.astro";
+import ConsoleArt from "@components/ConsoleArt.astro";
+import GoogleAnalytics from "@components/GoogleAnalytics.astro";
+
+interface Props extends Entry<TypePageSkeleton> {}
+
+const page = Astro.props;
+---
+
+<html lang="it">
+  <Head {...page} />
+  <body class="bg-black text-white">
+    <Grain />
+    <IntroAnimation />
+    <main>
+      <slot />
+    </main>
+    <ConsoleArt />
+    <Cloudflare />
+    <GoogleAnalytics />
+  </body>
+</html>
