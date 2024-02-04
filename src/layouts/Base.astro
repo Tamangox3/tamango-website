@@ -15,14 +15,24 @@ const page = Astro.props;
   <Head {...page} />
   <body class="bg-black text-white">
     <Grain />
-    <main id="container" class="w-screen h-screen overflow-auto">
-      <div id="content" class="w-[500vw] h-[500vh]">
-        <slot />
+    <div id="container" class="w-screen h-screen overflow-hidden">
+      <div id="draggable-canvas" class="w-[200vw] h-[200vh] relative">
+        <main
+          id="content"
+          class="absolute left-[40vw] top-[40vh] w-[100vw] h-[100vh]"
+        >
+          <slot />
+        </main>
       </div>
-    </main>
+    </div>
     <ConsoleArt />
     <script>
       const container: HTMLElement = document.querySelector("#container")!;
+      const content: HTMLElement = document.querySelector("#content")!;
+
+      // Set page position to the position of the content element
+      container.scrollLeft = content.offsetLeft;
+      container.scrollTop = content.offsetTop;
 
       // Set cursor to grab
       container.style.cursor = "grab";
@@ -43,6 +53,7 @@ const page = Astro.props;
       container.addEventListener("wheel", cancelMomentumTracking);
 
       function mouseIsDown(e: MouseEvent) {
+        cancelMomentumTracking();
         isDown = true;
         container.style.cursor = "grabbing";
         container.classList.add("grabbing");
