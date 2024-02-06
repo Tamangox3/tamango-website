@@ -1,5 +1,13 @@
 .grabbing {
   will-change: transform;
   transition: transform 0.2s;
-  // transform: scale(1.01);
+  transform: scale(1.01);
+}
+
+@screen md {
+  #draggable-canvas {
+    img, h1, h2, p {
+      @apply hover:scale-110 transition-transform duration-300 ease-in-out
+    }
+  }
 }

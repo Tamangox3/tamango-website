@@ -68,8 +68,8 @@ export interface TypePageFields {
  * @name TypePageSkeleton
  * @type {TypePageSkeleton}
  * @author 7oIhVVln1MoQRobu38qPiN
- * @since 2024-01-13T15:44:24.235Z
- * @version 13
+ * @since 2024-02-06T22:25:59.097Z
+ * @version 3
  */
 export type TypePageSkeleton = EntrySkeletonType<TypePageFields, "page">;
 /**
@@ -77,8 +77,8 @@ export type TypePageSkeleton = EntrySkeletonType<TypePageFields, "page">;
  * @name TypePage
  * @type {TypePage}
  * @author 7oIhVVln1MoQRobu38qPiN
- * @since 2024-01-13T15:44:24.235Z
- * @version 13
+ * @since 2024-02-06T22:25:59.097Z
+ * @version 3
  */
 export type TypePage<Modifiers extends ChainModifiers, Locales extends LocaleCode> = Entry<TypePageSkeleton, Modifiers, Locales>;
 
