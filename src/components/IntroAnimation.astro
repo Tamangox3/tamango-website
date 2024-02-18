@@ -1,0 +1,73 @@
+---
+const DEV = import.meta.env.DEV;
+---
+
+<div
+  class="intro-animation absolute top-0 bottom-0 left-0 right-0 bg-black flex justify-center items-center"
+  data-dev={DEV.toString()}
+>
+  <img src="/intro-animation/frame-0.png" alt="animation frame 1" />
+  <img src="/intro-animation/frame-1.png" alt="animation frame 2" />
+  <img src="/intro-animation/frame-2.png" alt="animation frame 3" />
+  <img src="/intro-animation/frame-3.png" alt="animation frame 4" />
+  <img src="/intro-animation/frame-4.svg" alt="animation frame 5" />
+</div>
+
+<script>
+  const DEV =
+    document.querySelector(".intro-animation")!.getAttribute("data-dev") ===
+    "true";
+
+  function log(...args: any[]) {
+    if (DEV) console.log(...args);
+  }
+  async function wait(ms: number) {
+    return new Promise((res) => setTimeout(res, ms));
+  }
+  function fadeInBottom() {
+    document.querySelectorAll(".fade-in-bottom").forEach((el) => {
+      // start fading in all the elements with the fadeIn class
+      el.classList.add("fade-in-bottom-start");
+    });
+  }
+  async function animate() {
+    const animation = document.querySelector(".intro-animation")!;
+    // fetch the animation frames, all the img tags inside the animation div
+    const frames = animation.querySelectorAll("img");
+    // wait for the frames to load
+    log("waiting for animation frames to load");
+    const framesLoader = Promise.all(
+      Array.from(frames).map((frame) => {
+        return new Promise<void>((res) => {
+          const src = frame.getAttribute("src")!;
+          const img = new Image(); // clone the image so that onload fires all the time
+          img.onload = () => res();
+          img.src = src;
+        });
+      })
+    );
+    // await the frames to load with a timeout of 3 seconds
+    const res = await Promise.any([framesLoader, wait(2000)]);
+    if (!Array.isArray(res)) {
+      // if the frames didn't load in time, just start the animation
+      log("animation frames didn't load in time, starting animation");
+      fadeInBottom();
+      return;
+    }
+    log("animation frames loaded, starting animation");
+    animation.classList.add("intro-animation-animate"); // add the animation class
+    // show each frame in order for 250ms
+    for (let i = 0; i < frames.length; i++) {
+      const frame = frames[i];
+      frame.classList.add("intro-animation-frame-show");
+      await wait(250);
+      if (i === frames.length - 1) break; // don't hide the last frame
+      frame.classList.remove("intro-animation-frame-show");
+    }
+    animation.classList.add("intro-animation-fade-out"); // fade out the animation
+    await wait(400); // wait for the last frame to fade out
+    animation.remove(); // remove the animation from the DOM
+    fadeInBottom(); // start the fade in animation
+  }
+  await animate();
+</script>

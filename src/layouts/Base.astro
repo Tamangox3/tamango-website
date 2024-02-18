@@ -5,6 +5,7 @@ import type { Entry } from "@lib/types";
 import Head from "@components/Head.astro";
 import Grain from "@components/Grain.astro";
 import ConsoleArt from "@components/ConsoleArt.astro";
+import IntroAnimation from "@components/IntroAnimation.astro";
 
 interface Props extends Entry<TypePageSkeleton> {}
 
@@ -15,151 +16,10 @@ const page = Astro.props;
   <Head {...page} />
   <body class="bg-black text-white">
     <Grain />
-    <div id="container" class="w-screen h-screen overflow-hidden">
-      <div id="draggable-canvas" class="w-[200vw] h-[200vh] relative">
-        <a
-          class=""
-          href="https://open.spotify.com/album/4jtliyGsK3gPu1VSGSzPdH"
-        >
-          <img
-            src="/home/image_1.png"
-            class="absolute top-[15vh] left-[20vw] w-[28vw] min-w-[280px]"
-          />
-        </a>
-        <a class="" href="https://www.youtube.com/watch?v=3hReDuZ-76w">
-          <img
-            src="/home/image_2.png"
-            class="absolute top-[25vh] right-[30vw] w-[35vw] min-w-[350px]"
-          />
-        </a>
-        <a class="" href="https://www.youtube.com/watch?v=mHEe-JVyVkA">
-          <img
-            src="/home/image_3.png"
-            class="absolute bottom-[27vh] right-[28vw] w-[33vw] min-w-[330px]"
-          />
-        </a>
-        <a class="" href="https://www.youtube.com/watch?v=Jrg23u--A_0">
-          <img
-            src="/home/image_4.png"
-            class="absolute bottom-[18vh] left-[18vw] w-[38vw] min-w-[380px]"
-          />
-        </a>
-        <main
-          id="content"
-          class="absolute left-[40vw] top-[40vh] w-[100vw] h-[100vh]"
-        >
-          <slot />
-        </main>
-      </div>
-    </div>
+    <IntroAnimation />
+    <main>
+      <slot />
+    </main>
     <ConsoleArt />
-    <script>
-      const container: HTMLElement = document.querySelector("#container")!;
-      const content: HTMLElement = document.querySelector("#content")!;
-
-      // Set page position to the position of the content element
-      container.scrollLeft = content.offsetLeft;
-      container.scrollTop = content.offsetTop;
-
-      // Set cursor to grab
-      container.style.cursor = "grab";
-
-      let startY: number;
-      let startX: number;
-      let scrollLeft: number;
-      let scrollTop: number;
-      let isDown: boolean;
-      let velX = 0;
-      let velY = 0;
-      let momentumID: number;
-
-      container.addEventListener("touchstart", mouseIsDown);
-      container.addEventListener("mousedown", mouseIsDown);
-      container.addEventListener("touchend", mouseUp);
-      container.addEventListener("mouseup", mouseUp);
-      container.addEventListener("touchcancel", mouseLeave);
-      container.addEventListener("mouseleave", mouseLeave);
-      container.addEventListener("touchmove", mouseMove);
-      container.addEventListener("mousemove", mouseMove);
-      container.addEventListener("wheel", cancelMomentumTracking);
-
-      function mouseIsDown(e: Event) {
-        e.preventDefault(); // Prevents the double trigger of the event
-        cancelMomentumTracking();
-        isDown = true;
-        container.style.cursor = "grabbing";
-        container.classList.add("grabbing");
-        if (e instanceof MouseEvent) {
-          startY = e.pageY - container.offsetTop;
-          startX = e.pageX - container.offsetLeft;
-          scrollLeft = container.scrollLeft;
-          scrollTop = container.scrollTop;
-        } else if (e instanceof TouchEvent) {
-          startY = e.touches[0].pageY - container.offsetTop;
-          startX = e.touches[0].pageX - container.offsetLeft;
-          scrollLeft = container.scrollLeft;
-          scrollTop = container.scrollTop;
-        }
-      }
-      function mouseUp(e: Event) {
-        e.preventDefault();
-        isDown = false;
-        beginMomentumTracking();
-      }
-      function mouseLeave(e: Event) {
-        e.preventDefault();
-        isDown = false;
-        beginMomentumTracking();
-      }
-      function mouseMove(e: Event) {
-        e.preventDefault();
-        if (isDown) {
-          //Move vertcally
-          const pageY =
-            e instanceof MouseEvent
-              ? e.pageY
-              : e instanceof TouchEvent
-                ? e.touches[0].pageY
-                : 0;
-          const y = pageY - container.offsetTop;
-          const walkY = y - startY;
-          const deltaY = scrollTop - walkY;
-          velY = container.scrollTop - deltaY;
-          container.scrollTop = deltaY;
-
-          //Move Horizontally
-          const pageX =
-            e instanceof MouseEvent
-              ? e.pageX
-              : e instanceof TouchEvent
-                ? e.touches[0].pageX
-                : 0;
-          const x = pageX - container.offsetLeft;
-          const walkX = x - startX;
-          const deltaX = scrollLeft - walkX;
-          velX = container.scrollLeft - deltaX;
-          container.scrollLeft = scrollLeft - walkX;
-        }
-      }
-      function beginMomentumTracking() {
-        cancelMomentumTracking();
-        container.style.cursor = "grab";
-        container.classList.remove("grabbing");
-        momentumID = requestAnimationFrame(momentumLoop);
-      }
-      function momentumLoop() {
-        container.scrollLeft -= velX;
-        container.scrollTop -= velY;
-        velX *= 0.95;
-        velY *= 0.95;
-
-        if (Math.abs(velX) > 0.5 || Math.abs(velY) > 0.5) {
-          momentumID = requestAnimationFrame(momentumLoop);
-        }
-      }
-      function cancelMomentumTracking() {
-        cancelAnimationFrame(momentumID);
-      }
-    </script>
   </body>
 </html>
