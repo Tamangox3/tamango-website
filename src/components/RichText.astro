@@ -5,9 +5,20 @@ import {
   type Options,
 } from "@contentful/rich-text-html-renderer";
 import { type Document } from "@contentful/rich-text-types";
+import { isTypeImageLinkComponent } from "@lib/generated/contentful";
+import { type ChainModifier, type Entry } from "@lib/types";
+import type { TypeImageLinkComponentSkeleton } from "@lib/generated/contentful";
+import type { TypeImageLinkComponent } from "@lib/generated/contentful";
 
 interface Props {
   content: Document;
+}
+
+const renderImageLinkComponent = (target: TypeImageLinkComponent<ChainModifier, string>): string => {
+  return `<a href="${target.fields.url}" class="block w-full my-8" target="_blank">
+    <img src="${target.fields.image?.fields.file?.url}" alt="${target.fields.image?.fields.title}" class="w-full" />
+  </a>
+  `;
 }
 
 const options: Partial<Options> = {
@@ -36,6 +47,12 @@ const options: Partial<Options> = {
     },
     [INLINES.HYPERLINK]: ({ data: { uri }, content }, next) => {
       return `<a class="" href="${uri}">${next(content)}</a>`;
+    },
+    [BLOCKS.EMBEDDED_ENTRY]: ({ data: { target } }) => {
+      if (isTypeImageLinkComponent<ChainModifier, string>(target)) {
+        return renderImageLinkComponent(target);
+      }
+      return "";
     },
   },
 };
