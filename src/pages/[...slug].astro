@@ -2,6 +2,7 @@
 import contentful from "@lib/contentful";
 import { type TypePageSkeleton } from "@lib/generated/contentful/index";
 import type { Entry } from "@lib/types";
+import Pan from "src/layouts/Pan.astro";
 import StandardLayout from "src/layouts/StandardLayout.astro";
 
 export async function getStaticPaths() {
@@ -24,6 +25,8 @@ const getLayout = (page: Entry<TypePageSkeleton>) => {
   switch (page.fields.layout) {
     case "Standard":
       return StandardLayout;
+    case "Pan":
+      return Pan;
     default:
       return StandardLayout;
   }
