@@ -65,13 +65,6 @@ const page = Astro.props;
     const container: HTMLElement = document.querySelector("#container")!;
     const content: HTMLElement = document.querySelector("#content")!;
 
-    // Set page position to the position of the content element
-    container.scrollLeft = content.offsetLeft;
-    container.scrollTop = content.offsetTop;
-
-    // Set cursor to grab
-    container.style.cursor = "grab";
-
     let startY: number;
     let startX: number;
     let scrollLeft: number;
@@ -80,16 +73,6 @@ const page = Astro.props;
     let velX = 0;
     let velY = 0;
     let momentumID: number;
-
-    container.addEventListener("touchstart", mouseIsDown);
-    container.addEventListener("mousedown", mouseIsDown);
-    container.addEventListener("touchend", mouseUp);
-    container.addEventListener("mouseup", mouseUp);
-    container.addEventListener("touchcancel", mouseLeave);
-    container.addEventListener("mouseleave", mouseLeave);
-    container.addEventListener("touchmove", mouseMove);
-    container.addEventListener("mousemove", mouseMove);
-    container.addEventListener("wheel", cancelMomentumTracking);
 
     function mouseIsDown(e: Event) {
       e.preventDefault(); // Prevents the double trigger of the event
@@ -168,6 +151,29 @@ const page = Astro.props;
     function cancelMomentumTracking() {
       cancelAnimationFrame(momentumID);
     }
+    function startPan() {
+      if (!container || !content) {
+        return;
+      }
+
+      // Set page position to the position of the content element
+      container.scrollLeft = content.offsetLeft;
+      container.scrollTop = content.offsetTop;
+
+      // Set cursor to grab
+      container.style.cursor = "grab";
+
+      container.addEventListener("touchstart", mouseIsDown);
+      container.addEventListener("mousedown", mouseIsDown);
+      container.addEventListener("touchend", mouseUp);
+      container.addEventListener("mouseup", mouseUp);
+      container.addEventListener("touchcancel", mouseLeave);
+      container.addEventListener("mouseleave", mouseLeave);
+      container.addEventListener("touchmove", mouseMove);
+      container.addEventListener("mousemove", mouseMove);
+      container.addEventListener("wheel", cancelMomentumTracking);
+    }
+    startPan();
   </script>
 </Base>
 
