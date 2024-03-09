@@ -1,10 +1,13 @@
 ---
+import GoogleTagManager from "@components/GoogleTagManager.astro";
 import type { TypePageSkeleton } from "@lib/generated/contentful";
 import type { Entry } from "@lib/types";
 
 interface Props extends Entry<TypePageSkeleton> {}
 
 const page = Astro.props;
+
+const PROD = !import.meta.env.DEV;
 
 const description = (page.fields.ogDescription as string) ?? "";
 
@@ -46,4 +49,5 @@ const keywords = page.fields.keywords ? page.fields.keywords!.join(", ") : "";
   <meta name="og:image:width" content="1200" />
   <meta name="og:image:height" content="630" />
   <meta name="robots" content={robots} />
+  { PROD && <GoogleTagManager />}
 </head>
