@@ -19,8 +19,8 @@ const ogImage = page.fields.ogImage?.fields.file?.url
   ? `https:${page.fields.ogImage?.fields.file?.url}?fm=jpg&q=70&w=1200&h=630&fit=thumb`
   : "/public/tamango-og-image.jpg";
 
-const index = "noindex"; // no indexing for now
-const follow = "nofollow"; // no indexing for now
+const index = "index"; // no indexing for now
+const follow = "follow"; // no indexing for now
 const robots = `${index}, ${follow}`;
 
 const keywords = page.fields.keywords ? page.fields.keywords!.join(", ") : "";
