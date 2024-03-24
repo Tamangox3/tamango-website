@@ -22,6 +22,7 @@ const ogImage = page.fields.ogImage?.fields.file?.url
 const index = "index"; // no indexing for now
 const follow = "follow"; // no indexing for now
 const robots = `${index}, ${follow}`;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 const keywords = page.fields.keywords ? page.fields.keywords!.join(", ") : "";
 ---
@@ -31,6 +32,7 @@ const keywords = page.fields.keywords ? page.fields.keywords!.join(", ") : "";
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <title>{title}</title>
+  <link rel="canonical" href={canonicalURL} />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="keywords" content={keywords} />
   <meta name="generator" content={Astro.generator} />
