@@ -1,0 +1,88 @@
+---
+import type { TypePageSkeleton } from "@lib/generated/contentful";
+import type { Entry } from "@lib/types";
+import Base from "./Base.astro";
+import RichText from "@components/RichText.astro";
+
+interface Props extends Entry<TypePageSkeleton> {}
+
+const page = Astro.props;
+
+
+
+---
+
+<Base {...page} >
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+    }
+    iframe {
+      display: block;
+      margin: 20px auto;
+    }
+    div {
+      text-align: center;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #0077cc;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      margin: 5px;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      margin-top: 20px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+  </style>
+
+
+  <div class="fade-in-bottom">
+    <img
+      src="/logo.svg"
+      alt="logo"
+      class="w-full max-w-[220px] md:max-w-[300px] mx-auto pt-12 pb-12"
+      width="280"
+      height="123"
+    />
+  </div>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player"></script>
+
+  <div
+    class="sm:max-w-[300px] md:max-w-[900px]  overflow-hidden text-center mx-auto px-4 fade-in-bottom"
+  >
+  <mux-player
+  playback-id="ICMCWFph00hGTtTyINU65Xs3EmXzxhLHmAKctQVO46bo"
+  metadata-video-title="Placeholder (optional)"
+  metadata-viewer-user-id="Placeholder (optional)"
+  accent-color="#FF0000"></mux-player> -->
+
+  <!-- Buttons for video playback control -->
+<!-- <iframe id="bunny-stream-embed" src="https://iframe.mediadelivery.net/embed/197133/dc48a09e-d9bb-420a-83d7-72dc2304c034" width="720" height="400" frameborder="0" allow="autoplay"></iframe> -->
+
+<!-- <script type="text/javascript" src="//assets.mediadelivery.net/playerjs/player-0.1.0.min.js"></script> -->
+  <!-- Buttons for video playback control -->
+  <div style="position:relative;padding-top:56.25%;margin:auto">
+    <iframe src="https://iframe.mediadelivery.net/embed/262688/3866e75a-83e2-4652-850f-744d83932eca?autoplay=true&loop=false&muted=false&preload=true&responsive=true" 
+    loading="lazy" style="border:0;position:absolute;top:0;height:80%;width:80%;margin-left:10%;margin-right:10%;border-radius: 10px;" 
+    allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen="true"></iframe></div>
+  <!-- <div style="position: relative; padding-top: 20.25%;"> -->
+    <!-- <iframe id="bunny-stream-embed" src="https://iframe.mediadelivery.net/play/262688/bd197dde-bb51-48f9-83d9-2e5239dd9997" 
+        loading="lazy" style="border: none; position: absolute; top: 0; height: 100%; width: 100%;"
+        allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; autoplay;" allowfullscreen="true">
+    </iframe> -->
+    <!-- <iframe id="bunny-stream-embed" src="https://iframe.mediadelivery.net/play/262688/3866e75a-83e2-4652-850f-744d83932eca"  width="800" height="300" frameborder="0" allow="autoplay"></iframe> -->
+
+  <!-- </div> -->
+</div>
+</Base>
