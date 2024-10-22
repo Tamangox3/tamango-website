@@ -1,0 +1,47 @@
+<div
+  data-lottie-container
+  class="max-w-[768px] overflow-y-scroll h-dvh relative mx-auto"
+>
+  <div
+    data-lottie-element
+    class="sticky top-0 left-0 right-0 h-dvh overflow-hidden"
+  >
+  </div>
+  <div class="h-[1800px]"></div>
+  <slot />
+</div>
+
+<script>
+  import lottie from "lottie-web";
+
+  // Render the Lottie animation after the component loads
+  const animationContainer = document.querySelector("[data-lottie-container]");
+  const animationElement = document.querySelector("[data-lottie-element]");
+
+  if (animationContainer && animationElement) {
+    const animation = lottie.loadAnimation({
+      container: animationElement,
+      renderer: "svg",
+      loop: false,
+      autoplay: false,
+      path: "/miami/test-1.json",
+    });
+
+    let isThrottled = false;
+
+    animationContainer.addEventListener("scroll", () => {
+      if (!isThrottled) {
+        isThrottled = true;
+        requestAnimationFrame(() => {
+          // Existing scroll logic
+          const scrollHeight =
+            animationContainer.scrollHeight - animationContainer.clientHeight;
+          const scrollTop = animationContainer.scrollTop;
+          const progress = scrollTop / scrollHeight;
+          animation.goToAndStop(animation.totalFrames * progress, true);
+          isThrottled = false;
+        });
+      }
+    });
+  }
+</script>
