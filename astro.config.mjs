@@ -7,5 +7,14 @@ import robotsTxt from "astro-robots-txt";
 // https://astro.build/config
 export default defineConfig({
   site: 'https://www.tamangox3.it',
-  integrations: [tailwind(), sitemap(), robotsTxt()]
+  integrations: [tailwind(), sitemap(), robotsTxt()],
+  vite: {
+    css: {
+        preprocessorOptions: {
+            scss: {
+                api: "modern-compiler"
+            }
+        }
+    }
+  }
 });

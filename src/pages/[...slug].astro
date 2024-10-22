@@ -2,6 +2,7 @@
 import contentful from "@lib/contentful";
 import { type TypePageSkeleton } from "@lib/generated/contentful/index";
 import type { Entry } from "@lib/types";
+import Miami from "src/layouts/Miami.astro";
 import Pan from "src/layouts/Pan.astro";
 import StandardLayout from "src/layouts/StandardLayout.astro";
 
@@ -15,7 +16,7 @@ export async function getStaticPaths() {
     return {
       params: { slug: page.fields.slug == "/" ? undefined : page.fields.slug },
       props: {
-        page: page,
+        page,
       },
     };
   });
@@ -27,6 +28,8 @@ const getLayout = (page: Entry<TypePageSkeleton>) => {
       return StandardLayout;
     case "Pan":
       return Pan;
+    case "Miami":
+      return Miami;
     default:
       return StandardLayout;
   }

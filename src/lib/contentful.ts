@@ -1,5 +1,5 @@
-import contentful from "contentful";
 import chalk from "chalk";
+import * as contentful from 'contentful'
 import { formatTimestamp } from "./utils";
 import type { AxiosRequestConfig } from "axios";
 
