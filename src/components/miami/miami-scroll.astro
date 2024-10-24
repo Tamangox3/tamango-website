@@ -1,47 +1,128 @@
-<div
-  data-lottie-container
-  class="max-w-[768px] overflow-y-scroll h-dvh relative mx-auto"
->
-  <div
-    data-lottie-element
-    class="sticky top-0 left-0 right-0 h-dvh overflow-hidden"
-  >
-  </div>
-  <div class="h-[1800px]"></div>
-  <slot />
-</div>
+<div data-lottie-container class="w-full h-dvh relative"></div>
+<div>ciao</div>
 
 <script>
-  import lottie from "lottie-web";
+  import { LottieScrollTrigger } from "../../lib/animation/lottie-scroll-imposed";
 
-  // Render the Lottie animation after the component loads
-  const animationContainer = document.querySelector("[data-lottie-container]");
-  const animationElement = document.querySelector("[data-lottie-element]");
+  LottieScrollTrigger({
+    scrollTarget: "[data-lottie-container]", // The target container for the scroll event
+    animationTarget: "[data-lottie-container]", // The target container for the Lottie animation
+    path: "/miami/test-1.json", // Path to the Lottie animation file
+    speed: "fast", // Animation speed: 'slow', 'medium', or 'fast'
+    renderer: "svg", // Optional: Renderer type, default is 'svg'
+    autoplay: true,
+  });
 
-  if (animationContainer && animationElement) {
-    const animation = lottie.loadAnimation({
-      container: animationElement,
-      renderer: "svg",
-      loop: false,
-      autoplay: false,
-      path: "/miami/test-1.json",
-    });
+  // import lottie from "lottie-web";
+  // import { Howl } from "howler";
 
-    let isThrottled = false;
+  // let duration = 0; // Sound duration in seconds
+  // let loaded = 0; // Number of loaded assets (Lottie and sound)
+  // let playing = false; // Is the animation playing ?
+  // let isProgrammaticScroll = false; // Is the scroll event triggered programmatically
 
-    animationContainer.addEventListener("scroll", () => {
-      if (!isThrottled) {
-        isThrottled = true;
-        requestAnimationFrame(() => {
-          // Existing scroll logic
-          const scrollHeight =
-            animationContainer.scrollHeight - animationContainer.clientHeight;
-          const scrollTop = animationContainer.scrollTop;
-          const progress = scrollTop / scrollHeight;
-          animation.goToAndStop(animation.totalFrames * progress, true);
-          isThrottled = false;
-        });
-      }
-    });
-  }
+  // const sound = new Howl({
+  //   src: ["/miami/traccia.mp3"],
+  //   autoplay: false,
+  //   loop: true,
+  //   volume: 0.5,
+  //   onload: onDependencyLoaded,
+  //   onend: () => (playing = false),
+  // });
+
+  // // Render the Lottie animation after the component loads
+  // const animationContainer = document.querySelector("[data-lottie-container]");
+  // const animationElement = document.querySelector("[data-lottie-animation]");
+  // const paddingElement = document.querySelector("[data-lottie-padding]");
+
+  // if (!animationContainer || !animationElement || !paddingElement) {
+  //   throw new Error("Missing required elements");
+  // }
+
+  // const animation = lottie.loadAnimation({
+  //   container: animationElement,
+  //   renderer: "svg",
+  //   loop: false,
+  //   autoplay: false,
+  //   path: "/miami/test-1.json",
+  // });
+
+  // animation.addEventListener("data_ready", onDependencyLoaded);
+
+  // animation.addEventListener("complete", () => {
+  //   sound.pause();
+  //   playing = false;
+  // });
+
+  // animationContainer.addEventListener("scroll", () => {
+  //   if (!isProgrammaticScroll) {
+  //     onManualScroll();
+  //   }
+  // });
+
+  // function updateScrollProgrammatically() {
+  //   // Set the flag before scrolling to indicate a programmatic scroll
+  //   isProgrammaticScroll = true;
+
+  //   const progress = sound.seek() / duration;
+  //   const scrollPosition = progress * animationContainer!.scrollHeight;
+  //   animationContainer?.scrollTo(0, scrollPosition);
+
+  //   if (sound.playing()) {
+  //     requestAnimationFrame(updateScrollProgrammatically);
+  //   }
+
+  //   isProgrammaticScroll = false;
+  // }
+
+  // function onManualScroll() {
+  //   requestAnimationFrame(() => {
+  //     // Existing scroll logic
+  //     const scrollHeight =
+  //       animationContainer!.scrollHeight - animationContainer!.clientHeight;
+  //     const scrollTop = animationContainer!.scrollTop;
+  //     const progress = scrollTop / scrollHeight;
+  //     animation.goToAndPlay(animation.totalFrames * progress, true);
+  //     sound.seek(progress * duration);
+
+  //     if (!playing) {
+  //       sound.play();
+  //       playing = true;
+  //     }
+  //   });
+  // }
+
+  // function onDependencyLoaded() {
+  //   loaded++;
+  //   if (loaded === 2) {
+  //     duration = sound.duration();
+  //     // Set animation duration to be the same as the sound duration
+  //     const animationDuration = animation.getDuration();
+  //     animation.setSpeed(animation.totalFrames / duration);
+  //     toggleAnimation();
+  //   }
+  // }
+
+  // function toggleAnimation() {
+  //   // Set padding element based on audio track duration
+  //   const deviceHeight = window.innerHeight;
+  //   paddingElement?.setAttribute(
+  //     "style",
+  //     `height: ${(duration / 5) * deviceHeight}px`
+  //   );
+  //   animationContainer?.addEventListener("click", () => {
+  //     if (playing) {
+  //       animation.pause();
+  //       sound.pause();
+  //       playing = false;
+  //       return;
+  //     } else {
+  //       animation.play();
+  //       sound.play();
+  //       playing = true;
+  //     }
+  //   });
+  // }
 </script>
+
+<style lang="scss"></style>
