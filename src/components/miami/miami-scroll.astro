@@ -1,128 +1,57 @@
-<div data-lottie-container class="w-full h-dvh relative"></div>
-<div>ciao</div>
+<button
+  data-lottie-trigger
+  class="fixed top-0 l-0 cursor-pointer p-2 z-10"
+  aria-label="Play"
+>
+  Play
+</button>
+
+<div data-lottie-container class="">
+  <div data-lottie-animation class="h-dvh"></div>
+</div>
 
 <script>
-  import { LottieScrollTrigger } from "../../lib/animation/lottie-scroll-imposed";
+  import { Howl } from "howler";
+  import {
+    LottieScrollTrigger,
+    fetchLottieData,
+  } from "../../lib/miami/lottie-scroll";
+  import { fetchAudioTrack } from "../../lib/miami/audio";
 
-  LottieScrollTrigger({
-    scrollTarget: "[data-lottie-container]", // The target container for the scroll event
-    animationTarget: "[data-lottie-container]", // The target container for the Lottie animation
-    path: "/miami/test-1.json", // Path to the Lottie animation file
-    speed: "fast", // Animation speed: 'slow', 'medium', or 'fast'
-    renderer: "svg", // Optional: Renderer type, default is 'svg'
-    autoplay: true,
+  const [audio, animationData] = await Promise.all([
+    fetchAudioTrack("/miami/traccia.mp3"),
+    fetchLottieData("/miami/test-1.json"),
+  ]);
+
+  const audioLayer = new Howl({
+    src: [audio],
+    format: ["mp3"],
+    volume: 1,
+    html5: true,
   });
 
-  // import lottie from "lottie-web";
-  // import { Howl } from "howler";
+  const animation = LottieScrollTrigger({
+    containerTarget: "[data-lottie-container]",
+    animationTarget: "[data-lottie-animation]",
+    animationData,
+    audioLayer,
+    renderer: "svg",
+    durationPx: 10000,
+  });
 
-  // let duration = 0; // Sound duration in seconds
-  // let loaded = 0; // Number of loaded assets (Lottie and sound)
-  // let playing = false; // Is the animation playing ?
-  // let isProgrammaticScroll = false; // Is the scroll event triggered programmatically
+  const button = document.querySelector("[data-lottie-trigger]");
 
-  // const sound = new Howl({
-  //   src: ["/miami/traccia.mp3"],
-  //   autoplay: false,
-  //   loop: true,
-  //   volume: 0.5,
-  //   onload: onDependencyLoaded,
-  //   onend: () => (playing = false),
-  // });
-
-  // // Render the Lottie animation after the component loads
-  // const animationContainer = document.querySelector("[data-lottie-container]");
-  // const animationElement = document.querySelector("[data-lottie-animation]");
-  // const paddingElement = document.querySelector("[data-lottie-padding]");
-
-  // if (!animationContainer || !animationElement || !paddingElement) {
-  //   throw new Error("Missing required elements");
-  // }
-
-  // const animation = lottie.loadAnimation({
-  //   container: animationElement,
-  //   renderer: "svg",
-  //   loop: false,
-  //   autoplay: false,
-  //   path: "/miami/test-1.json",
-  // });
-
-  // animation.addEventListener("data_ready", onDependencyLoaded);
-
-  // animation.addEventListener("complete", () => {
-  //   sound.pause();
-  //   playing = false;
-  // });
-
-  // animationContainer.addEventListener("scroll", () => {
-  //   if (!isProgrammaticScroll) {
-  //     onManualScroll();
-  //   }
-  // });
-
-  // function updateScrollProgrammatically() {
-  //   // Set the flag before scrolling to indicate a programmatic scroll
-  //   isProgrammaticScroll = true;
-
-  //   const progress = sound.seek() / duration;
-  //   const scrollPosition = progress * animationContainer!.scrollHeight;
-  //   animationContainer?.scrollTo(0, scrollPosition);
-
-  //   if (sound.playing()) {
-  //     requestAnimationFrame(updateScrollProgrammatically);
-  //   }
-
-  //   isProgrammaticScroll = false;
-  // }
-
-  // function onManualScroll() {
-  //   requestAnimationFrame(() => {
-  //     // Existing scroll logic
-  //     const scrollHeight =
-  //       animationContainer!.scrollHeight - animationContainer!.clientHeight;
-  //     const scrollTop = animationContainer!.scrollTop;
-  //     const progress = scrollTop / scrollHeight;
-  //     animation.goToAndPlay(animation.totalFrames * progress, true);
-  //     sound.seek(progress * duration);
-
-  //     if (!playing) {
-  //       sound.play();
-  //       playing = true;
-  //     }
-  //   });
-  // }
-
-  // function onDependencyLoaded() {
-  //   loaded++;
-  //   if (loaded === 2) {
-  //     duration = sound.duration();
-  //     // Set animation duration to be the same as the sound duration
-  //     const animationDuration = animation.getDuration();
-  //     animation.setSpeed(animation.totalFrames / duration);
-  //     toggleAnimation();
-  //   }
-  // }
-
-  // function toggleAnimation() {
-  //   // Set padding element based on audio track duration
-  //   const deviceHeight = window.innerHeight;
-  //   paddingElement?.setAttribute(
-  //     "style",
-  //     `height: ${(duration / 5) * deviceHeight}px`
-  //   );
-  //   animationContainer?.addEventListener("click", () => {
-  //     if (playing) {
-  //       animation.pause();
-  //       sound.pause();
-  //       playing = false;
-  //       return;
-  //     } else {
-  //       animation.play();
-  //       sound.play();
-  //       playing = true;
-  //     }
-  //   });
-  // }
+  button?.addEventListener("click", () => {
+    if (audioLayer.playing()) {
+      audioLayer.pause();
+      animation.pause();
+      button.textContent = "Play";
+    } else {
+      audioLayer.play();
+      animation.play();
+      button.textContent = "Pause";
+    }
+  });
 </script>
 
 <style lang="scss"></style>
