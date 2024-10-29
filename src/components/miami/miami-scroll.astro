@@ -18,23 +18,23 @@
   } from "../../lib/miami/lottie-scroll";
   import { fetchAudioTrack } from "../../lib/miami/audio";
 
-  const [audio, animationData] = await Promise.all([
-    fetchAudioTrack("/miami/traccia.mp3"),
-    fetchLottieData("/miami/test-1.json"),
+  const [animationData] = await Promise.all([
+    //fetchAudioTrack("/miami/traccia.mp3"),
+    fetchLottieData("/miami/lottie-audio.json"),
   ]);
 
-  const audioLayer = new Howl({
-    src: [audio],
-    format: ["mp3"],
-    volume: 1,
-    html5: true,
-  });
+  // const audioLayer = new Howl({
+  //   src: [audio],
+  //   format: ["mp3"],
+  //   volume: 1,
+  //   html5: true,
+  // });
 
   const animation = LottieScrollTrigger({
     containerTarget: "[data-lottie-container]",
     animationTarget: "[data-lottie-animation]",
     animationData,
-    audioLayer,
+    // audioLayer,
     renderer: "svg",
     durationPx: 10000,
   });
@@ -42,14 +42,14 @@
   const button = document.querySelector("[data-lottie-trigger]");
 
   button?.addEventListener("click", () => {
-    if (audioLayer.playing()) {
-      audioLayer.pause();
-      animation.pause();
-      button.textContent = "Play";
-    } else {
-      audioLayer.play();
+    if (animation.isPaused) {
+      console.log("pause");
       animation.play();
       button.textContent = "Pause";
+    } else {
+      console.log("play");
+      animation.play();
+      button.textContent = "Play";
     }
   });
 </script>
