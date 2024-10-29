@@ -33,8 +33,33 @@ export function LottieScrollTrigger(vars: LottieScrollTriggerVars) {
     animationData: vars.animationData,
     loop: false,
     autoplay: false,
-    rendererSettings: vars.rendererSettings ?? {}
+    rendererSettings: vars.rendererSettings ?? {},
+    audioFactory: (path) => {
+      const howl = new Howl({
+        src: [path],
+        autoplay: false,
+        html5: true,
+      });
+      return {
+        play: () => {
+          if (howl.playing()) return;
+          howl.play();
+        },
+        pause: () => howl.pause(),
+        seek: (at?: number) => {
+          console.log("seek", at);
+          if (at !== undefined) howl.seek(at);
+        },
+        playing: () => howl.playing(),
+        rate: () => howl.rate(),
+        setVolume: () => howl.volume(1),
+      } as any;
+    }
   });
+
+  // animation.addEventListener("drawnFrame", function (e) {
+  //   console.log("drawnFrame", e);
+  // });
   
   const scrollTrigger = {  
     trigger: containerTarget,
