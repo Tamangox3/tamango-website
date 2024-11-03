@@ -11,44 +11,46 @@
 </div>
 
 <script>
-  import { Howl } from "howler";
   import {
     LottieScrollTrigger,
     fetchLottieData,
   } from "../../lib/miami/lottie-scroll";
   import { fetchAudioTrack } from "../../lib/miami/audio";
 
-  const [animationData] = await Promise.all([
-    //fetchAudioTrack("/miami/traccia.mp3"),
-    fetchLottieData("/miami/lottie-audio.json"),
+  const isDev = import.meta.env.MODE === "development";
+
+  const logger = {
+    log: (...args: any[]) => {
+      if (isDev) {
+        console.log(...args);
+      }
+    },
+  };
+
+  const [audio, animationData] = await Promise.all([
+    fetchAudioTrack("/miami/traccia.mp3"),
+    fetchLottieData("/miami/lottie-no-audio.json"),
   ]);
 
-  // const audioLayer = new Howl({
-  //   src: [audio],
-  //   format: ["mp3"],
-  //   volume: 1,
-  //   html5: true,
-  // });
-
-  const animation = LottieScrollTrigger({
+  const animation = new LottieScrollTrigger({
     containerTarget: "[data-lottie-container]",
     animationTarget: "[data-lottie-animation]",
     animationData,
-    // audioLayer,
+    audioBlob: audio,
     renderer: "svg",
     durationPx: 10000,
+    debug: isDev,
+    logger,
   });
 
   const button = document.querySelector("[data-lottie-trigger]");
 
   button?.addEventListener("click", () => {
     if (animation.isPaused) {
-      console.log("pause");
       animation.play();
       button.textContent = "Pause";
     } else {
-      console.log("play");
-      animation.play();
+      animation.pause();
       button.textContent = "Play";
     }
   });
