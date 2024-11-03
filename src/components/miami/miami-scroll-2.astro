@@ -14,24 +14,30 @@
 </div>
 
 <script>
-  import lottie from 'lottie-web';
-  import { Howl } from 'howler';
-  
+  import lottie from "lottie-web";
+  import { Howl } from "howler";
+
+  declare global {
+    interface Window {
+      scrollTimeout?: NodeJS.Timeout;
+    }
+  }
+
   const element = document.querySelector("[lottie-animation]");
 
   if (element instanceof HTMLElement) {
     const animation = lottie.loadAnimation({
       container: element,
-      renderer: 'svg',
+      renderer: "svg",
       loop: true,
       autoplay: false,
-      path: '/miami/lottie-audio.json',
-      assetsPath: '/miami/images/',
+      path: "/miami/lottie-audio.json",
+      assetsPath: "/miami/images/",
     });
 
     // Initialize audio
     const sound = new Howl({
-      src: ['/miami/traccia.mp3'],
+      src: ["/miami/traccia.mp3"],
       html5: true,
       preload: true,
       onload: () => {
@@ -41,7 +47,7 @@
         if (spacer) {
           spacer.style.height = `${durationInSeconds * pixelsPerSecond}px`;
         }
-      }
+      },
     });
 
     const playButton = document.getElementById("playButton");
@@ -56,13 +62,13 @@
       playButton.addEventListener("click", () => {
         sound.play();
         animation.play();
-        playButton.style.display = 'none';
+        playButton.style.display = "none";
       });
 
       pauseButton.addEventListener("click", () => {
         sound.pause();
         animation.pause();
-        playButton.style.display = 'block';
+        playButton.style.display = "block";
       });
 
       container.addEventListener("scroll", () => {
@@ -71,19 +77,19 @@
         const currentTime = Date.now();
         const scrollTop = container.scrollTop;
         const timeDelta = currentTime - lastScrollTime;
-        
+
         // Calculate scroll velocity (pixels per millisecond)
         scrollVelocity = Math.abs(scrollTop - lastScrollTop) / timeDelta;
-        
+
         // Convert velocity to playback rate (adjust these values as needed)
-        const minRate = 0.5;  // Minimum playback rate
-        const maxRate = 2.0;  // Maximum playback rate
+        const minRate = 0.5; // Minimum playback rate
+        const maxRate = 2.0; // Maximum playback rate
         const baseRate = 1.0; // Normal playback rate
-        
+
         // Calculate new playback rate based on scroll velocity
-        let newRate = baseRate + (scrollVelocity * 10); // Adjust multiplier as needed
+        let newRate = baseRate + scrollVelocity * 10; // Adjust multiplier as needed
         newRate = Math.max(minRate, Math.min(maxRate, newRate));
-        
+
         // Apply the new playback rate to both audio and animation
         sound.rate(newRate);
         animation.setSpeed(newRate);
@@ -108,7 +114,7 @@
       });
 
       // Sync animation with audio progress during normal playback
-      sound.on('play', () => {
+      sound.on("play", () => {
         requestAnimationFrame(function updateAnimation() {
           if (sound.playing()) {
             const progress = sound.seek() / sound.duration();
