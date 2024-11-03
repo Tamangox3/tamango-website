@@ -2,8 +2,12 @@ import { gsap } from "gsap";
 import { Howl } from "howler";
 import lottie from "lottie-web";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import ScrollToPlugin from "gsap/ScrollToPlugin";
 import type { AnimationItem } from "lottie-web";
+
 gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollToPlugin);
+
 
 interface ExtendedAnimationItem extends AnimationItem {
   frameAnimation?: gsap.core.Timeline;
@@ -33,7 +37,7 @@ export class LottieScrollTrigger {
   private readonly logger?: DummyLogger;
   private readonly containerTarget: HTMLElement;
   private readonly animationTarget: HTMLElement;
-  private started = false;
+  private readonly durationPx: number;
 
   constructor(vars: LottieScrollTriggerVars) {
     this.logger = vars.logger;
@@ -52,6 +56,8 @@ export class LottieScrollTrigger {
       });
     }
 
+    this.durationPx = vars.durationPx ?? 2500;
+
     this.animation = lottie.loadAnimation({
       container: this.animationTarget,
       renderer: vars.renderer ?? "svg",
@@ -64,7 +70,7 @@ export class LottieScrollTrigger {
     const scrollTrigger = {  
       trigger: this.containerTarget,
       start: "top top",
-      end: `+=${vars.durationPx ?? 2500}px bottom`,
+      end: `+=${this.durationPx}px bottom`,
       pin: true,
       markers: vars.debug,
       scrub: .11,
@@ -83,18 +89,13 @@ export class LottieScrollTrigger {
           ease: "none",
           duration: frameAnimation.duration() || 1,
           onUpdate: () => {
-            this.logger?.log("Frame:", playhead.frame);
-            if (this.isPaused) {
-              this.animation.goToAndStop(playhead.frame, true);
-            } else {
-              this.animation.goToAndPlay(playhead.frame, true);
-            }
+            this.animation.goToAndStop(playhead.frame, true);
             // if audio and animation are not in sync, this is where you'd update the audio
             if (this.audioLayer) {
               const progress = playhead.frame / this.animation.totalFrames; // Between 0 and 1
               const audioCurrentTime = this.audioLayer.seek();
               const audioShouldBe = this.audioLayer.duration() * progress;
-              if (Math.abs(audioCurrentTime - audioShouldBe) > 0.1) {
+              if (Math.abs(audioCurrentTime - audioShouldBe) > 0.5) {
                 this.logger?.log("Audio out of sync, seeking to", audioShouldBe);
                 this.audioLayer.seek(audioShouldBe);
               }
@@ -108,7 +109,30 @@ export class LottieScrollTrigger {
 
     this.animation.frameAnimation = frameAnimation;
 
-    setTimeout(() => this.pause(), 100);
+    setTimeout(() => {
+      this.pause();
+    }, 100);
+  }
+
+  autoscroll(duration: number) {
+    console.log("Autoscrolling", duration, this.durationPx);
+    gsap.to(window, {
+      scrollTo: {
+        y: this.durationPx,
+        autoKill: true, // Stops autoscroll if the user scrolls manually
+      },
+      duration,
+      onStart: () => this.logger?.log("Starting autoscroll"),
+      onComplete: () => this.logger?.log("Autoscroll complete"),
+      onUpdate: () => this.logger?.log("Autoscrolling", window.scrollY),
+    });
+  }
+
+  toggleAutoscroll(isEnabled: boolean) {
+    if (!this.audioLayer) return;
+    const remaining = this.audioLayer.duration() - this.audioLayer.seek();
+    if (isEnabled) this.autoscroll(remaining);
+    else gsap.killTweensOf(window); // Stop autoscroll if toggled off
   }
 
   get isPaused() {
@@ -116,15 +140,16 @@ export class LottieScrollTrigger {
   }
 
   play() {
-    this.started = true;
     if (this.animation.isPaused) this.animation.play();
     if (!this.audioLayer?.playing()) this.audioLayer?.play();
+    this.toggleAutoscroll(true);
     this.logger?.log("Playing animation");
   }
 
   pause() {
     if (!this.animation.isPaused) this.animation.pause();
     if (this.audioLayer?.playing()) this.audioLayer?.pause();
+    this.toggleAutoscroll(false);
     this.logger?.log("Pausing animation");
   }
 }
