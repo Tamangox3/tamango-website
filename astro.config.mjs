@@ -6,7 +6,7 @@ import robotsTxt from "astro-robots-txt";
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://www.tamangox3.it',
+  site: process.env.SITE_URL ?? 'https://www.tamango.co',
   integrations: [tailwind(), sitemap(), robotsTxt()],
   vite: {
     css: {
