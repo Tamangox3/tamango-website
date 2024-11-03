@@ -1,116 +1,136 @@
 import { gsap } from "gsap";
+import { Howl } from "howler";
 import lottie from "lottie-web";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { AnimationItem } from "lottie-web";
-
-const isDev = import.meta.env.MODE === "development";
 gsap.registerPlugin(ScrollTrigger);
 
 interface ExtendedAnimationItem extends AnimationItem {
   frameAnimation?: gsap.core.Timeline;
 }
 
+interface DummyLogger {
+  log: (...props: any[]) => void;
+}
+
 interface LottieScrollTriggerVars {
   containerTarget: string | HTMLElement;
   animationTarget: string | HTMLElement;
-  path?: string;
   animationData?: any;
-  audioLayer?: Howl;
+  audioBlob?: string;
   renderer?: "svg" | "canvas" | "html";
   durationPx?: number;
   rendererSettings?: Record<string, any>;
   scrollTriggerVars?: Partial<ScrollTrigger.Vars>;
+  debug?: boolean;
+  logger?: DummyLogger;
 }
 
-export function LottieScrollTrigger(vars: LottieScrollTriggerVars) {
-  const playhead = { frame: 0 };
-  const [containerTarget, animationTarget] = gsap.utils.toArray([vars.containerTarget, vars.animationTarget]) as HTMLElement[];
+export class LottieScrollTrigger {
+  private readonly animation: ExtendedAnimationItem;
+  private readonly audioLayer?: Howl;
+  private readonly gsapCtx?: gsap.Context;
+  private readonly logger?: DummyLogger;
+  private readonly containerTarget: HTMLElement;
+  private readonly animationTarget: HTMLElement;
+  private started = false;
 
-  const animation: ExtendedAnimationItem = lottie.loadAnimation({
-    container: animationTarget,
-    renderer: vars.renderer ?? "svg",
-    path: vars.path,
-    animationData: vars.animationData,
-    loop: false,
-    autoplay: false,
-    rendererSettings: vars.rendererSettings ?? {},
-    audioFactory: (path) => {
-      const howl = new Howl({
-        src: [path],
-        autoplay: false,
+  constructor(vars: LottieScrollTriggerVars) {
+    this.logger = vars.logger;
+    [
+      this.containerTarget, 
+      this.animationTarget
+    ] = gsap.utils.toArray([vars.containerTarget, vars.animationTarget]) as HTMLElement[];
+
+    if (vars.audioBlob) {
+      this.audioLayer = new Howl({
+        src: [vars.audioBlob],
+        format: ["mp3"],
+        volume: 1,
         html5: true,
+        loop: false,
       });
-      return {
-        play: () => {
-          if (howl.playing()) return;
-          howl.play();
-        },
-        pause: () => howl.pause(),
-        seek: (at?: number) => {
-          console.log("seek", at);
-          if (at !== undefined) howl.seek(at);
-        },
-        playing: () => howl.playing(),
-        rate: () => howl.rate(),
-        setVolume: () => howl.volume(1),
-      } as any;
     }
-  });
 
-  // animation.addEventListener("drawnFrame", function (e) {
-  //   console.log("drawnFrame", e);
-  // });
-  
-  const scrollTrigger = {  
-    trigger: containerTarget,
-    start: "top top",
-    end: `+=${vars.durationPx ?? 2500}px bottom`,
-    pin: true,
-    markers: isDev,
-    scrub: .11,
-    ...vars.scrollTriggerVars
-  } satisfies ScrollTrigger.Vars;
-  
-  const ctx = gsap.context && gsap.context();
+    this.animation = lottie.loadAnimation({
+      container: this.animationTarget,
+      renderer: vars.renderer ?? "svg",
+      animationData: vars.animationData,
+      loop: false,
+      autoplay: false,
+      rendererSettings: vars.rendererSettings ?? {},
+    });
+    
+    const scrollTrigger = {  
+      trigger: this.containerTarget,
+      start: "top top",
+      end: `+=${vars.durationPx ?? 2500}px bottom`,
+      pin: true,
+      markers: vars.debug,
+      scrub: .11,
+      ...vars.scrollTriggerVars
+    } satisfies ScrollTrigger.Vars;
+    
+    this.gsapCtx = gsap.context && gsap.context();
 
-  const frameAnimation = gsap.timeline({ scrollTrigger });
+    const frameAnimation = gsap.timeline({ scrollTrigger });
+    const playhead = { frame: 0 };
 
-  animation.addEventListener("DOMLoaded", function () {
-    let createTween = function () {
-      animation.goToAndStop(playhead.frame, true);
+    let createTween = () => {
+      this.animation.goToAndStop(playhead.frame, true);
       frameAnimation.to(playhead, {
-          frame: animation.totalFrames - 1,
+          frame: this.animation.totalFrames - 1,
           ease: "none",
           duration: frameAnimation.duration() || 1,
           onUpdate: () => {
-            animation.goToAndPlay(playhead.frame, true);
+            this.logger?.log("Frame:", playhead.frame);
+            if (this.isPaused) {
+              this.animation.goToAndStop(playhead.frame, true);
+            } else {
+              this.animation.goToAndPlay(playhead.frame, true);
+            }
             // if audio and animation are not in sync, this is where you'd update the audio
-            if (vars.audioLayer) {
-              const progress = playhead.frame / animation.totalFrames; // Between 0 and 1
-              const audioCurrentTime = vars.audioLayer.seek();
-              const audioShouldBe = vars.audioLayer.duration() * progress;
+            if (this.audioLayer) {
+              const progress = playhead.frame / this.animation.totalFrames; // Between 0 and 1
+              const audioCurrentTime = this.audioLayer.seek();
+              const audioShouldBe = this.audioLayer.duration() * progress;
               if (Math.abs(audioCurrentTime - audioShouldBe) > 0.1) {
-                vars.audioLayer.seek(audioShouldBe);
-              }
-              if (vars.audioLayer.playing() === false) {
-                vars.audioLayer.play();
+                this.logger?.log("Audio out of sync, seeking to", audioShouldBe);
+                this.audioLayer.seek(audioShouldBe);
               }
             }
           },
         }, 0);
-      return () => animation.destroy && animation.destroy();
+      return () => this.animation.destroy && this.animation.destroy();
     };
-    ctx && ctx.add ? ctx.add(createTween) : createTween();
-    // in case there are any other ScrollTriggers on the page and the loading of this Lottie asset caused layout changes
-    ScrollTrigger.sort();
-    ScrollTrigger.refresh();
-  });
 
-  animation.frameAnimation = frameAnimation;
+    this.gsapCtx && this.gsapCtx.add ? this.gsapCtx.add(createTween) : createTween();
 
-  return animation;
+    this.animation.frameAnimation = frameAnimation;
+
+    setTimeout(() => this.pause(), 100);
+  }
+
+  get isPaused() {
+    return this.animation.isPaused;
+  }
+
+  play() {
+    this.started = true;
+    if (this.animation.isPaused) this.animation.play();
+    if (!this.audioLayer?.playing()) this.audioLayer?.play();
+    this.logger?.log("Playing animation");
+  }
+
+  pause() {
+    if (!this.animation.isPaused) this.animation.pause();
+    if (this.audioLayer?.playing()) this.audioLayer?.pause();
+    this.logger?.log("Pausing animation");
+  }
 }
 
-export function fetchLottieData(url: string): Promise<unknown> {
-  return fetch(url).then(response => response.json());
+export async function fetchLottieData(url: string): Promise<unknown> {
+  const res = await fetch(url)
+  const json = await res.json();
+  return json;
 }
