@@ -1,4 +1,22 @@
 [[redirects]]
-from = "/*"
-to = "/index.html"
-status = 301
+  from = "https://www.tamangox3.it/*"
+  to = "https://www.tamango.co/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://tamangox3.it/*"
+  to = "https://www.tamango.co/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://tamango.co/*"
+  to = "https://www.tamango.co/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 301
