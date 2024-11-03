@@ -27,18 +27,20 @@
     },
   };
 
-  const [audio, animationData] = await Promise.all([
+  const [audioBlob, animationData] = await Promise.all([
     fetchAudioTrack("/miami/traccia.mp3"),
     fetchLottieData("/miami/lottie-no-audio.json"),
   ]);
+
+  const durationSec = 275.12;
 
   const animation = new LottieScrollTrigger({
     containerTarget: "[data-lottie-container]",
     animationTarget: "[data-lottie-animation]",
     animationData,
-    audioBlob: audio,
+    audioBlob,
     renderer: "svg",
-    durationPx: 10000,
+    durationPx: durationSec * 2 * window.innerHeight,
     debug: isDev,
     logger,
   });
