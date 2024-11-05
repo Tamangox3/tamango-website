@@ -32,7 +32,7 @@
     fetchLottieData("/miami/lottie-no-audio.json"),
   ]);
 
-  const durationSec = 275.12;
+  const durationPx = 3000;
 
   const animation = new LottieScrollTrigger({
     containerTarget: "[data-lottie-container]",
@@ -40,7 +40,7 @@
     animationData,
     audioBlob,
     renderer: "svg",
-    durationPx: durationSec * 2 * window.innerHeight,
+    durationPx,
     debug: isDev,
     logger,
   });
@@ -48,6 +48,7 @@
   const button = document.querySelector("[data-lottie-trigger]");
 
   button?.addEventListener("click", () => {
+    console.log("click", animation.isPaused);
     if (animation.isPaused) {
       animation.play();
       button.textContent = "Pause";
