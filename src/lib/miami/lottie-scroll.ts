@@ -51,7 +51,7 @@ export class LottieScrollTrigger {
         src: [vars.audioBlob],
         format: ["mp3"],
         volume: 1,
-        html5: false,
+        html5: true, // does not work on mobile otherwise
         loop: false,
       });
     }
