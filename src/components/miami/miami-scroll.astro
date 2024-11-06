@@ -45,17 +45,18 @@
     logger,
   });
 
+  animation.on("complete", () => {
+    logger.log("Animation complete");
+    if (button) {
+      button.textContent = animation.isPaused ? "Play" : "Pause";
+    }
+  });
+
   const button = document.querySelector("[data-lottie-trigger]");
 
   button?.addEventListener("click", () => {
-    console.log("click", animation.isPaused);
-    if (animation.isPaused) {
-      animation.play();
-      button.textContent = "Pause";
-    } else {
-      animation.pause();
-      button.textContent = "Play";
-    }
+    animation.toggle();
+    button.textContent = animation.isPaused ? "Play" : "Pause";
   });
 </script>
 

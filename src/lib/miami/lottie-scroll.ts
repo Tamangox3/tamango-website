@@ -3,7 +3,7 @@ import { Howl } from "howler";
 import lottie from "lottie-web";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollToPlugin from "gsap/ScrollToPlugin";
-import type { AnimationItem } from "lottie-web";
+import type { AnimationEventName, AnimationItem } from "lottie-web";
 
 gsap.registerPlugin(ScrollTrigger);
 gsap.registerPlugin(ScrollToPlugin); 
@@ -159,6 +159,15 @@ export class LottieScrollTrigger {
     if (this.audioLayer?.playing()) this.audioLayer?.pause();
     this.toggleAutoscroll(false);
     this.logger?.log("Pausing animation");
+  }
+
+  toggle() {
+    if (this.animation.isPaused) this.play();
+    else this.pause();
+  }
+
+  on(eventName: AnimationEventName, callback: () => void) {
+    this.animation.addEventListener(eventName, callback);
   }
 
   private setupDebug() {
