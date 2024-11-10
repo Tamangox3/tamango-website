@@ -73,7 +73,7 @@ export class LottieScrollTrigger {
       loop: false,
       autoplay: false,
       rendererSettings: vars.rendererSettings ?? {},
-      assetsPath: 'miami1/images/'
+      assetsPath: '/miami1/images/'
     });
 
     const scrollTrigger = {
