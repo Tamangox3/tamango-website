@@ -30,8 +30,8 @@
 
   async function init() {
     const [audioBlob, animationData] = await Promise.all([
-      fetchAudioTrack("/miami/traccia.mp3"),
-      fetchLottieData("/miami/lottie-no-audio.json"),
+      fetchAudioTrack("/miami1/traccia.mp3"),
+      fetchLottieData("/miami1/lottie-no-audio.json"),
     ]);
 
     logger.log("Data loaded", audioBlob, animationData);
