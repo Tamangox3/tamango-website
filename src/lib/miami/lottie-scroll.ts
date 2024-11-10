@@ -5,9 +5,15 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollToPlugin from "gsap/ScrollToPlugin";
 import type { AnimationEventName, AnimationItem } from "lottie-web";
 
+
 gsap.registerPlugin(ScrollTrigger);
 gsap.registerPlugin(ScrollToPlugin); 
 
+
+ScrollTrigger.config({ ignoreMobileResize: false });
+if (ScrollTrigger.isTouch === 1) {
+  ScrollTrigger.normalizeScroll(true);
+}
 
 interface ExtendedAnimationItem extends AnimationItem {
   frameAnimation?: gsap.core.Timeline;
@@ -45,6 +51,8 @@ export class LottieScrollTrigger {
       this.containerTarget,
       this.animationTarget
     ] = gsap.utils.toArray([vars.containerTarget, vars.animationTarget]) as HTMLElement[];
+
+    this.logger?.log("Initializing LottieScrollTrigger", this.animationTarget, this.containerTarget);
 
     if (vars.audioBlob) {
       this.audioLayer = new Howl({
@@ -110,6 +118,9 @@ export class LottieScrollTrigger {
     };
 
     this.gsapCtx && this.gsapCtx.add ? this.gsapCtx.add(createTween) : createTween();
+
+    ScrollTrigger.sort();
+    ScrollTrigger.refresh();
 
     this.animation.frameAnimation = frameAnimation;
 
