@@ -24,7 +24,8 @@
   >
     0%
   </div>
-  <button id="playButton" class="fixed bottom-1/2 left-3/4  -translate-x-1/2 z-50">Play</button>
+  <button id="playButton" class="fixed top-4 left-1/2  -translate-x-1/2 z-50">Play</button>
+  <button id="skipButton" class=" fixed bottom-4 right-1/2 -translate-x-1/2 z-50">Skip</button>
   <slot />
 
 </div>
@@ -39,23 +40,41 @@
     const container: HTMLElement | null = document.querySelector("[data-lottie-container]");
     const playButton: HTMLElement | null = document.getElementById("playButton");
     const percentageBar: HTMLElement | null = document.getElementById("progress-bar");
+    const skipButton: HTMLElement | null = document.getElementById("skipButton");
 
     let isPlaying: boolean = false;
+    let isFinished: boolean = false;
     let progress: number = 0;
     let currentTime: number = 0;
-    let currentHeight: number = 0;
+    let currentFrame: number = 0;
+    const thresholdScrollVelocity = 0.25;
+    let totalFrames: number = 0;
 
-    if (!(element instanceof HTMLElement) || !container || !playButton || !percentageBar) {
+    if (!(element instanceof HTMLElement) || !container || !playButton || !percentageBar || !skipButton) {
       throw new Error("Required elements not found");
     }
 
     const animation = lottie.loadAnimation({
       container: element,
       renderer: "svg",
-      loop: true,
+      loop: false,
       autoplay: false,
       path: "/miami1/lottie-no-audio.json",
       assetsPath: "/miami1/images/",
+    });
+
+    // Add DOMLoaded event listener to get accurate totalFrames
+    animation.addEventListener('DOMLoaded', () => {
+      totalFrames = animation.totalFrames;
+    });
+
+
+    animation.addEventListener('complete', () => {
+      isFinished = true;
+      if (playButton) {
+        playButton.textContent = "Restart";
+      }
+      sound.stop();
     });
 
     const sound = new Howl({
@@ -72,30 +91,114 @@
       },
     });
 
+    sound.on("end", () => {
+      isFinished = true;
+      if (playButton) {
+        playButton.textContent = "Restart";
+      }
+      animation.stop();
+    });
+
     let lastScrollTop = 0;
     let lastScrollTime = Date.now();
     let scrollVelocity = 0;
 
     const updateProgress = (newProgress: number) => {
-      progress = newProgress;
-      currentTime = sound.duration()//  * progress;
+      // Clamp progress between 0 and 1
+      progress = Math.min(1, Math.max(0, newProgress));
+      
+      // Update the current time based on total duration and progress
+      currentTime = sound.duration() * progress;
+
+      // Update the progress bar display with more precision
       if (percentageBar) {
-        const percentage = Math.round(progress * 100);
+        // Round to nearest integer but ensure we reach 100%
+        const percentage = progress >= 0.995 ? 100 : Math.round(progress * 100);
         percentageBar.textContent = `${percentage}%`;
+      }
+
+      // Check if animation has reached the end (use a threshold)
+      if (progress >= 0.98) {
+        isFinished = true;
+        sound.stop();
+        animation.stop();
+        if (playButton) {
+          playButton.textContent = "Restart";
+        }
       }
     };
 
     playButton.addEventListener("click", () => {
-      if (isPlaying) {
+      if (isFinished) {
+        // Reset everything
+        isFinished = false;
+        progress = 0;
+        currentFrame = 0;
+        currentTime = 0;
+        sound.seek(0);
+        animation.goToAndStop(0, true);
+        updateProgress(0);
+        
+        // Start playing
+        sound.play();
+        animation.play();
+        isPlaying = true;
+        playButton.textContent = "Pause";
+      } else if (isPlaying) {
         sound.pause();
         animation.pause();
+        isPlaying = false;
+        playButton.textContent = "Play";
       } else {
         sound.play();
         animation.play();
+        isPlaying = true;
+        playButton.textContent = "Pause";
       }
-      isPlaying = !isPlaying;
-      playButton.textContent = isPlaying ? "Pause" : "Play";
     });
+
+
+
+    skipButton.addEventListener("click", () => {  
+      const currentContainer = container.closest('.bg-black');
+      const nextSection = currentContainer?.nextElementSibling;
+      
+      if (skipButton.textContent === "Skip") {
+        // Going down
+        playButton.style.display = "none";
+        sound.stop();
+        sound.seek(sound.duration());
+        animation.stop();
+        animation.goToAndStop(totalFrames, true);
+        isPlaying = false;
+        isFinished = true;
+        playButton.textContent = "Play";
+        skipButton.textContent = "Go back";
+        
+        if (nextSection) {
+          setTimeout(() => {
+            nextSection.scrollIntoView({ 
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }, 100);
+        }
+      } else {
+        // Going back up
+        skipButton.textContent = "Skip";
+        playButton.style.display = "block";
+        if (currentContainer) {
+          setTimeout(() => {
+            currentContainer.scrollIntoView({ 
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }, 100);
+        }
+      }
+    });
+
+    
 
     container.addEventListener("scroll", () => {
       if (!sound.playing()) return;
@@ -105,6 +208,7 @@
       const timeDelta = currentTime - lastScrollTime;
 
       scrollVelocity = Math.abs(scrollTop - lastScrollTop) / timeDelta;
+      scrollVelocity = Math.max(thresholdScrollVelocity, scrollVelocity);
 
       const minRate = 0.5;
       const maxRate = 2.0;
@@ -117,11 +221,13 @@
       animation.setSpeed(newRate);
 
       const scrollHeight = container.scrollHeight - container.clientHeight;
-      progress = scrollTop / scrollHeight;
+      // More precise progress calculation
+      const rawProgress = scrollTop / scrollHeight;
+      progress = Math.min(1, Math.max(0, rawProgress));
       const newTime = sound.duration() * progress;
       
       sound.seek(newTime);
-      animation.goToAndStop(animation.totalFrames * progress, true);
+      animation.goToAndStop(Math.round(animation.totalFrames * progress), true);
       updateProgress(progress);
 
       lastScrollTop = scrollTop;
@@ -129,19 +235,21 @@
 
       clearTimeout(window.scrollTimeout);
       window.scrollTimeout = setTimeout(() => {
+        // Reset to normal speed when scrolling stops
         sound.rate(1.0);
         animation.setSpeed(1.0);
-        if (isPlaying) {
-          animation.play();
-        }
+        animation.play();
       }, 150);
     });
+
+
 
     sound.on("play", () => {
       function updateAnimation() {
         if (sound.playing()) {
+          currentFrame =  animation.currentFrame //animation.totalFrames * sound.seek() / sound.duration();
           const currentProgress = sound.seek() / sound.duration();
-          animation.goToAndPlay(animation.totalFrames * currentProgress, true);
+          animation.goToAndPlay(totalFrames * currentProgress, true);
           updateProgress(currentProgress);
           requestAnimationFrame(updateAnimation);
         }
@@ -153,6 +261,44 @@
       const currentProgress = sound.seek() / sound.duration();
       updateProgress(currentProgress);
     });
+
+    // Create an intersection observer
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          // Reset and reinitialize everything when container comes back into view
+          sound.stop();
+          sound.seek(0);
+          animation.stop();
+          animation.goToAndStop(0, true);
+          isPlaying = false;
+          isFinished = false;
+          progress = 0;
+          currentFrame = 0;
+          currentTime = 0;
+          playButton.style.display = "block";
+          playButton.textContent = "Play";
+          skipButton.textContent = "Skip";
+          updateProgress(0);
+        } else {
+          playButton.style.display = "none";
+          skipButton.textContent = "Go back";
+          animation.stop();
+          sound.stop();
+
+        }
+      });
+    }, {
+      threshold: 0.5 // Trigger when at least 50% of the container is visible
+    });
+
+    // Start observing the container
+    observer.observe(container);
+
+    // Cleanup function to disconnect observer when needed
+    return () => {
+      observer.disconnect();
+    };
   }
 
   // Initialize the animation when the script runs
@@ -180,6 +326,23 @@
     color: white;
     font-weight: 500;
     transition: all 0.2s ease;
+  }
+
+  #skipButton {
+    background-color: rgba(0, 0, 255, 0.8);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    color: white;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    transform: translateX(50%);
+  }
+
+  #skipButton:hover {
+    background-color: rgba(0, 0, 255, 1);
+    transform: translateX(50%) translateY(-2px);
   }
 
   #playButton:hover {
