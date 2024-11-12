@@ -4,10 +4,13 @@ import sitemap from "@astrojs/sitemap";
 
 import robotsTxt from "astro-robots-txt";
 
+import netlify from "@astrojs/netlify";
+
 // https://astro.build/config
 export default defineConfig({
   site: process.env.SITE_URL ?? 'https://www.tamango.co',
   integrations: [tailwind(), sitemap(), robotsTxt()],
+
   vite: {
     css: {
         preprocessorOptions: {
@@ -16,5 +19,8 @@ export default defineConfig({
             }
         }
     }
-  }
+  },
+
+  output: "server",
+  adapter: netlify()
 });
