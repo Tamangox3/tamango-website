@@ -6,7 +6,7 @@
     "cf-codegen": "eval $(grep '^CONTENTFUL_SPACE_ID' .env) && eval $(grep '^CONTENTFUL_MGMT_TOKEN' .env) && cf-content-types-generator -s ${CONTENTFUL_SPACE_ID} -t ${CONTENTFUL_MGMT_TOKEN} --typeguard -o src/lib/generated/contentful -p  --v10 --jsdoc --preserve",
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro check && astro build",
+    "build": "npm run cf-codegen && astro check && astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
