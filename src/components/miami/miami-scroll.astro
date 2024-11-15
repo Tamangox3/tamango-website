@@ -30,8 +30,8 @@
 
   async function init() {
     const [audioBlob, animationData] = await Promise.all([
-      fetchAudioTrack("/miami1/traccia.mp3"),
-      fetchLottieData("/miami1/lottie-no-audio.json"),
+      fetchAudioTrack("/miami2/traccia.mp3"),
+      fetchLottieData("/miami2/lottie.json"),
     ]);
 
     logger.log("Data loaded", audioBlob, animationData);
@@ -45,6 +45,7 @@
       durationPx: 3000,
       debug: isDev,
       logger,
+      assetsPath: "/miami2/images/",
     });
 
     return animation;
