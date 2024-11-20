@@ -1,0 +1,189 @@
+---
+// No props needed for now, but you can add them here if needed
+---
+<div class="bg-black flex">
+
+<div class="sticky top-4 right-4 flex justify-end"></div>
+
+<div
+  data-lottie-container
+  class="max-w-[768px] overflow-y-scroll h-dvh relative mx-auto scrollbar-hide"
+>
+
+  <div
+    lottie-animation
+    class="sticky top-0 left-0 right-0 h-dvh overflow-hidden"
+  >
+  </div>
+  <div id="spacer" class=""></div>
+
+
+  <div 
+    id="progress-bar" 
+    class="fixed top-4 right-4 text-white bg-opacity-50 px-2 py-1 rounded-md text-sm font-mono"
+  >
+    0%
+  </div>
+  <button id="playButton" class="fixed bottom-1/2 left-3/4  -translate-x-1/2 z-50">Play</button>
+  <slot />
+
+</div>
+</div>
+
+<script>
+  import lottie, { type AnimationItem } from "lottie-web";
+  import { Howl } from "howler";
+
+  function initScrollAnimation() {
+    const element: HTMLElement | null = document.querySelector("[lottie-animation]");
+    const container: HTMLElement | null = document.querySelector("[data-lottie-container]");
+    const playButton: HTMLElement | null = document.getElementById("playButton");
+    const percentageBar: HTMLElement | null = document.getElementById("progress-bar");
+
+    let isPlaying: boolean = false;
+    let progress: number = 0;
+    let currentTime: number = 0;
+    let currentHeight: number = 0;
+
+    if (!(element instanceof HTMLElement) || !container || !playButton || !percentageBar) {
+      throw new Error("Required elements not found");
+    }
+
+    const animation = lottie.loadAnimation({
+      container: element,
+      renderer: "svg",
+      loop: true,
+      autoplay: false,
+      path: "/miami1/lottie-no-audio.json",
+      assetsPath: "/miami1/images/",
+    });
+
+    const sound = new Howl({
+      src: ["/miami1/traccia.mp3"],
+      html5: true,
+      preload: true,
+      onload: () => {
+        const durationInSeconds = sound.duration();
+        const pixelsPerSecond = 100;
+        const spacer = document.getElementById("spacer");
+        if (spacer) {
+          spacer.style.height = `${durationInSeconds * pixelsPerSecond}px`;
+        }
+      },
+    });
+
+    let lastScrollTop = 0;
+    let lastScrollTime = Date.now();
+    let scrollVelocity = 0;
+
+    const updateProgress = (newProgress: number) => {
+      progress = newProgress;
+      currentTime = sound.duration()//  * progress;
+      if (percentageBar) {
+        const percentage = Math.round(progress * 100);
+        percentageBar.textContent = `${percentage}%`;
+      }
+    };
+
+    playButton.addEventListener("click", () => {
+      if (isPlaying) {
+        sound.pause();
+        animation.pause();
+      } else {
+        sound.play();
+        animation.play();
+      }
+      isPlaying = !isPlaying;
+      playButton.textContent = isPlaying ? "Pause" : "Play";
+    });
+
+    container.addEventListener("scroll", () => {
+      if (!sound.playing()) return;
+      
+      const currentTime = Date.now();
+      const scrollTop = container.scrollTop;
+      const timeDelta = currentTime - lastScrollTime;
+
+      scrollVelocity = Math.abs(scrollTop - lastScrollTop) / timeDelta;
+
+      const minRate = 0.5;
+      const maxRate = 2.0;
+      const baseRate = 1.0;
+
+      let newRate = baseRate + scrollVelocity * 10;
+      newRate = Math.max(minRate, Math.min(maxRate, newRate));
+
+      sound.rate(newRate);
+      animation.setSpeed(newRate);
+
+      const scrollHeight = container.scrollHeight - container.clientHeight;
+      progress = scrollTop / scrollHeight;
+      const newTime = sound.duration() * progress;
+      
+      sound.seek(newTime);
+      animation.goToAndStop(animation.totalFrames * progress, true);
+      updateProgress(progress);
+
+      lastScrollTop = scrollTop;
+      lastScrollTime = currentTime;
+
+      clearTimeout(window.scrollTimeout);
+      window.scrollTimeout = setTimeout(() => {
+        sound.rate(1.0);
+        animation.setSpeed(1.0);
+        if (isPlaying) {
+          animation.play();
+        }
+      }, 150);
+    });
+
+    sound.on("play", () => {
+      function updateAnimation() {
+        if (sound.playing()) {
+          const currentProgress = sound.seek() / sound.duration();
+          animation.goToAndPlay(animation.totalFrames * currentProgress, true);
+          updateProgress(currentProgress);
+          requestAnimationFrame(updateAnimation);
+        }
+      }
+      requestAnimationFrame(updateAnimation);
+    });
+
+    sound.on("seek", () => {
+      const currentProgress = sound.seek() / sound.duration();
+      updateProgress(currentProgress);
+    });
+  }
+
+  // Initialize the animation when the script runs
+  initScrollAnimation();
+</script>
+
+<style>
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  #playButton {
+    background-color: rgba(255, 0, 0, 0.8);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    color: white;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  #playButton:hover {
+    background-color: rgba(255, 0, 0, 1);
+    transform: translate(-50%, -2px);
+  }
+</style>

@@ -1,0 +1,20 @@
+---
+import type { TypePageSkeleton } from "@lib/generated/contentful";
+import type { Entry } from "@lib/types";
+import Base from "./Base.astro";
+import MiamiScroll from "@components/miami/miami-scroll.astro";
+import MiamiScroll3 from "@components/miami/miami-scroll-3.astro";
+interface Props extends Entry<TypePageSkeleton> {}
+
+const page = Astro.props;
+---
+
+<Base {...page}>
+  <MiamiScroll />
+  <!-- <MiamiScroll3   /> -->
+  <div
+    class="h-dvh max-w-[768px] mx-auto flex items-center justify-center flex-col"
+  >
+    <img src="/logo.svg" alt="logo" class="w-[280px] mx-auto" />
+  </div>
+</Base>
