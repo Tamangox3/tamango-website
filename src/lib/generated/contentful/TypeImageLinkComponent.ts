@@ -38,7 +38,7 @@ export type TypeImageLinkComponentSkeleton = EntrySkeletonType<TypeImageLinkComp
  * @since 2024-03-02T18:18:35.127Z
  * @version 1
  */
-export type TypeImageLinkComponent<Modifiers extends ChainModifiers, Locales extends LocaleCode> = Entry<TypeImageLinkComponentSkeleton, Modifiers, Locales>;
+export type TypeImageLinkComponent<Modifiers extends ChainModifiers, Locales extends LocaleCode = LocaleCode> = Entry<TypeImageLinkComponentSkeleton, Modifiers, Locales>;
 
 export function isTypeImageLinkComponent<Modifiers extends ChainModifiers, Locales extends LocaleCode>(entry: Entry<EntrySkeletonType, Modifiers, Locales>): entry is TypeImageLinkComponent<Modifiers, Locales> {
     return entry.sys.contentType.sys.id === 'imageLinkComponent'

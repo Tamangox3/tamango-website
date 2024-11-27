@@ -1,8 +1,9 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
-@import 'variables';
-@import 'rich-text';
-@import 'grain';
-@import 'grab';
-@import 'intro-animation';
+@use 'tailwindcss/base';
+@use 'tailwindcss/components';
+@use 'tailwindcss/utilities';
+@use 'variables';
+@use 'mixins';
+@use 'rich-text';
+@use 'grain';
+@use 'grab';
+@use 'intro-animation';
