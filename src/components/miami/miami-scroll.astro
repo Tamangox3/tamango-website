@@ -6,22 +6,17 @@
   Play
 </button>
 
-<div data-lottie-container class="">
-  <div data-lottie-animation class="h-dvh">
-    <!-- <div class="relative bg-[yellow] h-[1000px]"></div> -->
-  </div>
+<div data-animation-container class="">
+  <canvas data-animation-canvas class="h-dvh w-dvw"></canvas>
 </div>
 
 <script>
-  import {
-    LottieScrollTrigger,
-    fetchLottieData,
-  } from "@lib/miami/lottie-scroll";
-  import { fetchAudioTrack } from "@lib/miami/audio";
+  import * as rive from "@rive-app/canvas";
 
   const isDev = import.meta.env.MODE === "development";
+
   const logger = {
-    log: (...args: any[]) => {
+    log: (...args: unknown[]) => {
       if (isDev) {
         console.log(...args);
       }
@@ -29,26 +24,24 @@
   };
 
   async function init() {
-    const [audioBlob, animationData] = await Promise.all([
-      fetchAudioTrack("/miami2/traccia.mp3"),
-      fetchLottieData("/miami2/lottie.json"),
-    ]);
+    const canvas = document.querySelector(
+      "[data-animation-canvas]"
+    ) as HTMLCanvasElement | null;
 
-    logger.log("Data loaded", audioBlob, animationData);
+    if (!canvas) {
+      throw new Error("Canvas not found");
+    }
 
-    const animation = new LottieScrollTrigger({
-      containerTarget: "[data-lottie-container]",
-      animationTarget: "[data-lottie-animation]",
-      animationData,
-      audioBlob,
-      renderer: "svg",
-      durationPx: 3000,
-      debug: isDev,
-      logger,
-      assetsPath: "/miami2/images/",
+    const r = new rive.Rive({
+      src: "/miami/miami_v1.riv",
+      canvas,
+      autoplay: false,
+      onLoad: () => {
+        r.resizeDrawingSurfaceToCanvas();
+      },
     });
 
-    return animation;
+    return r;
   }
 
   const button = document.querySelector("[data-lottie-trigger]");
@@ -56,15 +49,19 @@
   if (button) {
     const animation = await init();
 
-    animation.on("complete", () => {
-      logger.log("Animation complete");
+    window.addEventListener("resize", () => {
+      animation.resizeDrawingSurfaceToCanvas();
+    });
+
+    animation.on(rive.EventType.StateChange, (state) => {
+      logger.log("State change", state);
       if (button) {
         button.textContent = animation.isPaused ? "Play" : "Pause";
       }
     });
 
     button?.addEventListener("click", () => {
-      animation.toggle();
+      animation.isPaused ? animation.play() : animation.pause();
       button.textContent = animation.isPaused ? "Play" : "Pause";
     });
   }
