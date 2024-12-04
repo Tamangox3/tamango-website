@@ -1,17 +1,7 @@
-<button
-  data-lottie-trigger
-  class="fixed top-0 l-0 cursor-pointer px-4 py-2 z-10 bg-white text-black rounded-sm m-2"
-  aria-label="Play"
->
-  Play
-</button>
-
-<div data-animation-container class="">
-  <canvas data-animation-canvas class="h-dvh w-dvw"></canvas>
-</div>
+<canvas data-animation-canvas class="h-dvh w-dvw"></canvas>
 
 <script>
-  import * as rive from "@rive-app/canvas";
+  import { Rive, EventType } from "@rive-app/canvas";
 
   const isDev = import.meta.env.MODE === "development";
 
@@ -32,37 +22,44 @@
       throw new Error("Canvas not found");
     }
 
-    const r = new rive.Rive({
-      src: "/miami/miami_v1.riv",
+    const r = new Rive({
+      src: "/miami/miami_v3.riv",
       canvas,
-      autoplay: false,
+      autoplay: true,
+      stateMachines: "State Machine 1",
+      artboard: "SEQ1_2 Alberi e strada",
+      automaticallyHandleEvents: true,
       onLoad: () => {
         r.resizeDrawingSurfaceToCanvas();
+        r.setupRiveListeners();
+
+        logger.log("States:", r.stateMachineNames);
+        logger.log("Animations:", r.animationNames);
+        logger.log("Artboards:", r.activeArtboard);
+        logger.log("playingStateMachineNames", r.playingStateMachineNames);
+
+        if (isDev) r.enableFPSCounter();
+      },
+      onStateChange: (state) => {
+        logger.log("State change", state);
       },
     });
+
+    r.on(EventType.RiveEvent, (riveEvent) => {
+      logger.log("Rive event", riveEvent);
+    });
+
+    // Progress rive animation on user scroll based on a virtual scroll
+    canvas.addEventListener("scroll", () => {});
+
+    canvas.addEventListener("click", () => {});
 
     return r;
   }
 
-  const button = document.querySelector("[data-lottie-trigger]");
+  const animation = await init();
 
-  if (button) {
-    const animation = await init();
-
-    window.addEventListener("resize", () => {
-      animation.resizeDrawingSurfaceToCanvas();
-    });
-
-    animation.on(rive.EventType.StateChange, (state) => {
-      logger.log("State change", state);
-      if (button) {
-        button.textContent = animation.isPaused ? "Play" : "Pause";
-      }
-    });
-
-    button?.addEventListener("click", () => {
-      animation.isPaused ? animation.play() : animation.pause();
-      button.textContent = animation.isPaused ? "Play" : "Pause";
-    });
-  }
+  window.addEventListener("resize", () => {
+    animation.resizeDrawingSurfaceToCanvas();
+  });
 </script>
