@@ -1,0 +1,83 @@
+<canvas data-animation-canvas class="h-dvh w-dvw"></canvas>
+
+<script>
+  import { Alignment, EventType, Fit, Layout, Rive } from "@rive-app/canvas";
+
+  const isDev = import.meta.env.MODE === "development";
+
+  const logger = {
+    log: (...args: unknown[]) => {
+      if (isDev) {
+        console.log(...args);
+      }
+    },
+  };
+
+  async function init() {
+    const canvas = document.querySelector(
+      "[data-animation-canvas]"
+    ) as HTMLCanvasElement | null;
+
+    if (!canvas) {
+      throw new Error("Canvas not found");
+    }
+
+    const r = new Rive({
+      src: "/miami/miami_v3/r.riv",
+      canvas,
+      autoplay: true,
+      stateMachines: "State Machine 1",
+      artboard: "SEQ1_2 Alberi e strada",
+      automaticallyHandleEvents: true,
+      layout: Layout.new({
+        alignment: Alignment.TopCenter,
+        fit: Fit.Contain,
+      }),
+      // assetLoader: (asset) => {
+      //   if (!asset.isImage) {
+      //     // Ignore non-image assets
+      //     return true;
+      //   }
+      //   fetch(
+      //     "/miami/miami_v3_referenced/assets/" +
+      //       asset.uniqueFilename.split(".")[0] +
+      //       ".webp"
+      //   ).then(async (response) => {
+      //     asset.decode(new Uint8Array(await response.arrayBuffer()));
+      //   });
+      //   return true;
+      // },
+      onLoad: () => {
+        r.resizeDrawingSurfaceToCanvas();
+        r.setupRiveListeners();
+
+        logger.log("States:", r.stateMachineNames);
+        logger.log("Animations:", r.animationNames);
+        logger.log("Artboards:", r.activeArtboard);
+        logger.log("playingStateMachineNames", r.playingStateMachineNames);
+
+        if (isDev) r.enableFPSCounter();
+      },
+      onStateChange: (state) => {
+        logger.log("State change", state);
+      },
+    });
+
+    r.on(EventType.RiveEvent, (riveEvent) => {
+      logger.log("Rive event", riveEvent);
+    });
+
+    // Progress rive animation on user scroll based on a virtual scroll
+    canvas.addEventListener("scroll", () => {});
+
+    canvas.addEventListener("click", () => {});
+
+    return r;
+  }
+
+  const animation = await init();
+
+  window.addEventListener("resize", () => {
+    animation.resizeDrawingSurfaceToCanvas();
+  });
+</script>
