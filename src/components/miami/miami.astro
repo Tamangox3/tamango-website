@@ -1,7 +1,21 @@
+---
+import Slider from "./Slider.astro";
+---
+
 <canvas data-animation-canvas class="h-dvh w-dvw"></canvas>
 
+<Slider
+  min={0}
+  max={5}
+  step={0.01}
+  value={1}
+  id="progress-bar"
+  className="fixed z-10 bottom-2 left-2 right-2 m-auto max-w-[420px] p-3 w-full h-2"
+/>
+
 <script>
-  import { Alignment, EventType, Fit, Layout, Rive } from "@rive-app/canvas";
+  import RuntimeLoader from "@lib/miami/rive-runtime-loader";
+  import { type RiveCanvas as RiveCanvasType } from "@rive-app/canvas-advanced";
 
   const isDev = import.meta.env.MODE === "development";
 
@@ -13,6 +27,12 @@
     },
   };
 
+  let speed = 1;
+
+  document.getElementById("progress-bar")?.addEventListener("input", (e) => {
+    speed = parseFloat((e.target as HTMLInputElement).value);
+  });
+
   async function init() {
     const canvas = document.querySelector(
       "[data-animation-canvas]"
@@ -22,62 +42,67 @@
       throw new Error("Canvas not found");
     }
 
-    const r = new Rive({
-      src: "/miami/miami_v3/r.riv",
-      canvas,
-      autoplay: true,
-      stateMachines: "State Machine 1",
-      artboard: "SEQ1_2 Alberi e strada",
-      automaticallyHandleEvents: true,
-      layout: Layout.new({
-        alignment: Alignment.TopCenter,
-        fit: Fit.Contain,
-      }),
-      // assetLoader: (asset) => {
-      //   if (!asset.isImage) {
-      //     // Ignore non-image assets
-      //     return true;
-      //   }
-      //   fetch(
-      //     "/miami/miami_v3_referenced/assets/" +
-      //       asset.uniqueFilename.split(".")[0] +
-      //       ".webp"
-      //   ).then(async (response) => {
-      //     asset.decode(new Uint8Array(await response.arrayBuffer()));
-      //   });
-      //   return true;
-      // },
-      onLoad: () => {
-        r.resizeDrawingSurfaceToCanvas();
-        r.setupRiveListeners();
+    function computeSize() {
+      canvas!.width = window.innerWidth;
+      canvas!.height = window.innerHeight;
+    }
 
-        logger.log("States:", r.stateMachineNames);
-        logger.log("Animations:", r.animationNames);
-        logger.log("Artboards:", r.activeArtboard);
-        logger.log("playingStateMachineNames", r.playingStateMachineNames);
+    window.onresize = computeSize;
+    computeSize();
 
-        if (isDev) r.enableFPSCounter();
-      },
-      onStateChange: (state) => {
-        logger.log("State change", state);
-      },
-    });
+    const rive = (await RuntimeLoader.awaitInstance()) as RiveCanvasType;
+    let fileBytes = new Uint8Array(
+      await (await fetch(new Request("/miami/miami_v3/r.riv"))).arrayBuffer()
+    );
+    const file = (await rive.load(new Uint8Array(fileBytes))) as any;
 
-    r.on(EventType.RiveEvent, (riveEvent) => {
-      logger.log("Rive event", riveEvent);
-    });
+    const renderer = rive.makeRenderer(canvas);
 
-    // Progress rive animation on user scroll based on a virtual scroll
-    canvas.addEventListener("scroll", () => {});
+    let lastTime: number;
+    const artboard = file.artboardByName(file.defaultArtboard().name);
 
-    canvas.addEventListener("click", () => {});
+    // const stateMachine = new rive.StateMachineInstance(
+    //   artboard.animationByIndex(0),
+    //   artboard
+    // );
+    // const idleAnimation = new rive.LinearAnimationInstance(
+    //   artboard.animationByIndex(0),
+    //   artboard
+    // );
 
-    return r;
+    function draw(time: number) {
+      if (!lastTime) {
+        lastTime = time;
+      }
+      const elapsedSeconds = (time - lastTime) / 1000;
+      lastTime = time;
+
+      renderer.clear();
+      artboard.advance(elapsedSeconds * speed);
+
+      renderer.save();
+
+      renderer.align(
+        rive.Fit.contain,
+        rive.Alignment.center,
+        {
+          minX: 0,
+          minY: 0,
+          maxX: canvas!.width,
+          maxY: canvas!.height,
+        },
+        artboard.bounds
+      );
+      artboard.draw(renderer);
+      renderer.restore();
+
+      rive.requestAnimationFrame(draw);
+    }
+
+    rive.requestAnimationFrame(draw);
+
+    return rive;
   }
 
   const animation = await init();
-
-  window.addEventListener("resize", () => {
-    animation.resizeDrawingSurfaceToCanvas();
-  });
 </script>

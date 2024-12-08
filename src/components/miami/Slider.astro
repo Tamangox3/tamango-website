@@ -1,0 +1,34 @@
+---
+import { twMerge } from "tailwind-merge";
+
+type SliderProps = {
+  min: number;
+  max: number;
+  value?: number;
+  step?: number;
+  disabled?: boolean;
+  id?: string;
+  className?: string;
+  onChange?: (event: Event) => void;
+};
+
+interface Props extends SliderProps {}
+
+let { min, max, value, step, disabled, id, className } = Astro.props;
+
+const classes = twMerge(
+  "slider bg-black rounded-lg appearance-none cursor-pointer accent-white rounded-xl",
+  className
+);
+---
+
+<input
+  type="range"
+  min={min}
+  max={max}
+  value={value || min}
+  step={step}
+  disabled={disabled}
+  class:list={classes}
+  id={id}
+/>
