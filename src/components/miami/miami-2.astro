@@ -1,0 +1,193 @@
+<div class="fixed bottom-4 right-4 z-10 flex flex-col gap-2 items-end">
+    <div class="flex items-center gap-2 bg-white/10 p-2 rounded-full backdrop-blur-sm">
+      <span class="text-white text-sm">Speed: <span id="speed-value">1</span>x</span>
+      <input 
+        type="range" 
+        id="speed-slider" 
+        min="-100" 
+        max="200" 
+        value="1" 
+        class="w-40 accent-white"
+      >
+    </div>
+    <div class="flex gap-2">
+      <button id="play-pause-btn" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full backdrop-blur-sm">
+        Play
+      </button>
+      <button id="restart-btn" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full backdrop-blur-sm">
+        Restart
+      </button>
+    </div>
+  </div>
+  <canvas data-animation-canvas class="h-dvh w-dvw"></canvas>
+  
+  <script>
+    import { Alignment, EventType, Fit, Layout, Rive, StateMachineInput, StateMachineInputType } from "@rive-app/canvas";
+  
+    const isDev = import.meta.env.MODE === "development";
+  
+    const logger = {
+      log: (...args: unknown[]) => {
+        if (isDev) {
+          console.log(...args);
+        }
+      },
+    };
+  
+    async function init() {
+      const canvas = document.querySelector(
+        "[data-animation-canvas]"
+      ) as HTMLCanvasElement | null;
+  
+      if (!canvas) {
+        throw new Error("Canvas not found");
+      }
+  
+      const r = new Rive({
+        src: "/miami/miami_v3_blend/[dev]_miami_v3.riv",
+        canvas,
+        autoplay: true,
+        stateMachines: "State Machine 1",
+        artboard: "NESTED PER DEV" ,//"SEQ1_2 Alberi e strada 2",
+        automaticallyHandleEvents: true,
+        layout: Layout.new({
+          alignment: Alignment.TopCenter,
+          fit: Fit.Contain,
+        }),
+        // assetLoader: (asset) => {
+        //   if (!asset.isImage) {
+        //     // Ignore non-image assets
+        //     return true;
+        //   }
+        //   fetch(
+        //     "/miami/miami_v3_referenced/assets/" +
+        //       asset.uniqueFilename.split(".")[0] +
+        //       ".webp"
+        //   ).then(async (response) => {
+        //     asset.decode(new Uint8Array(await response.arrayBuffer()));
+        //   });
+        //   return true;
+        // },
+        onLoad: () => {
+          r.resizeDrawingSurfaceToCanvas();
+          r.setupRiveListeners();
+  
+          logger.log("States:", r.stateMachineNames);
+          logger.log("Animations:", r.animationNames);
+          logger.log("Artboards:", r.activeArtboard);
+          logger.log("playingStateMachineNames", r.playingStateMachineNames);
+  
+          const stateMachine = r.stateMachineNames.find(name => name === "State Machine 1");
+          // const speed = stateMachine?.getFloat("speed") ?? 1;
+          console.log("stateMachine ", stateMachine);
+              // Get all inputs for the state machine
+      const inputs = r.stateMachineInputs("State Machine 1");
+      
+      // Find the speed input
+      const speedInput = inputs.find(i => i.name === "SPEED");
+          if (speedInput && speedInput.type === StateMachineInputType.Number) {
+        // You can now get/set the speed value
+        logger.log('Current speed:', speedInput.value);
+        
+        // Example: set speed to 2x
+        //speedInput.value = 2.0;
+      }else{
+        logger.log("speedInput not found");
+      }
+  
+  
+          if (isDev) r.enableFPSCounter();
+        },
+        onStateChange: (state) => {
+          logger.log("State change", state);
+        },
+      });
+  
+    
+  
+      r.on(EventType.RiveEvent, (riveEvent) => {
+        logger.log("Rive event", riveEvent);
+      });
+  
+      // Progress rive animation on user scroll based on a virtual scroll
+      canvas.addEventListener("scroll", () => {});
+  
+      canvas.addEventListener("click", () => {});
+  
+      // Setup animation controls
+      const playPauseBtn = document.getElementById('play-pause-btn');
+      const restartBtn = document.getElementById('restart-btn');
+      const speedSlider = document.getElementById('speed-slider') as HTMLInputElement;
+      const speedValue = document.getElementById('speed-value');
+  
+      // Speed control functions
+      const updateSpeed = (speed: number) => {
+        const inputs = r.stateMachineInputs("State Machine 1");
+        if (inputs) {
+        const speedInput = inputs.find(i => i.name === "SPEED");
+        if (speedInput) {
+          speedInput.value = speed;
+            if (speedValue) speedValue.textContent = speed.toString();
+            logger.log('Animation speed set to', speed);
+          }
+        }
+      };
+  
+      if (speedSlider) {
+        speedSlider.addEventListener('input', (e) => {
+          const speed = parseInt((e.target as HTMLInputElement).value);
+          updateSpeed(speed);
+        });
+  
+        // Initialize with speed of 1
+        speedSlider.value = "1";
+        updateSpeed(1);
+      }
+  
+      // Touch/click speed up handler - only speed up, no reset
+      const speedUpAnimation = () => {
+        if (speedSlider) {
+          const currentSpeed = parseInt(speedSlider.value);
+          // Double the speed but keep the sign
+          const newSpeed = currentSpeed >= 0 
+            ? Math.min(currentSpeed * 2, 200)
+            : Math.max(currentSpeed * 2, -100);
+          speedSlider.value = newSpeed.toString();
+          updateSpeed(newSpeed);
+        }
+      };
+  
+      // Add only the click/touch handlers for speeding up
+      canvas.addEventListener("touchstart", speedUpAnimation);
+      canvas.addEventListener("mousedown", speedUpAnimation);
+  
+      if (playPauseBtn && restartBtn) {
+        playPauseBtn.addEventListener('click', () => {
+          if (r.isPlaying) {
+            r.pause();
+            playPauseBtn.textContent = 'Play';
+          } else {
+            r.play();
+            playPauseBtn.textContent = 'Pause';
+          }
+          logger.log('Animation playback toggled');
+        });
+  
+        restartBtn.addEventListener('click', () => {
+          r.reset();
+          r.play();
+          playPauseBtn.textContent = 'Pause';
+          logger.log('Animation restarted');
+        });
+      }
+  
+      return r;
+    }
+  
+    const animation = await init();
+  
+    window.addEventListener("resize", () => {
+      animation.resizeDrawingSurfaceToCanvas();
+    });
+  </script>
+  
