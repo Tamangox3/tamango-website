@@ -16,19 +16,49 @@ interface Props extends SliderProps {}
 
 let { min, max, value, step, disabled, id, className } = Astro.props;
 
+const finalId = id || "slider-" + Math.random().toString(36).substr(2, 9);
+
 const classes = twMerge(
-  "slider bg-black rounded-lg appearance-none cursor-pointer accent-white rounded-xl",
+  "miami-slider fixed z-10 bottom-[16px] right-[16px] w-[16px] p-3 h-[180px] accent-white rounded-lg",
   className
 );
 ---
 
-<input
-  type="range"
-  min={min}
-  max={max}
-  value={value || min}
-  step={step}
-  disabled={disabled}
-  class:list={classes}
-  id={id}
-/>
+<div class={classes}>
+  <input
+    type="range"
+    id={finalId}
+    min={min}
+    max={max}
+    value={value ?? min}
+    disabled={disabled}
+    step={step}
+    aria-orientation="vertical"
+  />
+  <label for={finalId} class="text-white text-sm">{value}x</label>
+</div>
+
+<script>
+  const sliders = document.getElementsByClassName("miami-slider");
+
+  for (let i = 0; i < sliders.length; i++) {
+    const rangeInput = sliders[i].querySelector("input[type=range]");
+    if (!rangeInput) continue;
+    rangeInput.addEventListener("input", (e) => {
+      const value = (e.target as HTMLInputElement).value;
+      const label = document.querySelector(`label[for=${rangeInput.id}]`);
+      if (label) label.textContent = value + "x";
+    });
+  }
+</script>
+
+<style>
+  .miami-slider > input[type="range"][aria-orientation="vertical"] {
+    writing-mode: vertical-lr;
+    direction: rtl;
+    appearance: slider-vertical;
+    vertical-align: bottom;
+    transform: rotate(180deg);
+    cursor: pointer;
+  }
+</style>

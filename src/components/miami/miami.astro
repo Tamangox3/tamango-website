@@ -4,18 +4,15 @@ import Slider from "./Slider.astro";
 
 <canvas data-animation-canvas class="h-dvh w-dvw"></canvas>
 
-<Slider
-  min={0}
-  max={5}
-  step={0.01}
-  value={1}
-  id="progress-bar"
-  className="fixed z-10 bottom-2 left-2 right-2 m-auto max-w-[420px] p-3 w-full h-2"
-/>
+<Slider min={-5} max={5} step={0.1} value={1} id="progress-bar" />
 
 <script>
   import RuntimeLoader from "@lib/miami/rive-runtime-loader";
-  import { type RiveCanvas as RiveCanvasType } from "@rive-app/canvas-advanced";
+
+  import {
+    type RiveCanvas as RiveCanvasType,
+    type File as RiveFileType,
+  } from "@rive-app/canvas-advanced";
 
   const isDev = import.meta.env.MODE === "development";
 
@@ -54,21 +51,32 @@ import Slider from "./Slider.astro";
     let fileBytes = new Uint8Array(
       await (await fetch(new Request("/miami/miami_v3/r.riv"))).arrayBuffer()
     );
-    const file = (await rive.load(new Uint8Array(fileBytes))) as any;
+    const file = (await rive.load(new Uint8Array(fileBytes))) as RiveFileType;
 
     const renderer = rive.makeRenderer(canvas);
+
+    if (isDev) rive.enableFPSCounter();
 
     let lastTime: number;
     const artboard = file.artboardByName(file.defaultArtboard().name);
 
-    // const stateMachine = new rive.StateMachineInstance(
-    //   artboard.animationByIndex(0),
-    //   artboard
-    // );
-    // const idleAnimation = new rive.LinearAnimationInstance(
-    //   artboard.animationByIndex(0),
-    //   artboard
-    // );
+    const stateMachine = new rive.StateMachineInstance(
+      artboard.stateMachineByIndex(0),
+      artboard
+    );
+    const idleAnimation = new rive.LinearAnimationInstance(
+      artboard.animationByIndex(0),
+      artboard
+    );
+
+    let triggered = false;
+
+    canvas.addEventListener("click", () => {
+      if (!triggered) {
+        stateMachine.input(0).asTrigger().fire();
+        triggered = true;
+      }
+    });
 
     function draw(time: number) {
       if (!lastTime) {
@@ -79,9 +87,9 @@ import Slider from "./Slider.astro";
 
       renderer.clear();
       artboard.advance(elapsedSeconds * speed);
+      stateMachine.advance(elapsedSeconds * speed);
 
       renderer.save();
-
       renderer.align(
         rive.Fit.contain,
         rive.Alignment.center,
