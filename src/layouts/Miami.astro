@@ -3,14 +3,15 @@ import type { TypePageSkeleton } from "@lib/generated/contentful";
 import type { Entry } from "@lib/types";
 import Base from "./Base.astro";
 import MiamiScroll from "@components/miami/miami.astro";
-import MiamiScroll2 from "@components/miami/miami-2.astro";
+// import MiamiScroll2 from "@components/miami/miami-2.astro";
 
 interface Props extends Entry<TypePageSkeleton> {}
 
 const page = Astro.props;
 
-const MiamiComponent =
-  page?.fields?.slug === "/miami" ? MiamiScroll2 : MiamiScroll;
+const MiamiComponent = MiamiScroll;
+
+console.log(MiamiComponent);
 ---
 
 <Base {...page}>
