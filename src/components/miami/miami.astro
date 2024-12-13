@@ -279,12 +279,12 @@ import Slider from "./Slider.astro";
       // Advance the active animation with the same time delta
       activeAnimation.advance(elapsedSeconds * speed);
       
-      console.log({
-        hasTime: 'time' in activeAnimation,
-        timeValue: activeAnimation.time,
-        timeType: typeof activeAnimation.time,
-        animationProps: Object.keys(activeAnimation)
-      });
+      // console.log({
+      //   hasTime: 'time' in activeAnimation,
+      //   timeValue: activeAnimation.time,
+      //   timeType: typeof activeAnimation.time,
+      //   animationProps: Object.keys(activeAnimation)
+      // });
 
       console.log("activeAnimation, time", activeAnimation.time);
       
