@@ -5,6 +5,13 @@ import Slider from "./Slider.astro";
 <canvas data-animation-canvas class="h-dvh w-dvw"></canvas>
 <!-- <audio id="background-audio" src="/traccia.mp3" preload></audio> -->
 
+<!-- animation normal time: 2:30 - 150s
+              sped up time: 0:40 - 40s
+
+              ratio : 15/4, max speed
+
+              align accordingly on update of animation and audio track
+-->
 <div class="miami-slider fixed z-10 bottom-[16px] right-[16px] w-[200px] p-3 h-[220px] accent-white rounded-lg flex flex-col items-center space-y-2">
   <div class="flex flex-row items-center gap-2">
     <input
@@ -238,11 +245,11 @@ import Slider from "./Slider.astro";
 
 
     // Print all animations in the artboard
-    const numAnimations = artboard.animationCount();
-    for (let i = 0; i < numAnimations; i++) {
-      const animation = artboard.animationByIndex(i);
-      logger.log(`Animation ${i}: ${animation.name}, Duration: ${animation.duration}s, FPS: ${animation.fps}`);
-    }
+    // const numAnimations = artboard.animationCount();
+    // for (let i = 0; i < numAnimations; i++) {
+    //   const animation = artboard.animationByIndex(i);
+    //   logger.log(`Animation ${i}: ${animation.name}, Duration: ${animation.duration}s, FPS: ${animation.fps}`);
+    // }
 
     let triggered = false;
 
