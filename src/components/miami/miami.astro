@@ -3,8 +3,34 @@ import Slider from "./Slider.astro";
 ---
 
 <canvas data-animation-canvas class="h-dvh w-dvw"></canvas>
+<!-- <audio id="background-audio" src="/traccia.mp3" preload></audio> -->
 
-<Slider min={-5} max={5} step={0.1} value={1} id="progress-bar" />
+<div class="miami-slider fixed z-10 bottom-[16px] right-[16px] w-[200px] p-3 h-[220px] accent-white rounded-lg flex flex-col items-center space-y-2">
+  <div class="flex flex-row items-center gap-2">
+    <input
+      type="range"
+      min={-(15/4)}
+      max={15/4}
+      step={0.1}
+      value={1}
+      id="progress-bar"
+      aria-orientation="vertical"
+    />
+    <label for="progress-bar" class="text-white text-sm">1x</label>
+  </div>
+  <div class="flex flex-col items-center gap-2">
+    <span class="text-white text-sm">Audio</span>
+    <div id="audio-progress" class="text-white text-sm">00:00</div>
+    <div id="audio-percentage" class="text-white text-sm">00%</div>
+    <!-- <div id="current-animation-name" class="text-white text-sm">SEQ_started</div> -->
+    <span class="text-white text-sm">Animation</span>
+    <div id="frame-progress" class="text-white text-sm">00:00</div>
+    <!-- <div id="frame-percentage" class="text-white text-sm">0%</div> -->
+  </div>
+  <button id="reset-button" class="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2 rounded">
+    Reset speed
+  </button>
+</div>
 
 <script>
   import RuntimeLoader from "@lib/miami/rive-runtime-loader";
@@ -23,12 +49,146 @@ import Slider from "./Slider.astro";
       }
     },
   };
+  const audioContext = new AudioContext();
+  const gainNode = audioContext.createGain();
+  gainNode.connect(audioContext.destination);
+  let audioBuffer: AudioBuffer | null = null;
+  let reversedAudioBuffer: AudioBuffer | null = null;
+  let currentSource: AudioBufferSourceNode | null = null;
+  let isPlaying = false;
+  let lastSpeed = 1;
+  let audioStartTime = 0;
+  let lastPlaybackPosition = 0;
+  const MAX_PLAYBACK_RATE = 15/4;
+  const MIN_PLAYBACK_RATE = 0.001;
+
+  // Load and decode audio file
+  async function loadAudio() {
+    const response = await fetch('/traccia_trim.mp3');
+    const arrayBuffer = await response.arrayBuffer();
+    audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    
+    // Create reversed buffer
+    const { numberOfChannels, length, sampleRate } = audioBuffer;
+    reversedAudioBuffer = audioContext.createBuffer(
+      numberOfChannels,
+      length,
+      sampleRate
+    );
+    
+    for (let channel = 0; channel < numberOfChannels; ++channel) {
+      const reversedSamples = audioBuffer.getChannelData(channel).slice().reverse();
+      reversedAudioBuffer.copyToChannel(reversedSamples, channel);
+    }
+  }
+
+  await loadAudio();
+
+  function getCurrentPlaybackPosition() {
+    if (!audioBuffer || !isPlaying) return lastPlaybackPosition;
+    
+    const elapsedTime = audioContext.currentTime - audioStartTime;
+    const position = lastPlaybackPosition + (elapsedTime * lastSpeed);
+    
+    return Math.min(Math.max(0, position), audioBuffer.duration);
+  }
+
+  function playAudio(speed: number, startFromPosition?: number) {
+    if (!audioBuffer) return;
+
+    if (currentSource) {
+      lastPlaybackPosition = getCurrentPlaybackPosition();
+      currentSource.stop();
+      currentSource.disconnect();
+    }
+
+    currentSource = audioContext.createBufferSource();
+    currentSource.connect(gainNode);
+    
+    const useReversedBuffer = speed < 0;
+    currentSource.buffer = useReversedBuffer ? reversedAudioBuffer : audioBuffer;
+    
+    const clampedRate = Math.max(MIN_PLAYBACK_RATE, Math.min(Math.abs(speed), MAX_PLAYBACK_RATE));
+    currentSource.playbackRate.value = clampedRate;
+    
+    const gainValue = Math.min(1, Math.max(0.3, 1 - (Math.abs(speed) - 1) * 0.2));
+    gainNode.gain.setValueAtTime(gainValue, audioContext.currentTime);
+    
+    currentSource.loop = true;
+    
+    if (isPlaying) {
+      const position = startFromPosition !== undefined ? startFromPosition : lastPlaybackPosition;
+      
+      const adjustedPosition = useReversedBuffer ? 
+        audioBuffer.duration - position : 
+        position;
+      
+      audioStartTime = audioContext.currentTime;
+      currentSource.start(0, adjustedPosition);
+      lastPlaybackPosition = position;
+    }
+  }
 
   let speed = 1;
 
   document.getElementById("progress-bar")?.addEventListener("input", (e) => {
-    speed = parseFloat((e.target as HTMLInputElement).value);
+    const newSpeed = parseFloat((e.target as HTMLInputElement).value);
+    const label = document.querySelector(`label[for="progress-bar"]`);
+    if (label) label.textContent = `${newSpeed}x`;
+    
+    const currentPosition = getCurrentPlaybackPosition();
+    
+    playAudio(newSpeed, currentPosition);
+    
+    speed = newSpeed;
+    lastSpeed = newSpeed;
   });
+
+  document.getElementById("reset-button")?.addEventListener("click", () => {
+    const currentPosition = getCurrentPlaybackPosition();
+    speed = 1;
+    lastSpeed = 1;
+    const slider = document.getElementById("progress-bar") as HTMLInputElement;
+    if (slider) slider.value = "1";
+    const label = document.querySelector(`label[for="progress-bar"]`);
+    if (label) label.textContent = `1x`;
+    playAudio(1, currentPosition);
+  });
+
+  function formatTime(seconds: number): string {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  }
+
+  function updateProgressDisplays(audioPosition: number, activeAnimation: any) {
+    // Update audio progress
+    if (audioBuffer) {
+      const audioDuration = audioBuffer.duration;
+      const audioProgressEl = document.getElementById('audio-progress');
+      const audioPercentageEl = document.getElementById('audio-percentage');
+      
+      if (audioProgressEl) {
+        audioProgressEl.textContent = formatTime(audioPosition);
+      }
+      if (audioPercentageEl) {
+        const percentage = Math.round((audioPosition / audioDuration) * 100);
+        audioPercentageEl.textContent = `${percentage}%`;
+      }
+    }
+
+    // Update animation progress
+    const frameProgressEl = document.getElementById('frame-progress');
+    const framePercentageEl = document.getElementById('frame-percentage');
+    
+    if (frameProgressEl) {
+      frameProgressEl.textContent = `${formatTime(activeAnimation.time)}`;
+    }
+    // if (framePercentageEl) {
+    //   const percentage = Math.round((activeAnimation.time / activeAnimation.duration) * 100);
+    //   framePercentageEl.textContent = `${percentage}%`;
+    // }
+  }
 
   async function init() {
     const canvas = document.querySelector(
@@ -40,8 +200,9 @@ import Slider from "./Slider.astro";
     }
 
     function computeSize() {
-      canvas!.width = window.innerWidth;
-      canvas!.height = window.innerHeight;
+      if (!canvas) return;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     }
 
     window.onresize = computeSize;
@@ -69,12 +230,31 @@ import Slider from "./Slider.astro";
       artboard
     );
 
+    const activeAnimation = new rive.LinearAnimationInstance(
+      artboard.animationByIndex(1),
+      artboard
+    );
+
+
+
+    // Print all animations in the artboard
+    const numAnimations = artboard.animationCount();
+    for (let i = 0; i < numAnimations; i++) {
+      const animation = artboard.animationByIndex(i);
+      logger.log(`Animation ${i}: ${animation.name}, Duration: ${animation.duration}s, FPS: ${animation.fps}`);
+    }
+
     let triggered = false;
 
     canvas.addEventListener("click", () => {
       if (!triggered) {
         stateMachine.input(0).asTrigger().fire();
         triggered = true;
+        isPlaying = true;
+        lastPlaybackPosition = 0;
+        playAudio(speed);
+        // Reset the active animation time when starting
+        activeAnimation.time = 0;
       }
     });
 
@@ -88,7 +268,19 @@ import Slider from "./Slider.astro";
       renderer.clear();
       artboard.advance(elapsedSeconds * speed);
       stateMachine.advance(elapsedSeconds * speed);
+      
+      // Advance the active animation with the same time delta
+      activeAnimation.advance(elapsedSeconds * speed);
+      
+      console.log({
+        hasTime: 'time' in activeAnimation,
+        timeValue: activeAnimation.time,
+        timeType: typeof activeAnimation.time,
+        animationProps: Object.keys(activeAnimation)
+      });
 
+      console.log("activeAnimation, time", activeAnimation.time);
+      
       renderer.save();
       renderer.align(
         rive.Fit.contain,
@@ -96,13 +288,15 @@ import Slider from "./Slider.astro";
         {
           minX: 0,
           minY: 0,
-          maxX: canvas!.width,
-          maxY: canvas!.height,
+          maxX: canvas?.width ?? window.innerWidth,
+          maxY: canvas?.height ?? window.innerHeight,
         },
         artboard.bounds
       );
       artboard.draw(renderer);
       renderer.restore();
+
+      updateProgressDisplays(getCurrentPlaybackPosition(), activeAnimation);
 
       rive.requestAnimationFrame(draw);
     }
@@ -113,4 +307,31 @@ import Slider from "./Slider.astro";
   }
 
   const animation = await init();
+
 </script>
+
+<style>
+  .miami-slider > input[type="range"][aria-orientation="vertical"] {
+    writing-mode: vertical-lr;
+    direction: rtl;
+    appearance: slider-vertical;
+    vertical-align: bottom;
+    transform: rotate(180deg);
+    cursor: pointer;
+  }
+
+  #reset-button {
+    background-color: #3b82f6;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+  }
+
+  #reset-button:hover {
+    background-color: #2563eb;
+  }
+</style>
