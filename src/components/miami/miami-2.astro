@@ -79,7 +79,7 @@ const SYNC_RATIO = ANIMATION_DURATION / AUDIO_DURATION;
 
 // html elements
 
-const canvas = document.querySelector("[data-animation-canvas]");
+const canvas = document.querySelector("[data-animation-canvas]") as HTMLCanvasElement;
 const scrollVelocityEl = document.getElementById("scroll-velocity");
 const audioProgressEl = document.getElementById("audio-progress");
 const audioPercentageEl = document.getElementById("audio-percentage");
@@ -373,77 +373,16 @@ function playAudio(speed: number, startFromPosition?: number) {
       lastPlaybackPosition = position;
       
       // Sync animation position with audio
-      activeAnimation.time = (position * SYNC_RATIO) % ANIMATION_DURATION;
+      if (activeAnimation) {
+        activeAnimation.time = (position * SYNC_RATIO) % ANIMATION_DURATION;
+      }
     }
   }
 
 
 
-// gsap.utils.toArray(canvas).forEach(element => {
-//   let startY;
-//   let isDragging = false;
-//   // Store the current tween to kill it if needed
-//   let velocityTween;
-
-//   Observer.create({
-//     target: element,
-//     type: "touch,wheel,pointer,scroll",
-//     onPress: (self) => {
-//       // Kill any existing tween when user starts interacting
-//       if (velocityTween) velocityTween.kill();
-      
-//       startY = self.y;
-//       isDragging = true;
-//       logger.log("Press started at:", startY);
-//     },
-//     onDrag: (self) => {
-//       if (!isDragging) return;
-      
-//       const currentY = self.y;
-//       const deltaY = currentY - startY;
-//       const velocity = Math.abs(deltaY) / 100;
-      
-//       logger.log("Drag velocity:", velocity);
-//       if (scrollVelocityEl) {
-//         scrollVelocityEl.textContent = velocity.toFixed(2);
-//       }
-      
-//       startY = currentY;
-//     },
-//     onRelease: () => {
-//       isDragging = false;
-//       logger.log("Released");
-      
-//       // Animate back to 1
-//       velocityTween = gsap.to({
-//         value: parseFloat(scrollVelocityEl.textContent)
-//       }, {
-//         value: 1,
-//         duration: 0.8,
-//         ease: "power2.out",
-//         onUpdate: function() {
-//           if (scrollVelocityEl) {
-//             scrollVelocityEl.textContent = this.targets()[0].value.toFixed(2);
-//           }
-//         }
-//       });
-//     },
-//     onClick: () => logger.log("Clicked"),
-//     onWheel: (self) => {
-//       // Kill any existing tween on wheel
-//       if (velocityTween) velocityTween.kill();
-      
-//       const velocity = Math.abs(self.deltaY) / 100;
-//       logger.log("Wheel velocity:", velocity);
-//       if (scrollVelocityEl) {
-//         scrollVelocityEl.textContent = velocity.toFixed(2);
-//       }
-//     }
-//   });
-// });
-
 // Helper function to update speed and UI consistently
-function updateSpeed(newSpeed) {
+function updateSpeed(newSpeed: number) {
   // Clamp the absolute value but preserve sign
   const sign = Math.sign(newSpeed);
   const absSpeed = Math.abs(newSpeed);
@@ -455,7 +394,7 @@ function updateSpeed(newSpeed) {
   lastSpeed = newSpeed;
   
   // Update slider and label
-  const slider = document.getElementById("progress-bar");
+  const slider = document.getElementById("progress-bar") as HTMLInputElement;
   if (slider) slider.value = newSpeed.toString();
   const label = document.querySelector(`label[for="progress-bar"]`);
   if (label) label.textContent = `${newSpeed.toFixed(2)}x`;
@@ -478,30 +417,29 @@ function updateSpeed(newSpeed) {
 // mobile: release is immediate, use tween to animate back to normal speed
 
 gsap.utils.toArray(canvas).forEach(element => {
-  let startY;
+  let startY: number;
   let isDragging = false;
-  let velocityTween;
+  let velocityTween: any;
   let wheelTimeout: number | null = null;  // For debouncing wheel events
 
   Observer.create({
-    target: element,
+    target: element as HTMLElement,
     type: "touch,wheel,pointer,scroll",
     onPress: (self) => {
       if (velocityTween) velocityTween.kill();
       if (wheelTimeout) clearTimeout(wheelTimeout);
       
-      startY = self.y;
+      startY = self.y ?? 0;
       isDragging = true;
       logger.log("Press started at:", startY);
     },
     onDrag: (self) => {
       if (!isDragging) return;
       
-      const currentY = self.y;
+      const currentY = self.y ?? 0; // Handle potential undefined case
       const deltaY = currentY - startY;
       let newSpeed = deltaY / 5;
       newSpeed = -newSpeed;
-      
       updateSpeed(newSpeed);
       startY = currentY;
     },
