@@ -8,19 +8,21 @@ import ConsoleArt from "@components/ConsoleArt.astro";
 import IntroAnimation from "@components/IntroAnimation.astro";
 import GoogleTagManagerNoScript from "@components/GoogleTagManagerNoScript.astro";
 
-interface Props extends Entry<TypePageSkeleton> {}
+type Props = Entry<TypePageSkeleton> & { introAnimation?: boolean };
 
 const PROD = !import.meta.env.DEV;
 
 const page = Astro.props;
+
+const showIntro = page.introAnimation ?? true;
 ---
 
 <html lang="it">
   <Head {...page} />
   <body class="bg-black text-white relative min-h-screen">
-    { PROD && <GoogleTagManagerNoScript /> }
+    {PROD && <GoogleTagManagerNoScript />}
     <Grain />
-    <IntroAnimation />
+    {showIntro && <IntroAnimation />}
     <main>
       <slot />
     </main>
