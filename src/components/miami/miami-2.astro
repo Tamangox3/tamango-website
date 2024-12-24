@@ -1,6 +1,6 @@
 <div
   id="loading"
-  class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 flex flex-col gap-[24px] transition-opacity duration-300 ease-in-out"
+  class="fixed inset-0 z-50 items-center justify-center bg-black flex flex-col gap-[24px] transition-opacity duration-300 ease-in-out"
 >
   <img src="/logo.svg" class="w-[180px]" />
   <div
@@ -53,9 +53,9 @@
   // imports
   import RuntimeLoader from "@lib/miami/rive-runtime-loader";
   import {
-    type StateMachineInstance,
     type RiveCanvas as RiveCanvasType,
     type File as RiveFileType,
+    type FileAsset,
   } from "@rive-app/canvas-advanced";
   import type { LinearAnimationInstance } from "@rive-app/canvas/rive_advanced.mjs";
   import { gsap } from "gsap";
@@ -95,10 +95,6 @@
     "[data-animation-canvas]"
   ) as HTMLCanvasElement;
   const scrollVelocityEl = document.getElementById("scroll-velocity");
-  const audioProgressEl = document.getElementById("audio-progress");
-  const audioPercentageEl = document.getElementById("audio-percentage");
-  const frameProgressEl = document.getElementById("frame-progress");
-  const resetButtonEl = document.getElementById("reset-button");
   const loadingDiv = document.getElementById("loading");
 
   // audio context
@@ -122,8 +118,6 @@
 
   let activeAnimation: LinearAnimationInstance | null = null;
   let idleAnimation: LinearAnimationInstance | null = null;
-  let stateMachine: StateMachineInstance | null = null;
-  let rive: RiveCanvasType | null = null;
 
   // initial animation trigger
   let triggered = false;
@@ -241,7 +235,25 @@
 
   async function setupRive(canvas: HTMLCanvasElement, riveBytes: Uint8Array) {
     const rive = (await RuntimeLoader.awaitInstance()) as RiveCanvasType;
-    const file = (await rive.load(riveBytes)) as RiveFileType;
+    const file = (await rive.load(
+      riveBytes,
+      new rive.CustomFileAssetLoader({
+        loadContents: (asset: FileAsset, inBandBytes: any) => {
+          if (!asset.isImage) {
+            // Ignore non-image assets
+            return true;
+          }
+          fetch(
+            "/miami/miami_v4/assets/" +
+              asset.uniqueFilename.split(".")[0] +
+              ".webp"
+          ).then(async (response) => {
+            asset.decode(new Uint8Array(await response.arrayBuffer()));
+          });
+          return true;
+        },
+      })
+    )) as RiveFileType;
     const renderer = rive.makeRenderer(canvas);
 
     if (isDev) rive.enableFPSCounter();
@@ -292,6 +304,7 @@
 
       artboard.advance(elapsedSeconds * speed);
       stateMachine.advance(elapsedSeconds * speed);
+      activeAnimation?.advance(elapsedSeconds * speed);
 
       renderer.save();
       renderer.align(
@@ -324,7 +337,7 @@
     const { rive, file, renderer } = await setupRive(canvas, riveBytes);
     const { artboard, stateMachine } = setupAnimations(rive, file);
 
-    canvas?.addEventListener("click", () => {
+    canvas.addEventListener("click", () => {
       logger.log(
         "status: {triggered: " + triggered + ", isPlaying: " + isPlaying + "}"
       );
@@ -444,6 +457,8 @@
     let isDragging = false;
     let velocityTween: any;
     let wheelTimeout: number | null = null; // For debouncing wheel events
+    const mobileRatio = 1;
+    const desktopRatio = 1;
 
     Observer.create({
       target: element as HTMLElement,
@@ -461,7 +476,7 @@
 
         const currentY = self.y ?? 0; // Handle potential undefined case
         const deltaY = currentY - startY;
-        let newSpeed = deltaY / 5;
+        let newSpeed = deltaY / mobileRatio;
         newSpeed = -newSpeed;
         updateSpeed(newSpeed);
         startY = currentY;
@@ -477,7 +492,7 @@
         if (velocityTween) velocityTween.kill();
         if (wheelTimeout) clearTimeout(wheelTimeout);
 
-        const newSpeed = self.deltaY / 15;
+        const newSpeed = self.deltaY / desktopRatio;
         updateSpeed(newSpeed);
 
         // Set timeout to trigger release behavior after wheel stops
@@ -508,8 +523,8 @@
 
   async function loadAssets() {
     const [audioData, riveData] = await Promise.all([
-      fetch("/traccia_trim.mp3").then((res) => res.arrayBuffer()),
-      fetch("/miami/miami_v3/r.riv").then((res) => res.arrayBuffer()),
+      fetch("/miami/traccia_trim.mp3").then((res) => res.arrayBuffer()),
+      fetch("/miami/miami_v4/r.riv").then((res) => res.arrayBuffer()),
     ]);
 
     return {
@@ -521,14 +536,16 @@
   gainNode.connect(audioContext.destination);
 
   const { audioData, riveData } = await loadAssets();
-  await initAudio(audioData);
-  await init(riveData);
 
   // Hide the loading div
-  loadingDiv?.style.setProperty("opacity", "0");
   setTimeout(() => {
-    loadingDiv?.style.setProperty("display", "none");
-  }, 300);
+    loadingDiv?.style.setProperty("opacity", "0");
+    setTimeout(() => {
+      loadingDiv?.style.setProperty("display", "none");
+    }, 300);
+  }, 500);
+
+  await Promise.all([initAudio(audioData), init(riveData)]);
 </script>
 
 <style>
