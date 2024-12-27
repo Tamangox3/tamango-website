@@ -11,7 +11,13 @@
     <span class="text-white text-2xl">L'animazione sta caricando</span>
     <div id="loading-states" class="flex flex-col items-center gap-1">
       <span id="loading-rive" class="text-white text-sm opacity-50">Loading Rive and assets...</span>
-      <span id="loading-setup" class="text-white text-sm opacity-50">Setting up animations...</span>
+      <span id="loading-file" class="text-white text-sm opacity-50">Loading animation file...</span>
+      <span id="loading-renderer" class="text-white text-sm opacity-50">Setting up renderer...</span>
+      <span id="loading-artboard" class="text-white text-sm opacity-50">Loading artboard...</span>
+      <span id="loading-state-machine" class="text-white text-sm opacity-50">Setting up state machine...</span>
+      <span id="loading-animations" class="text-white text-sm opacity-50">Loading animations...</span>
+      <span id="loading-draw" class="text-white text-sm opacity-50">Creating draw loop...</span>
+      <span id="loading-frame" class="text-white text-sm opacity-50">Requesting first frame...</span>
     </div>
   </div>
 </div>
@@ -134,11 +140,7 @@
 
   async function setupRive(canvas: HTMLCanvasElement, riveBytes: Uint8Array) {
     const rive = (await RuntimeLoader.awaitInstance()) as RiveCanvasType;
-    // const fileBytes = new Uint8Array(
-    // await (await fetch("/miami/miami_v4_embedded/r4.riv")).arrayBuffer()
-  // );
-  const file = (await rive.load(riveBytes)) as RiveFileType;
-
+    const file = (await rive.load(riveBytes)) as RiveFileType;
     // const file = (await rive.load(
     //   riveBytes,
     //   new rive.CustomFileAssetLoader({
@@ -158,7 +160,31 @@
     //     },
     //   }),
     // )) as RiveFileType;
+    // logger.log("SetupRive --> loaded file");
+    
+    // Update loading state for file loaded
+    const loadingFileEl = document.getElementById("loading-file");
+    if (loadingFileEl) {
+      loadingFileEl.style.opacity = "1";
+    }
+
     const renderer = rive.makeRenderer(canvas);
+    logger.log("SetupRive --> File rendered");
+    // const fileBytes = new Uint8Array(
+    // await (await fetch("/miami/miami_v4_embedded/r4.riv")).arrayBuffer()
+  // );
+
+  
+
+  // const file = (await rive.load(riveBytes)) as RiveFileType;
+
+  // logger.log("SetupRive --> loaded file")
+
+    // Update loading state for renderer
+    const loadingRendererEl = document.getElementById("loading-renderer");
+    if (loadingRendererEl) {
+      loadingRendererEl.style.opacity = "1";
+    }
 
     if (isDev) rive.enableFPSCounter();
 
@@ -167,12 +193,27 @@
 
   function setupAnimations(rive: RiveCanvasType, file: RiveFileType) {
     const artboard = file.artboardByName(file.defaultArtboard().name);
+    logger.log("setupAnimations --> loaded artboard");
+    logger.log("Default artboard: ", file.defaultArtboard().name);
 
-    logger.log("Default artboard: ", file.defaultArtboard().name)
+    // Update loading state for artboard
+    const loadingArtboardEl = document.getElementById("loading-artboard");
+    if (loadingArtboardEl) {
+      loadingArtboardEl.style.opacity = "1";
+    }
+
     const stateMachine = new rive.StateMachineInstance(
       artboard.stateMachineByIndex(0),
       artboard,
     );
+    logger.log("setupAnimations --> loaded stateMachine");
+
+    // Update loading state for state machine
+    const loadingStateMachineEl = document.getElementById("loading-state-machine");
+    if (loadingStateMachineEl) {
+      loadingStateMachineEl.style.opacity = "1";
+    }
+
     idleAnimation = new rive.LinearAnimationInstance(
       artboard.animationByIndex(0),
       artboard,
@@ -181,6 +222,13 @@
       artboard.animationByIndex(1),
       artboard,
     );
+    logger.log("setupAnimations --> loaded animations");
+
+    // Update loading state for animations
+    const loadingAnimationsEl = document.getElementById("loading-animations");
+    if (loadingAnimationsEl) {
+      loadingAnimationsEl.style.opacity = "1";
+    }
 
     return { artboard, stateMachine, idleAnimation };
   }
@@ -258,6 +306,13 @@
       }
     });
 
+    logger.log("init --> before createDrawLoop");
+    // Update loading state for draw loop creation
+    const loadingDrawEl = document.getElementById("loading-draw");
+    if (loadingDrawEl) {
+      loadingDrawEl.style.opacity = "1";
+    }
+
     const drawLoop = createDrawLoop(
       rive,
       renderer,
@@ -267,10 +322,11 @@
     );
     rive.requestAnimationFrame(drawLoop);
 
-    // Update loading state after draw loop is initialized
-    const loadingSetupEl = document.getElementById("loading-setup");
-    if (loadingSetupEl) {
-      loadingSetupEl.style.opacity = "1";
+    logger.log("init --> after createDrawLoop");
+    // Update loading state for first frame request
+    const loadingFrameEl = document.getElementById("loading-frame");
+    if (loadingFrameEl) {
+      loadingFrameEl.style.opacity = "1";
     }
 
     // Hide the loading div after the first animation frame
@@ -322,7 +378,7 @@
     let isDragging = false;
     let velocityTween: any;
     let wheelTimeout: number | null = null; // For debouncing wheel events
-    const mobileRatio = 5;
+    const mobileRatio = 1;
     const desktopRatio = 5;
 
     Observer.create({
@@ -395,7 +451,7 @@
 
   async function loadAssets() {
     const [riveData] = await Promise.all([
-      fetch("/miami/miami_v4_embedded/r4.riv").then((res) => res.arrayBuffer()),
+      fetch("/miami/miami_v4_embedded/r5.riv").then((res) => res.arrayBuffer()),
     ]);
 
     return {
