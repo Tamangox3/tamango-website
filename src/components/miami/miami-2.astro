@@ -7,7 +7,13 @@
     class="w-10 h-10 border-4 border-black border-t-white rounded-full animate-spin-slow"
   >
   </div>
-  <span class="text-white text-2xl">L'animazione sta caricando</span>
+  <div class="flex flex-col items-center gap-2">
+    <span class="text-white text-2xl">L'animazione sta caricando</span>
+    <div id="loading-states" class="flex flex-col items-center gap-1">
+      <span id="loading-rive" class="text-white text-sm opacity-50">Loading Rive and assets...</span>
+      <span id="loading-setup" class="text-white text-sm opacity-50">Setting up animations...</span>
+    </div>
+  </div>
 </div>
 
 <!-- html components -->
@@ -128,25 +134,30 @@
 
   async function setupRive(canvas: HTMLCanvasElement, riveBytes: Uint8Array) {
     const rive = (await RuntimeLoader.awaitInstance()) as RiveCanvasType;
-    const file = (await rive.load(
-      riveBytes,
-      new rive.CustomFileAssetLoader({
-        loadContents: (asset: FileAsset, inBandBytes: any) => {
-          if (!asset.isImage) {
-            // Ignore non-image assets
-            return true;
-          }
-          fetch(
-            "/miami/miami_v4/assets/" +
-              asset.uniqueFilename.split(".")[0] +
-              ".webp",
-          ).then(async (response) => {
-            asset.decode(new Uint8Array(await response.arrayBuffer()));
-          });
-          return true;
-        },
-      }),
-    )) as RiveFileType;
+    // const fileBytes = new Uint8Array(
+    // await (await fetch("/miami/miami_v4_embedded/r4.riv")).arrayBuffer()
+  // );
+  const file = (await rive.load(riveBytes)) as RiveFileType;
+
+    // const file = (await rive.load(
+    //   riveBytes,
+    //   new rive.CustomFileAssetLoader({
+    //     loadContents: (asset: FileAsset, inBandBytes: any) => {
+    //       if (!asset.isImage) {
+    //         // Ignore non-image assets
+    //         return true;
+    //       }
+    //       fetch(
+    //         "/miami/miami_v4/assets/" +
+    //           asset.uniqueFilename.split(".")[0] +
+    //           ".webp",
+    //       ).then(async (response) => {
+    //         asset.decode(new Uint8Array(await response.arrayBuffer()));
+    //       });
+    //       return true;
+    //     },
+    //   }),
+    // )) as RiveFileType;
     const renderer = rive.makeRenderer(canvas);
 
     if (isDev) rive.enableFPSCounter();
@@ -156,6 +167,8 @@
 
   function setupAnimations(rive: RiveCanvasType, file: RiveFileType) {
     const artboard = file.artboardByName(file.defaultArtboard().name);
+
+    logger.log("Default artboard: ", file.defaultArtboard().name)
     const stateMachine = new rive.StateMachineInstance(
       artboard.stateMachineByIndex(0),
       artboard,
@@ -190,8 +203,6 @@
       lastTime = time;
 
       if (isPlaying || !triggered) {
-
-
         artboard.advance(elapsedSeconds * speed);
         stateMachine.advance(elapsedSeconds * speed);
         activeAnimation?.advance(elapsedSeconds * speed);
@@ -228,15 +239,6 @@
     const { rive, file, renderer } = await setupRive(canvas, riveBytes);
     const { artboard, stateMachine } = setupAnimations(rive, file);
 
-    // play-pause button event listener
-    // const playPauseButton = document.getElementById("play-pause-button-icon");
-    // if (playPauseButton) {
-    //   playPauseButton.addEventListener("click", () => {
-
-    //     audioManager.playIdleTrack();
-    //   });
-    // }
-
     canvas.addEventListener("click", () => {
       logger.log(
         "status: {triggered: " +
@@ -264,6 +266,20 @@
       canvas,
     );
     rive.requestAnimationFrame(drawLoop);
+
+    // Update loading state after draw loop is initialized
+    const loadingSetupEl = document.getElementById("loading-setup");
+    if (loadingSetupEl) {
+      loadingSetupEl.style.opacity = "1";
+    }
+
+    // Hide the loading div after the first animation frame
+    setTimeout(() => {
+      loadingDiv?.style.setProperty("opacity", "0");
+      setTimeout(() => {
+        loadingDiv?.style.setProperty("display", "none");
+      }, 300);
+    }, 500);
 
     return rive;
   }
@@ -378,37 +394,30 @@
   });
 
   async function loadAssets() {
-    const [audioData, riveData] = await Promise.all([
-      fetch("/miami/audio/audio_seq_started.mp3").then((res) =>
-        res.arrayBuffer(),
-      ),
-      fetch("/miami/miami_v4/r.riv").then((res) => res.arrayBuffer()),
+    const [riveData] = await Promise.all([
+      fetch("/miami/miami_v4_embedded/r4.riv").then((res) => res.arrayBuffer()),
     ]);
 
     return {
-      audioData,
       riveData: new Uint8Array(riveData),
     };
   }
 
-  // Hide the loading div
-  setTimeout(() => {
-    loadingDiv?.style.setProperty("opacity", "0");
-    setTimeout(() => {
-      loadingDiv?.style.setProperty("display", "none");
-    }, 300);
-  }, 500);
-
-  const { audioData, riveData } = await loadAssets();
+  const { riveData } = await loadAssets();
   await audioManager.loadAudio("/miami/audio/audio_seq_started.mp3");
+
+  // Update first loading state
+  const loadingRiveEl = document.getElementById("loading-rive");
+  if (loadingRiveEl) {
+    loadingRiveEl.style.opacity = "1";
+  }
+
   await init(riveData);
-
-
 
   // if playing, check for drifts every 4 seconds
   setInterval(() => {
     if (isPlaying) {
-      console.log("Checking for drifts");
+      logger.log("Checking for drifts");
       const animationTime = activeAnimation?.time || 0;
       const audioTime = audioManager.getCurrentTime();
       const drift = Math.abs(animationTime - audioTime);

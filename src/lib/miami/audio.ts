@@ -10,9 +10,6 @@ export class AudioManager {
   private playbackRate: number = 1;
   private playbackDirection: number = 1;
 
-  private lastPlaybackDirectionChange: number = 0;
-  private sumPlaybackDirectionChanges: number = 0;
-
   constructor() {
     this.audioContext = new AudioContext();
     console.log('AudioManager initialized');
@@ -221,13 +218,4 @@ export class AudioManager {
   setBufferOffset(offset: number): void {
     this.bufferOffset = offset;
   }
-}
-
-// Helper function to fetch audio track (keeping for backward compatibility)
-export async function fetchAudioTrack(url: string): Promise<string> {
-  const response = await fetch(url);
-  const arrayBuffer = await response.arrayBuffer();
-  const uint8Array = new Uint8Array(arrayBuffer);
-  const blob = new Blob([uint8Array], { type: response.headers.get("Content-Type") ?? "audio/mp3" });
-  return URL.createObjectURL(blob);
 }
