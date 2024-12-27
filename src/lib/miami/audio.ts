@@ -212,21 +212,7 @@ export class AudioManager {
     return this.playbackDirection;
   }
 
-  getLastPlaybackDirectionChange(): number {
-    return this.lastPlaybackDirectionChange;
-  }
 
-  getSumPlaybackDirectionChanges(): number {
-    return this.sumPlaybackDirectionChanges;
-  }
-
-  setLastPlaybackDirectionChange(time: number): void {
-    this.lastPlaybackDirectionChange = time;
-  }
-
-  setSumPlaybackDirectionChanges(sum: number): void {
-    this.sumPlaybackDirectionChanges = sum;
-  }
 
   getBufferOffset(): number {
     return this.bufferOffset;

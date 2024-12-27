@@ -250,8 +250,6 @@
         triggered = true;
         isPlaying = true;
         audioManager.play(0);
-        audioManager.setLastPlaybackDirectionChange(Date.now());
-        // audioManager.setSumPlaybackDirectionChanges(0);
         if (activeAnimation) {
           activeAnimation.time = 0;
         }
@@ -293,14 +291,7 @@
 
     // Update audio playback
     audioManager.setPlaybackRate(newSpeed);
-    const lastPlaybackDirectionChangeEl = document.getElementById(
-      "last-playback-direction-change",
-    );
-    if (lastPlaybackDirectionChangeEl) {
-      lastPlaybackDirectionChangeEl.textContent = audioManager
-        .getLastPlaybackDirectionChange()
-        .toFixed(2);
-    }
+
   }
 
   // need two approaches, one for mobile and one for desktop
