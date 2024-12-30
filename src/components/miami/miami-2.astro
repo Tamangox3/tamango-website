@@ -109,6 +109,24 @@
     { passive: false },
   );
 
+  // ---------------------------- //
+
+  // pause audio + animation on blur
+  window.addEventListener('blur', () => {
+  console.log("blur event");
+  audioManager.pause();
+  isPlaying = false;
+});
+
+  // pause audio + animation on visibility change
+  document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    console.log("visibility change event");
+    audioManager.pause();
+    isPlaying = false;
+  }
+});
+
   function updateProgressDisplays(audioPosition: number, activeAnimation: any) {
     // Update audio progress
     const audioProgressEl = document.getElementById("audio-progress");
@@ -351,8 +369,8 @@
     speed = newSpeed;
 
     // Update slider and label
-    const slider = document.getElementById("progress-bar") as HTMLInputElement;
-    if (slider) slider.value = newSpeed.toString();
+    // const slider = document.getElementById("progress-bar") as HTMLInputElement;
+    // if (slider) slider.value = newSpeed.toString();
     const label = document.querySelector(`label[for="progress-bar"]`);
     if (label) label.textContent = `${newSpeed.toFixed(2)}x`;
 
@@ -377,6 +395,8 @@
     let startY: number;
     let isDragging = false;
     let velocityTween: any;
+    let volumeTween: any;
+    let distortionTween: any;
     let wheelTimeout: number | null = null; // For debouncing wheel events
     const mobileRatio = 1;
     const desktopRatio = 5;
@@ -438,11 +458,48 @@
         },
         {
           speed: 1,
-          duration: 1.5,
+          duration: 2,
           ease: "power2.out",
           onUpdate: function () {
             const newSpeed = this.targets()[0].speed;
             updateSpeed(newSpeed);
+            // updateAudioVolume(newSpeed);
+          },
+        },
+      );
+
+      volumeTween = gsap.fromTo(
+        audioManager,
+      {
+          volume: 0.1,
+      },
+        {
+          volume: 1,
+          duration: 2,
+          ease: "power3.out",
+          onUpdate: function () {
+            const newVolume = this.targets()[0].volume;
+            audioManager.setVolume(newVolume);
+          },
+        },
+      );
+
+
+      distortionTween = gsap.fromTo(
+        audioManager,
+        {
+          distortion: 0,
+        },
+        {
+          distortion: 1,
+          duration: 2,
+          ease: "power3.out",
+          onUpdate: function () {
+            const newDistortion = this.targets()[0].distortion;
+            let absRate = Math.abs(speed);
+            const distortionAmount = (absRate - 1) * 50; // Adjust multiplier to taste
+
+            audioManager.setDistortion(distortionAmount);
           },
         },
       );
