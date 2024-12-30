@@ -26,15 +26,18 @@ export class AudioManager {
         
     // Create effect nodes
     this.filter = this.audioContext.createBiquadFilter();
+    // waveshaper needs a bit more attention
     this.waveshaper = this.audioContext.createWaveShaper();
     
     // Default setup
     this.filter.type = 'lowpass';
     this.filter.frequency.value = 20000; // Start with no filtering
     
+    // Chain the audio nodes together
+
+    this.filter.connect(this.gainNode);
+    // this.waveshaper.connect(this.gainNode);
     this.gainNode.connect(this.audioContext.destination);
-    this.waveshaper.connect(this.audioContext.destination);
-    this.filter.connect(this.audioContext.destination);
   }
 
   async loadAudio(url: string): Promise<void> {
@@ -80,7 +83,8 @@ export class AudioManager {
     this.currentSource = this.audioContext.createBufferSource();
     this.currentSource.buffer = buffer;
     this.currentSource.playbackRate.value = Math.abs(this.playbackRate);
-    this.currentSource.connect(this.audioContext.destination);
+    // connect to first node of chain
+    this.currentSource.connect(this.filter);
 
     this.bufferOffset = startPosition ?? this.bufferOffset;
     this.startTime = this.audioContext.currentTime;
@@ -166,11 +170,12 @@ export class AudioManager {
 createDistortionCurve(amount: number) {
   const samples = 44100;
   const curve = new Float32Array(samples);
-  const deg = Math.PI / 180;
   
   for (let i = 0; i < samples; ++i) {
-      const x = (i * 2) / samples - 1;
-      curve[i] = (3 + amount) * x * 20 * deg / (Math.PI + amount * Math.abs(x));
+    // Convert to range -1 to 1
+    const x = (i * 2) / samples - 1;
+    // Softer curve calculation
+    curve[i] = Math.tanh(amount * x);
   }
   
   return curve;
@@ -199,10 +204,12 @@ createDistortionCurve(amount: number) {
 
     if (absRate > 1) {
       // chose baseFrequency 5000, it was still really high pitched with the baseFrequency at 20000
-      const baseFrequency = 5000; 
+
+      // this.setVolume(0.1);
+      const baseFrequency = 20000; 
       const scaledFrequency = baseFrequency / absRate ;
       
-      const minFrequency = 400;
+      const minFrequency = 3000;
       const frequency = Math.max(minFrequency, scaledFrequency);
       
       this.setFilter(frequency);

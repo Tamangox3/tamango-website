@@ -471,12 +471,12 @@
       volumeTween = gsap.fromTo(
         audioManager,
       {
-          volume: 0.1,
+          volume: 0.3,
       },
         {
           volume: 1,
           duration: 2,
-          ease: "power3.out",
+          ease: "power2.out",
           onUpdate: function () {
             const newVolume = this.targets()[0].volume;
             audioManager.setVolume(newVolume);
@@ -485,24 +485,7 @@
       );
 
 
-      distortionTween = gsap.fromTo(
-        audioManager,
-        {
-          distortion: 0,
-        },
-        {
-          distortion: 1,
-          duration: 2,
-          ease: "power3.out",
-          onUpdate: function () {
-            const newDistortion = this.targets()[0].distortion;
-            let absRate = Math.abs(speed);
-            const distortionAmount = (absRate - 1) * 50; // Adjust multiplier to taste
 
-            audioManager.setDistortion(distortionAmount);
-          },
-        },
-      );
     }
   });
 
