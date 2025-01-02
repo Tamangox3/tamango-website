@@ -11,6 +11,7 @@
     <span class="text-white text-2xl">L'animazione sta caricando</span>
     <div id="loading-states" class="flex flex-col items-center gap-1">
       <span id="loading-rive" class="text-white text-sm opacity-50">Loading Rive and assets...</span>
+      <span id="loading-rive-instance" class="text-white text-sm opacity-50">Loading rive instance...</span>
       <span id="loading-file" class="text-white text-sm opacity-50">Loading animation file...</span>
       <span id="loading-renderer" class="text-white text-sm opacity-50">Setting up renderer...</span>
       <span id="loading-artboard" class="text-white text-sm opacity-50">Loading artboard...</span>
@@ -158,33 +159,47 @@
 
   async function setupRive(canvas: HTMLCanvasElement, riveBytes: Uint8Array) {
     const rive = (await RuntimeLoader.awaitInstance()) as RiveCanvasType;
-    const file = (await rive.load(riveBytes)) as RiveFileType;
-    // const file = (await rive.load(
-    //   riveBytes,
-    //   new rive.CustomFileAssetLoader({
-    //     loadContents: (asset: FileAsset, inBandBytes: any) => {
-    //       if (!asset.isImage) {
-    //         // Ignore non-image assets
-    //         return true;
-    //       }
-    //       fetch(
-    //         "/miami/miami_v4/assets/" +
-    //           asset.uniqueFilename.split(".")[0] +
-    //           ".webp",
-    //       ).then(async (response) => {
-    //         asset.decode(new Uint8Array(await response.arrayBuffer()));
-    //       });
-    //       return true;
-    //     },
-    //   }),
-    // )) as RiveFileType;
-    // logger.log("SetupRive --> loaded file");
-    
-    // Update loading state for file loaded
+
+    const loadingRiveInstanceEl = document.getElementById("loading-rive-instance");
+    if (loadingRiveInstanceEl) {
+      loadingRiveInstanceEl.style.opacity = "1";
+    }
+
+
+
+    // const file = (await rive.load(riveBytes)) as RiveFileType;
+
     const loadingFileEl = document.getElementById("loading-file");
     if (loadingFileEl) {
       loadingFileEl.style.opacity = "1";
     }
+
+    const file = (await rive.load(
+      riveBytes,
+      new rive.CustomFileAssetLoader({
+        loadContents: (asset: FileAsset, inBandBytes: any) => {
+          if (!asset.isImage) {
+            // Ignore non-image assets
+            return true;
+          }
+          fetch(
+            "/miami/miami_v4/assets_v2/" +
+              asset.uniqueFilename.split(".")[0] +
+              ".webp",
+          ).then(async (response) => {
+            asset.decode(new Uint8Array(await response.arrayBuffer()));
+          })
+          .catch((error) => {
+            console.log("Error loading asset:", error);
+          });
+          return true;
+        },
+      }),
+    )) as RiveFileType;
+    logger.log("SetupRive --> loaded file");
+    
+    // Update loading state for file loaded
+
 
     const renderer = rive.makeRenderer(canvas);
     logger.log("SetupRive --> File rendered");
@@ -491,7 +506,8 @@
 
   async function loadAssets() {
     const [riveData] = await Promise.all([
-      fetch("/miami/miami_v4_embedded/r5.riv").then((res) => res.arrayBuffer()),
+      // fetch("/miami/miami_v4_embedded/r5.riv").then((res) => res.arrayBuffer()),
+      fetch("/miami/miami_v4/r2.riv").then((res) => res.arrayBuffer()),
     ]);
 
     return {
