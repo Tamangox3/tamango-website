@@ -3,28 +3,73 @@
   class="fixed inset-0 z-50 items-center justify-center bg-black flex flex-col gap-[24px] transition-opacity duration-300 ease-in-out"
 >
   <img src="/logo.svg" class="w-[180px]" />
-  <div
-    class="w-10 h-10 border-4 border-black border-t-white rounded-full animate-spin-slow"
-  >
-  </div>
-  <div class="flex flex-col items-center gap-2">
-    <span class="text-white text-2xl">L'animazione sta caricando</span>
+  <div class="flex flex-col items-center gap-4">
+    <span id="animation-label" class="text-white text-2xl"
+      >L'animazione sta caricando...</span
+    >
     <div id="loading-states" class="flex flex-col items-center gap-1">
-      <span id="loading-rive" class="text-white text-sm opacity-50">Loading Rive and assets...</span>
-      <span id="loading-rive-instance" class="text-white text-sm opacity-50">Loading rive instance...</span>
-      <span id="loading-file" class="text-white text-sm opacity-50">Loading animation file...</span>
-      <span id="loading-renderer" class="text-white text-sm opacity-50">Setting up renderer...</span>
-      <span id="loading-artboard" class="text-white text-sm opacity-50">Loading artboard...</span>
-      <span id="loading-state-machine" class="text-white text-sm opacity-50">Setting up state machine...</span>
-      <span id="loading-animations" class="text-white text-sm opacity-50">Loading animations...</span>
-      <span id="loading-draw" class="text-white text-sm opacity-50">Creating draw loop...</span>
-      <span id="loading-frame" class="text-white text-sm opacity-50">Requesting first frame...</span>
+      <span id="loading-rive" class="text-white text-sm opacity-50"
+        >Loading Rive and assets...</span
+      >
+      <span id="loading-rive-instance" class="text-white text-sm opacity-50"
+        >Loading rive instance...</span
+      >
+      <span id="loading-file" class="text-white text-sm opacity-50"
+        >Loading animation file...</span
+      >
+      <span id="loading-renderer" class="text-white text-sm opacity-50"
+        >Setting up renderer...</span
+      >
+      <span id="loading-artboard" class="text-white text-sm opacity-50"
+        >Loading artboard...</span
+      >
+      <span id="loading-state-machine" class="text-white text-sm opacity-50"
+        >Setting up state machine...</span
+      >
+      <span id="loading-animations" class="text-white text-sm opacity-50"
+        >Loading animations...</span
+      >
+      <span id="loading-draw" class="text-white text-sm opacity-50"
+        >Creating draw loop...</span
+      >
+      <span id="loading-frame" class="text-white text-sm opacity-50"
+        >Requesting first frame...</span
+      >
     </div>
+    <button
+      id="go-to-animation"
+      class="bg-white text-black p-2 rounded-lg px-4 opacity-50 relative flex flex-row items-center cursor-not-allowed"
+      disabled
+    >
+      <svg
+        id="loading-spinner"
+        class="animate-spin-slow -ml-1 mr-3 h-5 w-5 text-black"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          class="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="4"></circle>
+        <path
+          class="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        ></path>
+      </svg>Vai all'animazione</button
+    >
   </div>
 </div>
 
 <!-- html components -->
-<canvas data-trigger data-animation-canvas class="h-dvh w-dvw"></canvas>
+<div id="animation-canvas">
+  <canvas data-trigger data-animation-canvas></canvas>
+</div>
+
 <!-- <div
   id="play-pause-button"
   class="fixed z-10 bottom- right-[16px] w-[200px] p-3 h-[220px] accent-white rounded-lg flex flex-col items-center space-y-2"
@@ -36,8 +81,9 @@
     PLAY
   </div>
 </div> -->
+
 <div
-  class="miami-slider fixed z-10 bottom-[48px] right-[16px] w-[200px] p-3 h-[220px] accent-white rounded-lg flex flex-col items-center space-y-2"
+  class="miami-slider fixed z-10 bottom-[48px] right-[16px] w-[200px] p-3 h-[220px] accent-white rounded-lg flex flex-col items-center space-y-2 pointer-events-none"
 >
   <div class="flex flex-row items-center gap-2"></div>
   <div class="flex flex-col items-center gap-2">
@@ -62,6 +108,7 @@
     type FileAsset,
   } from "@rive-app/canvas-advanced";
   import type { LinearAnimationInstance } from "@rive-app/canvas/rive_advanced.mjs";
+  import { loadRiveAsset, RIVE_ASSETS } from "@lib/miami/rive-assets";
   import { gsap } from "gsap";
   import { ScrollTrigger } from "gsap/ScrollTrigger";
   import { Observer } from "gsap/Observer";
@@ -83,10 +130,14 @@
 
   // html elements
   const canvas = document.querySelector(
-    "[data-animation-canvas]",
+    "[data-animation-canvas]"
   ) as HTMLCanvasElement;
   const scrollVelocityEl = document.getElementById("scroll-velocity");
   const loadingDiv = document.getElementById("loading");
+
+  // Assets base path
+  const ASSETS_BASE_PATH = "/miami/miami_v4/assets_v2/";
+  const assets = new Map<string, Promise<Uint8Array>>();
 
   // audio manager
   const audioManager = new AudioManager();
@@ -107,26 +158,26 @@
     (e) => {
       e.preventDefault();
     },
-    { passive: false },
+    { passive: false }
   );
 
   // ---------------------------- //
 
   // pause audio + animation on blur
-  window.addEventListener('blur', () => {
-  console.log("blur event");
-  audioManager.pause();
-  isPlaying = false;
-});
-
-  // pause audio + animation on visibility change
-  document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    console.log("visibility change event");
+  window.addEventListener("blur", () => {
+    console.log("blur event");
     audioManager.pause();
     isPlaying = false;
-  }
-});
+  });
+
+  // pause audio + animation on visibility change
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      console.log("visibility change event");
+      audioManager.pause();
+      isPlaying = false;
+    }
+  });
 
   function updateProgressDisplays(audioPosition: number, activeAnimation: any) {
     // Update audio progress
@@ -160,12 +211,12 @@
   async function setupRive(canvas: HTMLCanvasElement, riveBytes: Uint8Array) {
     const rive = (await RuntimeLoader.awaitInstance()) as RiveCanvasType;
 
-    const loadingRiveInstanceEl = document.getElementById("loading-rive-instance");
+    const loadingRiveInstanceEl = document.getElementById(
+      "loading-rive-instance"
+    );
     if (loadingRiveInstanceEl) {
       loadingRiveInstanceEl.style.opacity = "1";
     }
-
-
 
     // const file = (await rive.load(riveBytes)) as RiveFileType;
 
@@ -182,36 +233,31 @@
             // Ignore non-image assets
             return true;
           }
-          fetch(
-            "/miami/miami_v4/assets_v2/" +
-              asset.uniqueFilename.split(".")[0] +
-              ".webp",
-          ).then(async (response) => {
-            asset.decode(new Uint8Array(await response.arrayBuffer()));
-          })
-          .catch((error) => {
-            console.log("Error loading asset:", error);
-          });
-          return true;
+          const filename = asset.uniqueFilename.split(".")[0];
+          if (assets.has(filename)) {
+            assets.get(filename)?.then((data) => {
+              asset.decode(data);
+            });
+            return true;
+          }
+          return false;
         },
-      }),
+      })
     )) as RiveFileType;
-    logger.log("SetupRive --> loaded file");
-    
-    // Update loading state for file loaded
 
+    logger.log("SetupRive --> loaded file");
+
+    // Update loading state for file loaded
 
     const renderer = rive.makeRenderer(canvas);
     logger.log("SetupRive --> File rendered");
     // const fileBytes = new Uint8Array(
     // await (await fetch("/miami/miami_v4_embedded/r4.riv")).arrayBuffer()
-  // );
+    // );
 
-  
+    // const file = (await rive.load(riveBytes)) as RiveFileType;
 
-  // const file = (await rive.load(riveBytes)) as RiveFileType;
-
-  // logger.log("SetupRive --> loaded file")
+    // logger.log("SetupRive --> loaded file")
 
     // Update loading state for renderer
     const loadingRendererEl = document.getElementById("loading-renderer");
@@ -222,6 +268,27 @@
     if (isDev) rive.enableFPSCounter();
 
     return { rive, file, renderer };
+  }
+
+  function loadingDone() {
+    document.getElementById("loading-spinner")?.remove();
+
+    const labelDOM = document.getElementById("animation-label");
+    if (labelDOM) labelDOM.textContent = "L'animazione è pronta";
+
+    const goButton = document.getElementById("go-to-animation");
+    if (!goButton) return;
+    goButton.removeAttribute("disabled");
+    goButton.style.setProperty("opacity", "1");
+    goButton.style.setProperty("cursor", "pointer");
+    document
+      .getElementById("go-to-animation")
+      ?.addEventListener("click", () => {
+        loadingDiv?.style.setProperty("opacity", "0");
+        setTimeout(() => {
+          loadingDiv?.style.setProperty("display", "none");
+        }, 300);
+      });
   }
 
   function setupAnimations(rive: RiveCanvasType, file: RiveFileType) {
@@ -237,23 +304,25 @@
 
     const stateMachine = new rive.StateMachineInstance(
       artboard.stateMachineByIndex(0),
-      artboard,
+      artboard
     );
     logger.log("setupAnimations --> loaded stateMachine");
 
     // Update loading state for state machine
-    const loadingStateMachineEl = document.getElementById("loading-state-machine");
+    const loadingStateMachineEl = document.getElementById(
+      "loading-state-machine"
+    );
     if (loadingStateMachineEl) {
       loadingStateMachineEl.style.opacity = "1";
     }
 
     idleAnimation = new rive.LinearAnimationInstance(
       artboard.animationByIndex(0),
-      artboard,
+      artboard
     );
     activeAnimation = new rive.LinearAnimationInstance(
       artboard.animationByIndex(1),
-      artboard,
+      artboard
     );
     logger.log("setupAnimations --> loaded animations");
 
@@ -271,7 +340,7 @@
     renderer: any,
     artboard: any,
     stateMachine: any,
-    canvas: HTMLCanvasElement,
+    canvas: HTMLCanvasElement
   ) {
     function draw(time: number) {
       if (!lastTime) lastTime = time;
@@ -291,7 +360,8 @@
 
       renderer.save();
       renderer.align(
-        rive.Fit.contain,
+        // if mobile, cover, otherwise contain
+        document.body.clientWidth < 640 ? rive.Fit.cover : rive.Fit.contain,
         rive.Alignment.center,
         {
           minX: 0,
@@ -299,7 +369,7 @@
           maxX: canvas?.width ?? window.innerWidth,
           maxY: canvas?.height ?? window.innerHeight,
         },
-        artboard.bounds,
+        artboard.bounds
       );
       artboard.draw(renderer);
       renderer.restore();
@@ -326,7 +396,7 @@
           triggered +
           ", isPlaying: " +
           audioManager.getIsPlaying() +
-          "}",
+          "}"
       );
       if (!triggered) {
         stateMachine.input(0).asTrigger().fire();
@@ -351,7 +421,7 @@
       renderer,
       artboard,
       stateMachine,
-      canvas,
+      canvas
     );
     rive.requestAnimationFrame(drawLoop);
 
@@ -362,13 +432,7 @@
       loadingFrameEl.style.opacity = "1";
     }
 
-    // Hide the loading div after the first animation frame
-    setTimeout(() => {
-      loadingDiv?.style.setProperty("opacity", "0");
-      setTimeout(() => {
-        loadingDiv?.style.setProperty("display", "none");
-      }, 300);
-    }, 500);
+    loadingDone();
 
     return rive;
   }
@@ -396,7 +460,6 @@
 
     // Update audio playback
     audioManager.setPlaybackRate(newSpeed);
-
   }
 
   // need two approaches, one for mobile and one for desktop
@@ -480,14 +543,14 @@
             updateSpeed(newSpeed);
             // updateAudioVolume(newSpeed);
           },
-        },
+        }
       );
 
       volumeTween = gsap.fromTo(
         audioManager,
-      {
+        {
           volume: 0.3,
-      },
+        },
         {
           volume: 1,
           duration: 2,
@@ -496,18 +559,25 @@
             const newVolume = this.targets()[0].volume;
             audioManager.setVolume(newVolume);
           },
-        },
+        }
       );
-
-
-
     }
   });
 
+  // Load rive, audio and first sequence assets
   async function loadAssets() {
+    const firstSeqAssets = RIVE_ASSETS.filter((asset) =>
+      asset.startsWith("SEQ1")
+    );
     const [riveData] = await Promise.all([
-      // fetch("/miami/miami_v4_embedded/r5.riv").then((res) => res.arrayBuffer()),
       fetch("/miami/miami_v4/r2.riv").then((res) => res.arrayBuffer()),
+      audioManager.loadAudio("/miami/audio/audio_seq_started.mp3"),
+      Promise.allSettled(
+        firstSeqAssets.map((asset) => {
+          const filename = asset.split(".")[0];
+          return assets.get(filename);
+        })
+      ),
     ]);
 
     return {
@@ -515,8 +585,17 @@
     };
   }
 
+  // Start background loading of assets
+  function setupBackgroundAssetsLoading() {
+    const assetsToLoad = RIVE_ASSETS;
+    assetsToLoad.forEach((asset) => {
+      const filename = asset.split(".")[0];
+      assets.set(filename, loadRiveAsset(ASSETS_BASE_PATH, asset));
+    });
+  }
+
+  setupBackgroundAssetsLoading();
   const { riveData } = await loadAssets();
-  await audioManager.loadAudio("/miami/audio/audio_seq_started.mp3");
 
   // Update first loading state
   const loadingRiveEl = document.getElementById("loading-rive");
@@ -534,7 +613,8 @@
       const audioTime = audioManager.getCurrentTime();
       const drift = Math.abs(animationTime - audioTime);
 
-      if (drift > 0.1) { // Threshold of 100ms drift
+      if (drift > 0.1) {
+        // Threshold of 100ms drift
         logger.log(`Drift detected: ${drift.toFixed(3)}s`);
         // Adjust animation time to match audio
         if (activeAnimation) {
@@ -543,8 +623,6 @@
       }
     }
   }, 4000);
-
-
 </script>
 
 <style>
@@ -564,5 +642,10 @@
   #speed-one:hover,
   #speed-two:hover {
     background-color: #2563eb;
+  }
+  #animation-canvas {
+    aspect-ratio: 9 / 16;
+    width: 100dvw;
+    height: 100dvh;
   }
 </style>
