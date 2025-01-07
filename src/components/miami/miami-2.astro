@@ -100,6 +100,7 @@
 
 <script>
   // imports
+  import { isFunction } from "@lib/utils";
   import RuntimeLoader from "@lib/miami/rive-runtime-loader";
   import { AudioManager } from "@lib/miami/audio";
   import {
@@ -137,7 +138,7 @@
 
   // Assets base path
   const ASSETS_BASE_PATH = "/miami/miami_v4/assets_v2/";
-  const assets = new Map<string, Promise<Uint8Array>>();
+  const assets = new Map<string, (() => Promise<Uint8Array>) | Uint8Array>();
 
   // audio manager
   const audioManager = new AudioManager();
@@ -235,9 +236,19 @@
           }
           const filename = asset.uniqueFilename.split(".")[0];
           if (assets.has(filename)) {
-            assets.get(filename)?.then((data) => {
-              asset.decode(data);
-            });
+            // if loader is a function, call it, otherwise decode the asset
+            const assetLoader = assets.get(filename);
+            if (!assetLoader) return false; // Shouldn't happen
+            if (isFunction<Promise<Uint8Array>>(assetLoader)) {
+              assetLoader().then((data) => {
+                asset.decode(data);
+              });
+            } else if (assetLoader instanceof Uint8Array) {
+              asset.decode(assetLoader as Uint8Array);
+            } else {
+              logger.log("Asset loader is not a function or Uint8Array");
+              return false;
+            }
             return true;
           }
           return false;
@@ -572,10 +583,19 @@
     const [riveData] = await Promise.all([
       fetch("/miami/miami_v4/r2.riv").then((res) => res.arrayBuffer()),
       audioManager.loadAudio("/miami/audio/audio_seq_started.mp3"),
+      // Ensure that Seq1 assets are loaded before showing the animation
       Promise.allSettled(
         firstSeqAssets.map((asset) => {
           const filename = asset.split(".")[0];
-          return assets.get(filename);
+          if (!assets.has(filename)) {
+            logger.log(`Asset ${filename} not found`);
+            return Promise.resolve();
+          }
+          return (assets.get(filename) as () => Promise<Uint8Array>)().then(
+            (data) => {
+              assets.set(filename, data);
+            }
+          );
         })
       ),
     ]);
@@ -587,10 +607,10 @@
 
   // Start background loading of assets
   function setupBackgroundAssetsLoading() {
-    const assetsToLoad = RIVE_ASSETS;
-    assetsToLoad.forEach((asset) => {
+    RIVE_ASSETS.forEach((asset) => {
       const filename = asset.split(".")[0];
-      assets.set(filename, loadRiveAsset(ASSETS_BASE_PATH, asset));
+      // Store a lazy function that initializes the loading when called
+      assets.set(filename, () => loadRiveAsset(ASSETS_BASE_PATH, asset));
     });
   }
 

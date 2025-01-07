@@ -18,3 +18,7 @@ export function formatTimestamp(date: Date): string {
   })}`;
   return ts;
 }
+
+export function isFunction<T>(maybeFunc: unknown): maybeFunc is () => T {
+  return typeof maybeFunc === "function";
+}
