@@ -1,4 +1,4 @@
-import { gsap, Linear } from "gsap";
+import { gsap } from "gsap";
 import { Howl } from "howler";
 import lottie from "lottie-web";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
