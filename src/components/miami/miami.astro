@@ -556,7 +556,7 @@
   // Load rive, audio and first sequence assets
   async function loadInitialData() {
     const firstSeqAssets = RIVE_ASSETS.filter((asset) =>
-      asset.startsWith("SEQ1")
+      asset.startsWith("SEQ1_")
     );
     RuntimeLoader.setWasmUrl("/miami/rive.wasm");
     const [riveAnimation, riveCanvas] = await Promise.all([
