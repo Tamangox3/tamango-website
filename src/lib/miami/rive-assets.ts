@@ -285,7 +285,7 @@ export const miamiAssetLoader = (assets: MiamiAssetsMap, logger?: MiamiLogger) =
       assetLoader()
         .then(async (data) => {
           const decodedImage = await decodeImage(data);
-          // (asset as ImageAsset).setRenderImage(decodedImage);     
+          (asset as ImageAsset).setRenderImage(decodedImage);
           decodedImage.unref();           
         })
         .catch((err) => {
