@@ -137,7 +137,7 @@
   const loadingDiv = document.getElementById("loading");
 
   // Assets base path
-  const ASSETS_BASE_PATH = "/miami/miami_v4/assets_v2/";
+  const ASSETS_BASE_PATH = "/miami/miami_v6/assets/compressed/";
   const assets = new Map<string, (() => Promise<Uint8Array>) | Uint8Array>();
 
   // audio manager
@@ -581,7 +581,7 @@
       asset.startsWith("SEQ1")
     );
     const [riveData] = await Promise.all([
-      fetch("/miami/miami_v4/r2.riv").then((res) => res.arrayBuffer()),
+      fetch("/miami/miami_v6/r.riv").then((res) => res.arrayBuffer()),
       audioManager.loadAudio("/miami/audio/audio_seq_started.mp3"),
       // Ensure that Seq1 assets are loaded before showing the animation
       Promise.allSettled(
