@@ -15,7 +15,7 @@ const DEV = import.meta.env.DEV;
 
 <script>
   const DEV =
-    document.querySelector(".intro-animation")!.getAttribute("data-dev") ===
+    document.querySelector(".intro-animation")?.getAttribute("data-dev") ===
     "true";
 
   function log(...args: any[]) {
@@ -31,7 +31,10 @@ const DEV = import.meta.env.DEV;
     });
   }
   async function animate() {
-    const animation = document.querySelector(".intro-animation")!;
+    const animation = document.querySelector(".intro-animation");
+    if (!animation) {
+      return;
+    }
     // fetch the animation frames, all the img tags inside the animation div
     const frames = animation.querySelectorAll("img");
     // wait for the frames to load

@@ -1,3 +1,8 @@
+import type { MiamiLogger } from "./logger";
+import { isFunction } from "@lib/utils";
+import { decodeImage } from "@rive-app/canvas";
+import type { FileAsset, ImageAsset } from "@rive-app/canvas-advanced";
+
 export const RIVE_ASSETS = [
   "SEQ10 - BAMBINO1-3144911.webp",
   "SEQ10 - BAMBINO2-3144912.webp",
@@ -240,19 +245,62 @@ export const RIVE_ASSETS = [
   "SEQ9_97-3153736.webp"
 ] as const;
 
+export type MiamiAssetsMap = Map<string, (() => Promise<Uint8Array>) | Uint8Array>;
 
 export type RiveAsset = typeof RIVE_ASSETS[number];
 
 export async function loadRiveAsset(base: string, asset: RiveAsset) {
   const url = `${base}/${asset}`;
-  const response = await fetch(url,
-    {
-      method: "GET",
-      redirect: "manual",
-    });
-  if (response.status !== 200) {
-    throw new Error(`Failed to load asset: ${url}`);
+  try {
+    const response = await fetch(url,
+      {
+        method: "GET",
+        redirect: "manual",
+      });
+    if (response.status !== 200) {
+      throw new Error(`Failed to load asset: ${url}`);
+    }
+    return new Uint8Array(await response.arrayBuffer());
+  } catch (e) {
+    console.error(e);
+    throw e;
   }
-  return new Uint8Array(await response.arrayBuffer());
+}
+
+export const miamiAssetLoader = (assets: MiamiAssetsMap, logger?: MiamiLogger) => {
+  
+  // This function returns a boolean value, true means that the asset is custom-loaded, false means that the asset is loaded by rive
+  return (asset: FileAsset) => {
+    const filename = asset.uniqueFilename.split(".")[0];
+
+    if (!asset.isImage || !asset.uniqueFilename || !assets.has(filename)) {
+      // non-image assets or invalid ones are not loaded
+      return true;
+    }
+
+    // if loader is a function, call it, otherwise it means the asset is already loaded
+    const assetLoader = assets.get(filename)!;
+
+    if (isFunction<Promise<Uint8Array>>(assetLoader)) {
+      assetLoader()
+        .then(async (data) => {
+          const decodedImage = await decodeImage(data);
+          // (asset as ImageAsset).setRenderImage(decodedImage);     
+          decodedImage.unref();           
+        })
+        .catch((err) => {
+          logger?.error("Error loading asset", err);
+        });
+    } else if (assetLoader instanceof Uint8Array) {
+      decodeImage(assetLoader).then((decodedImage) => {
+        (asset as ImageAsset).setRenderImage(decodedImage);     
+        decodedImage.unref();  
+      });
+    } else {
+      logger?.error("Asset loader is not a function or Uint8Array");
+      return false;
+    }
+    return true;
+  }
 }
 

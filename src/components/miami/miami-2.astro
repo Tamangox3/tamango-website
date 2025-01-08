@@ -99,33 +99,27 @@
 <!-- script section -->
 
 <script>
-  // imports
-  import { isFunction } from "@lib/utils";
-  import RuntimeLoader from "@lib/miami/rive-runtime-loader";
+  import type { MiamiAssetsMap } from "@lib/miami/rive-assets";
   import { AudioManager } from "@lib/miami/audio";
   import {
     type RiveCanvas as RiveCanvasType,
     type File as RiveFileType,
-    type FileAsset,
+    type LinearAnimationInstance,
   } from "@rive-app/canvas-advanced";
-  import type { LinearAnimationInstance } from "@rive-app/canvas/rive_advanced.mjs";
+  import { RuntimeLoader } from "@rive-app/canvas";
   import { loadRiveAsset, RIVE_ASSETS } from "@lib/miami/rive-assets";
   import { gsap } from "gsap";
   import { ScrollTrigger } from "gsap/ScrollTrigger";
   import { Observer } from "gsap/Observer";
+  import { miamiAssetLoader } from "@lib/miami/rive-assets";
+  import { createMiamiLogger } from "@lib/miami/logger";
 
   gsap.registerPlugin(ScrollTrigger, Observer);
 
   // utils
   const isDev = import.meta.env.MODE === "development";
 
-  const logger = {
-    log: (...args: unknown[]) => {
-      if (isDev) {
-        console.log(...args);
-      }
-    },
-  };
+  const logger = createMiamiLogger("Main");
 
   // variables
 
@@ -138,7 +132,10 @@
 
   // Assets base path
   const ASSETS_BASE_PATH = "/miami/miami_v6/assets/compressed/";
-  const assets = new Map<string, (() => Promise<Uint8Array>) | Uint8Array>();
+  const assets: MiamiAssetsMap = new Map<
+    string,
+    (() => Promise<Uint8Array>) | Uint8Array
+  >();
 
   // audio manager
   const audioManager = new AudioManager();
@@ -209,9 +206,11 @@
     computeSize();
   }
 
-  async function setupRive(canvas: HTMLCanvasElement, riveBytes: Uint8Array) {
-    const rive = (await RuntimeLoader.awaitInstance()) as RiveCanvasType;
-
+  async function setupRive(
+    canvas: HTMLCanvasElement,
+    riveCanvas: RiveCanvasType,
+    riveAnimation: Uint8Array
+  ) {
     const loadingRiveInstanceEl = document.getElementById(
       "loading-rive-instance"
     );
@@ -226,33 +225,10 @@
       loadingFileEl.style.opacity = "1";
     }
 
-    const file = (await rive.load(
-      riveBytes,
-      new rive.CustomFileAssetLoader({
-        loadContents: (asset: FileAsset, inBandBytes: any) => {
-          if (!asset.isImage) {
-            // Ignore non-image assets
-            return true;
-          }
-          const filename = asset.uniqueFilename.split(".")[0];
-          if (assets.has(filename)) {
-            // if loader is a function, call it, otherwise decode the asset
-            const assetLoader = assets.get(filename);
-            if (!assetLoader) return false; // Shouldn't happen
-            if (isFunction<Promise<Uint8Array>>(assetLoader)) {
-              assetLoader().then((data) => {
-                asset.decode(data);
-              });
-            } else if (assetLoader instanceof Uint8Array) {
-              asset.decode(assetLoader as Uint8Array);
-            } else {
-              logger.log("Asset loader is not a function or Uint8Array");
-              return false;
-            }
-            return true;
-          }
-          return false;
-        },
+    const file = (await riveCanvas.load(
+      riveAnimation,
+      new riveCanvas.CustomFileAssetLoader({
+        loadContents: miamiAssetLoader(assets, logger),
       })
     )) as RiveFileType;
 
@@ -260,7 +236,7 @@
 
     // Update loading state for file loaded
 
-    const renderer = rive.makeRenderer(canvas);
+    const renderer = riveCanvas.makeRenderer(canvas);
     logger.log("SetupRive --> File rendered");
     // const fileBytes = new Uint8Array(
     // await (await fetch("/miami/miami_v4_embedded/r4.riv")).arrayBuffer()
@@ -276,9 +252,9 @@
       loadingRendererEl.style.opacity = "1";
     }
 
-    if (isDev) rive.enableFPSCounter();
+    if (isDev) riveCanvas.enableFPSCounter();
 
-    return { rive, file, renderer };
+    return { riveCanvas, file, renderer };
   }
 
   function loadingDone() {
@@ -395,11 +371,15 @@
     return draw;
   }
 
-  async function init(riveBytes: Uint8Array) {
+  async function init(riveAnimation: Uint8Array, riveCanvas: RiveCanvasType) {
     setupCanvas();
 
-    const { rive, file, renderer } = await setupRive(canvas, riveBytes);
-    const { artboard, stateMachine } = setupAnimations(rive, file);
+    const { file, renderer } = await setupRive(
+      canvas,
+      riveCanvas,
+      riveAnimation
+    );
+    const { artboard, stateMachine } = setupAnimations(riveCanvas, file);
 
     canvas.addEventListener("click", () => {
       logger.log(
@@ -428,13 +408,13 @@
     }
 
     const drawLoop = createDrawLoop(
-      rive,
+      riveCanvas,
       renderer,
       artboard,
       stateMachine,
       canvas
     );
-    rive.requestAnimationFrame(drawLoop);
+    riveCanvas.requestAnimationFrame(drawLoop);
 
     logger.log("init --> after createDrawLoop");
     // Update loading state for first frame request
@@ -445,7 +425,7 @@
 
     loadingDone();
 
-    return rive;
+    return riveCanvas;
   }
 
   function updateSpeed(newSpeed: number) {
@@ -576,12 +556,14 @@
   });
 
   // Load rive, audio and first sequence assets
-  async function loadAssets() {
+  async function loadInitialData() {
     const firstSeqAssets = RIVE_ASSETS.filter((asset) =>
       asset.startsWith("SEQ1")
     );
-    const [riveData] = await Promise.all([
+    RuntimeLoader.setWasmUrl("/miami/rive.wasm");
+    const [riveAnimation, riveCanvas] = await Promise.all([
       fetch("/miami/miami_v6/r.riv").then((res) => res.arrayBuffer()),
+      RuntimeLoader.awaitInstance(),
       audioManager.loadAudio("/miami/audio/audio_seq_started.mp3"),
       // Ensure that Seq1 assets are loaded before showing the animation
       Promise.allSettled(
@@ -601,7 +583,8 @@
     ]);
 
     return {
-      riveData: new Uint8Array(riveData),
+      riveAnimation: new Uint8Array(riveAnimation),
+      riveCanvas,
     };
   }
 
@@ -615,7 +598,7 @@
   }
 
   setupBackgroundAssetsLoading();
-  const { riveData } = await loadAssets();
+  const { riveAnimation, riveCanvas } = await loadInitialData();
 
   // Update first loading state
   const loadingRiveEl = document.getElementById("loading-rive");
@@ -623,7 +606,7 @@
     loadingRiveEl.style.opacity = "1";
   }
 
-  await init(riveData);
+  await init(riveAnimation, riveCanvas);
 
   // if playing, check for drifts every 4 seconds
   setInterval(() => {
