@@ -104,7 +104,10 @@
 </div>
 
 <!-- Debug stuff -->
-<div class="miami-slider fixed z-10 top-0 left-0 pointer-events-none">
+<div
+  class="miami-slider fixed z-10 top-0 left-0 pointer-events-none"
+  style="user-select: none;"
+>
   <div class="flex flex-col gap-[2px] text-sm m-[2px]">
     <span>Scroll speed: <span id="scroll-velocity">0</span></span>
     <span>Audio: <span id="audio-progress">00:00</span></span>
@@ -193,12 +196,25 @@
     isPlaying = false;
   });
 
+  window.addEventListener("focus", () => {
+    console.log("focus event");
+    if (triggered) {
+      audioManager.play(audioManager.getBufferOffset());
+      isPlaying = true;
+    }
+  });
+
   // pause audio + animation on visibility change
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       console.log("visibility change event");
       audioManager.pause();
       isPlaying = false;
+    } else {
+      if (triggered) {
+        audioManager.play(audioManager.getBufferOffset());
+        isPlaying = true;
+      }
     }
   });
 
@@ -503,21 +519,76 @@
     let wheelTimeout: number | null = null; // For debouncing wheel events
     const mobileRatio = 1;
     const desktopRatio = 5;
+    let wasPausedByPress = false;
+
+
+
+    let pressTimeout: number | null = null;
+
+    // desktop, pointer
 
     Observer.create({
       target: element as HTMLElement,
-      type: "touch,wheel,pointer,scroll",
+      type: "pointer",
       onPress: (self) => {
         if (velocityTween) velocityTween.kill();
         if (wheelTimeout) clearTimeout(wheelTimeout);
 
         startY = self.y ?? 0;
         isDragging = true;
-        logger.log("Press started at:", startY);
-      },
-      onDrag: (self) => {
-        if (!isDragging) return;
 
+        if (triggered) {
+          audioManager.pause();
+          isPlaying = false;
+
+        }
+      },
+      onRelease: (self) => {
+        if (triggered) {
+          isPlaying = true;
+          audioManager.play();
+        }
+      },
+    });
+
+    Observer.create({
+  target: element as HTMLElement,
+  type: "touch,wheel,scroll",
+  onPress: (self) => {
+    if (velocityTween) velocityTween.kill();
+    if (wheelTimeout) clearTimeout(wheelTimeout);
+
+    startY = self.y ?? 0;
+    logger.log("Press started at:", startY);
+
+    // Reset the flag
+    wasPausedByPress = false;
+
+    // Set a timeout to detect a press without dragging
+    pressTimeout = window.setTimeout(() => {
+      logger.log("User just pressed down");
+      audioManager.pause();
+      isPlaying = false;
+      wasPausedByPress = true;
+    }, 100); 
+  },
+
+      onDrag: (self) => {
+    if (pressTimeout) {
+      clearTimeout(pressTimeout);
+      pressTimeout = null;
+    }
+
+    if (wasPausedByPress) {
+      logger.log("Skipping speed update because the animation was paused by press.");
+      return;
+    }
+
+    if (!isDragging) {
+      isDragging = true;
+    }
+
+    logger.log("User is dragging");
         const currentY = self.y ?? 0;
         const deltaY = currentY - startY;
         let newSpeed = deltaY / mobileRatio;
@@ -526,19 +597,20 @@
         startY = currentY;
       },
       onRelease: () => {
+    if (pressTimeout) {
+      clearTimeout(pressTimeout);
+      pressTimeout = null;
+    }
+    if (triggered) {
+      if (isDragging){
         isDragging = false;
-        logger.log("Released, current speed:", speed);
-        // updateSpeed(1);
-        animateToNormalSpeed();
-      },
-      onClick: () => {
-        logger.log("Clicked");
-        if (isPlaying) {
-          audioManager.pause();
-          isPlaying = false;
-        } else {
-          audioManager.play(audioManager.getBufferOffset());
+
+      }
+
+      audioManager.play();
+          animateToNormalSpeed();
           isPlaying = true;
+
         }
       },
       onWheel: (self) => {
@@ -561,8 +633,8 @@
         },
         {
           speed: 1,
-          duration: 2,
-          ease: "power2.out",
+          duration: 1.3,
+          ease: "power1.out",
           onUpdate: function () {
             const newSpeed = this.targets()[0].speed;
             updateSpeed(newSpeed);
@@ -578,8 +650,8 @@
         },
         {
           volume: 1,
-          duration: 2,
-          ease: "power2.out",
+          duration: 1.3,
+          ease: "power1.out",
           onUpdate: function () {
             const newVolume = this.targets()[0].volume;
             audioManager.setVolume(newVolume);
