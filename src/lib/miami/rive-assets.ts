@@ -285,7 +285,6 @@ export const miamiAssetLoader = (assets: MiamiAssetsMap, logger?: MiamiLogger) =
       assetLoader()
         .then(async (data) => {
           const decodedImage = await decodeImage(data);
-          // Temporary comment out the line below to avoid crashing safari
           (asset as ImageAsset).setRenderImage(decodedImage);
           decodedImage.unref();           
         })

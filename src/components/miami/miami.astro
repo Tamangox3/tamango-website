@@ -1,3 +1,4 @@
+<!-- Loading section -->
 <div
   id="loading"
   class="fixed inset-0 z-50 items-center justify-center bg-black flex flex-col gap-[24px] transition-opacity duration-300 ease-in-out"
@@ -65,34 +66,49 @@
   </div>
 </div>
 
-<!-- html components -->
+<!-- Canvas -->
 <div id="animation-canvas">
   <canvas data-trigger data-animation-canvas></canvas>
+  <div class="flex flex-col gap-2 absolute bottom-0 right-0 p-4">
+    <button aria-label="previous section" id="prev-section-btn">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6 text-white rotate-90"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M15 19l-7-7 7-7"></path>
+      </svg>
+    </button>
+    <button aria-label="next section" id="next-section-btn">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6 text-white rotate-90"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"></path>
+      </svg>
+    </button>
+  </div>
 </div>
 
-<!-- <div
-  id="play-pause-button"
-  class="fixed z-10 bottom- right-[16px] w-[200px] p-3 h-[220px] accent-white rounded-lg flex flex-col items-center space-y-2"
->
-  <div
-    id="play-pause-button-icon"
-    class="w-10 h-10 border-4 border-black border-t-white rounded-full"
-  >
-    PLAY
-  </div>
-</div> -->
-
-<div
-  class="miami-slider fixed z-10 bottom-[48px] right-[16px] w-[200px] p-3 h-[220px] accent-white rounded-lg flex flex-col items-center space-y-2 pointer-events-none"
->
-  <div class="flex flex-row items-center gap-2"></div>
-  <div class="flex flex-col items-center gap-2">
-    <span class="text-white text-sm">Scroll speed</span>
-    <div id="scroll-velocity" class="text-white text-sm">0</div>
-    <span class="text-white text-sm">Audio</span>
-    <div id="audio-progress" class="text-white text-sm">00:00</div>
-    <span class="text-white text-sm">Animation</span>
-    <div id="frame-progress" class="text-white text-sm">00:00</div>
+<!-- Debug stuff -->
+<div class="miami-slider fixed z-10 top-0 left-0 pointer-events-none">
+  <div class="flex flex-col gap-[2px] text-sm m-[2px]">
+    <span>Scroll speed: <span id="scroll-velocity">0</span></span>
+    <span>Audio: <span id="audio-progress">00:00</span></span>
+    <span>Animation: <span id="frame-progress">00:00</span></span>
   </div>
 </div>
 
@@ -139,6 +155,17 @@
   const audioManager = new AudioManager();
   let triggered = false;
   let isPlaying = false;
+  let requestPrevSection = 0;
+  let requestNextSection = 0;
+  const animationSectionsMs = [0, 8000, 20000, 35000, 60000];
+
+  document.getElementById("prev-section-btn")?.addEventListener("click", () => {
+    requestPrevSection++;
+  });
+
+  document.getElementById("next-section-btn")?.addEventListener("click", () => {
+    requestNextSection++;
+  });
 
   // animation context
   let activeAnimation: LinearAnimationInstance | null = null;
@@ -338,9 +365,18 @@
       lastTime = time;
 
       if (isPlaying || !triggered) {
+        logger.log("speed in loop", speed);
         artboard.advance(elapsedSeconds * speed);
         stateMachine.advance(elapsedSeconds * speed);
         activeAnimation?.advance(elapsedSeconds * speed);
+        if (requestNextSection > 0) {
+          requestNextSection--;
+          animationGoToMs(animationSectionsMs[1]);
+        }
+        if (requestPrevSection > 0) {
+          requestPrevSection--;
+          animationGoToMs(animationSectionsMs[0]);
+        }
       }
 
       renderer.save();
@@ -553,6 +589,23 @@
     }
   });
 
+  /**
+   * Go to a specific time in the animation.
+   * Tweak the speed to do so.
+   *
+   * @param ms Time in milliseconds of the animation
+   * @param inMs Duration in milliseconds of transition
+   */
+  function animationGoToMs(ms: number, inMs: number = 2000) {
+    if (!activeAnimation) return;
+    logger.log("animationGoToMs", ms, inMs);
+    const currentProgress = activeAnimation.time;
+    const msDiff = ms - currentProgress;
+    const newSpeed = msDiff / inMs;
+
+    // TODO: Set speed to reach the target time for inMs and then reset to 1
+  }
+
   // Load rive, audio and first sequence assets
   async function loadInitialData() {
     const firstSeqAssets = RIVE_ASSETS.filter((asset) =>
@@ -627,6 +680,11 @@
 </script>
 
 <style>
+  html,
+  body {
+    overscroll-behavior: none; /* Prevents scroll chaining and overscrolling */
+  }
+
   #speed-minus-one,
   #speed-one,
   #speed-two {
@@ -645,8 +703,10 @@
     background-color: #2563eb;
   }
   #animation-canvas {
-    aspect-ratio: 9 / 16;
-    width: 100dvw;
-    height: 100dvh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
   }
 </style>
