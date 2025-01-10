@@ -148,7 +148,7 @@
   const loadingDiv = document.getElementById("loading");
 
   // Assets base path
-  const ASSETS_BASE_PATH = "/miami/miami_v6/assets/compressed/";
+  const ASSETS_BASE_PATH = "/miami/miami_v7/assets/compressed";
   const assets: MiamiAssetsMap = new Map<
     string,
     (() => Promise<Uint8Array>) | Uint8Array
@@ -685,7 +685,7 @@
     );
     RuntimeLoader.setWasmUrl("/miami/rive.wasm");
     const [riveAnimation, riveCanvas] = await Promise.all([
-      fetch("/miami/miami_v6/r.riv").then((res) => res.arrayBuffer()),
+      fetch("/miami/miami_v7/r.riv").then((res) => res.arrayBuffer()),
       RuntimeLoader.awaitInstance(),
       audioManager.loadAudio("/miami/audio/audio_seq_started.mp3"),
       // Ensure that Seq1 assets are loaded before showing the animation
