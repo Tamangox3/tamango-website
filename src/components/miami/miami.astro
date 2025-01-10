@@ -381,7 +381,6 @@
       lastTime = time;
 
       if (isPlaying || !triggered) {
-        logger.log("speed in loop", speed);
         artboard.advance(elapsedSeconds * speed);
         stateMachine.advance(elapsedSeconds * speed);
         activeAnimation?.advance(elapsedSeconds * speed);
@@ -521,8 +520,6 @@
     const desktopRatio = 5;
     let wasPausedByPress = false;
 
-
-
     let pressTimeout: number | null = null;
 
     // desktop, pointer
@@ -540,7 +537,6 @@
         if (triggered) {
           audioManager.pause();
           isPlaying = false;
-
         }
       },
       onRelease: (self) => {
@@ -552,43 +548,45 @@
     });
 
     Observer.create({
-  target: element as HTMLElement,
-  type: "touch,wheel,scroll",
-  onPress: (self) => {
-    if (velocityTween) velocityTween.kill();
-    if (wheelTimeout) clearTimeout(wheelTimeout);
+      target: element as HTMLElement,
+      type: "touch,wheel,scroll",
+      onPress: (self) => {
+        if (velocityTween) velocityTween.kill();
+        if (wheelTimeout) clearTimeout(wheelTimeout);
 
-    startY = self.y ?? 0;
-    logger.log("Press started at:", startY);
+        startY = self.y ?? 0;
+        logger.log("Press started at:", startY);
 
-    // Reset the flag
-    wasPausedByPress = false;
+        // Reset the flag
+        wasPausedByPress = false;
 
-    // Set a timeout to detect a press without dragging
-    pressTimeout = window.setTimeout(() => {
-      logger.log("User just pressed down");
-      audioManager.pause();
-      isPlaying = false;
-      wasPausedByPress = true;
-    }, 100); 
-  },
+        // Set a timeout to detect a press without dragging
+        pressTimeout = window.setTimeout(() => {
+          logger.log("User just pressed down");
+          audioManager.pause();
+          isPlaying = false;
+          wasPausedByPress = true;
+        }, 100);
+      },
 
       onDrag: (self) => {
-    if (pressTimeout) {
-      clearTimeout(pressTimeout);
-      pressTimeout = null;
-    }
+        if (pressTimeout) {
+          clearTimeout(pressTimeout);
+          pressTimeout = null;
+        }
 
-    if (wasPausedByPress) {
-      logger.log("Skipping speed update because the animation was paused by press.");
-      return;
-    }
+        if (wasPausedByPress) {
+          logger.log(
+            "Skipping speed update because the animation was paused by press."
+          );
+          return;
+        }
 
-    if (!isDragging) {
-      isDragging = true;
-    }
+        if (!isDragging) {
+          isDragging = true;
+        }
 
-    logger.log("User is dragging");
+        logger.log("User is dragging");
         const currentY = self.y ?? 0;
         const deltaY = currentY - startY;
         let newSpeed = deltaY / mobileRatio;
@@ -597,20 +595,18 @@
         startY = currentY;
       },
       onRelease: () => {
-    if (pressTimeout) {
-      clearTimeout(pressTimeout);
-      pressTimeout = null;
-    }
-    if (triggered) {
-      if (isDragging){
-        isDragging = false;
+        if (pressTimeout) {
+          clearTimeout(pressTimeout);
+          pressTimeout = null;
+        }
+        if (triggered) {
+          if (isDragging) {
+            isDragging = false;
+          }
 
-      }
-
-      audioManager.play();
+          audioManager.play();
           animateToNormalSpeed();
           isPlaying = true;
-
         }
       },
       onWheel: (self) => {
@@ -683,7 +679,6 @@
     const firstSeqAssets = RIVE_ASSETS.filter((asset) =>
       asset.startsWith("SEQ1_")
     );
-    RuntimeLoader.setWasmUrl("/miami/rive.wasm");
     const [riveAnimation, riveCanvas] = await Promise.all([
       fetch("/miami/miami_v7/r.riv").then((res) => res.arrayBuffer()),
       RuntimeLoader.awaitInstance(),
