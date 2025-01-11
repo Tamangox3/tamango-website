@@ -56,6 +56,7 @@
     setInterval(() => {
       currentBG = currentBG === MAX_BG ? 1 : currentBG + 1;
       const imgTag = bgs.get(currentBG.toString());
+      console.log("Switching bg to", currentBG, imgTag?.src);
       container.style.backgroundImage = `url(${imgTag?.src})`;
     }, 150);
   });
