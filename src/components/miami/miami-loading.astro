@@ -1,0 +1,102 @@
+<div
+  id="miami-loading-container"
+  class="bg-cover w-dvw h-dvh flex flex-col justify-between relative"
+>
+  <div class="mt-[64px]"></div>
+  <div class="mx-auto w-full max-w-[800px] relative">
+    <img
+      src="/miami/loading/lettere.webp"
+      alt="Chi ha paura dello sparviero?"
+    />
+    <img
+      src="/miami/loading/stella-sx.webp"
+      alt="stella"
+      class="absolute top-0 bottom-0 m-auto spin h-[32%] left-[12%]"
+    />
+    <img
+      src="/miami/loading/stella-dx.webp"
+      alt="stella"
+      class="absolute top-0 bottom-0 m-auto right-[16%] h-[32%] spin spin--reverse"
+    />
+  </div>
+  <div class="mb-[64px] text-center">
+    <p class="text-2xl font-bold text-[#DA101C] uppercase pulse">Caricamento</p>
+  </div>
+</div>
+
+<img
+  src="/miami/loading/bg-1.webp"
+  alt="background"
+  class="hidden bg"
+  data-bg="1"
+/>
+<img
+  src="/miami/loading/bg-2.webp"
+  alt="background"
+  class="hidden bg"
+  data-bg="2"
+/>
+
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    console.log("Miami loading component loaded");
+    const container = document.getElementById("miami-loading-container");
+    if (!container) return;
+    // Set bg image
+    let currentBG = 1;
+    const MAX_BG = 2;
+    const bgs = new Map<string, HTMLImageElement>();
+    document.querySelectorAll("[data-bg]").forEach(async (bg) => {
+      if (bg instanceof HTMLImageElement) {
+        // await img load if not already loaded
+        if (!bg.complete) {
+          await new Promise((resolve) => {
+            bg.onload = resolve;
+          });
+        }
+        bgs.set(bg.dataset.bg!, bg);
+        return;
+      }
+    });
+    container.style.backgroundImage = `url(${bgs.get(currentBG.toString())?.src})`;
+    // Programmatically switch bg image
+    setInterval(() => {
+      currentBG = currentBG === MAX_BG ? 1 : currentBG + 1;
+      const imgTag = bgs.get(currentBG.toString());
+      container.style.backgroundImage = `url(${imgTag?.src})`;
+    }, 150);
+  });
+</script>
+
+<style lang="scss">
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes spin-with-pause {
+    0%,
+    50% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .pulse {
+    animation: pulse 2s infinite;
+  }
+
+  .spin {
+    animation: spin-with-pause 2s ease-in-out infinite;
+    &--reverse {
+      animation-direction: reverse;
+    }
+  }
+</style>

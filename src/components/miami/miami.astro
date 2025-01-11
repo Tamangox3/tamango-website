@@ -1,69 +1,13 @@
+---
+import MiamiLoading from "./miami-loading.astro";
+---
+
 <!-- Loading section -->
 <div
   id="loading"
-  class="fixed inset-0 z-50 items-center justify-center bg-black flex flex-col gap-[24px] transition-opacity duration-300 ease-in-out"
+  class="fixed inset-0 bg-black z-50 transition-opacity duration-300 ease-in-out"
 >
-  <img src="/logo.svg" class="w-[180px]" />
-  <div class="flex flex-col items-center gap-4">
-    <span id="animation-label" class="text-white text-2xl"
-      >L'animazione sta caricando...</span
-    >
-    <div id="loading-states" class="flex flex-col items-center gap-1">
-      <span id="loading-rive" class="text-white text-sm opacity-50"
-        >Loading Rive and assets...</span
-      >
-      <span id="loading-rive-instance" class="text-white text-sm opacity-50"
-        >Loading rive instance...</span
-      >
-      <span id="loading-file" class="text-white text-sm opacity-50"
-        >Loading animation file...</span
-      >
-      <span id="loading-renderer" class="text-white text-sm opacity-50"
-        >Setting up renderer...</span
-      >
-      <span id="loading-artboard" class="text-white text-sm opacity-50"
-        >Loading artboard...</span
-      >
-      <span id="loading-state-machine" class="text-white text-sm opacity-50"
-        >Setting up state machine...</span
-      >
-      <span id="loading-animations" class="text-white text-sm opacity-50"
-        >Loading animations...</span
-      >
-      <span id="loading-draw" class="text-white text-sm opacity-50"
-        >Creating draw loop...</span
-      >
-      <span id="loading-frame" class="text-white text-sm opacity-50"
-        >Requesting first frame...</span
-      >
-    </div>
-    <button
-      id="go-to-animation"
-      class="bg-white text-black p-2 rounded-lg px-4 opacity-50 relative flex flex-row items-center cursor-not-allowed"
-      disabled
-    >
-      <svg
-        id="loading-spinner"
-        class="animate-spin-slow -ml-1 mr-3 h-5 w-5 text-black"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <circle
-          class="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          stroke-width="4"></circle>
-        <path
-          class="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-        ></path>
-      </svg>Vai all'animazione</button
-    >
-  </div>
+  <MiamiLoading />
 </div>
 
 <!-- Canvas -->
@@ -135,15 +79,13 @@
 
   // utils
   const isDev = import.meta.env.MODE === "development";
-
   const logger = createMiamiLogger("Main");
 
-  // variables
-
   // html elements
-  const canvas = document.querySelector(
-    "[data-animation-canvas]"
-  ) as HTMLCanvasElement;
+  const canvas = document.querySelector("[data-animation-canvas]") as
+    | HTMLCanvasElement
+    | null
+    | undefined;
   const scrollVelocityEl = document.getElementById("scroll-velocity");
   const loadingDiv = document.getElementById("loading");
 
@@ -299,24 +241,12 @@
   }
 
   function loadingDone() {
-    document.getElementById("loading-spinner")?.remove();
-
-    const labelDOM = document.getElementById("animation-label");
-    if (labelDOM) labelDOM.textContent = "L'animazione è pronta";
-
-    const goButton = document.getElementById("go-to-animation");
-    if (!goButton) return;
-    goButton.removeAttribute("disabled");
-    goButton.style.setProperty("opacity", "1");
-    goButton.style.setProperty("cursor", "pointer");
-    document
-      .getElementById("go-to-animation")
-      ?.addEventListener("click", () => {
-        loadingDiv?.style.setProperty("opacity", "0");
-        setTimeout(() => {
-          loadingDiv?.style.setProperty("display", "none");
-        }, 300);
-      });
+    const loading = document.getElementById("loading");
+    if (!loading) return;
+    loading.style.setProperty("opacity", "0");
+    setTimeout(() => {
+      loading.style.setProperty("display", "none");
+    }, 300);
   }
 
   function setupAnimations(rive: RiveCanvasType, file: RiveFileType) {
@@ -423,6 +353,8 @@
   async function init(riveAnimation: Uint8Array, riveCanvas: RiveCanvasType) {
     setupCanvas();
 
+    if (!canvas) throw new Error("Canvas not found");
+
     const { file, renderer } = await setupRive(
       canvas,
       riveCanvas,
@@ -508,155 +440,155 @@
 
   // desktop: wheel debounce (150ms)
   // mobile: release is immediate, use tween to animate back to normal speed
+  if (canvas) {
+    gsap.utils.toArray(canvas).forEach((element) => {
+      let startY: number;
+      let isDragging = false;
+      let velocityTween: any;
+      let volumeTween: any;
+      let distortionTween: any;
+      let wheelTimeout: number | null = null; // For debouncing wheel events
+      const mobileRatio = 1;
+      const desktopRatio = 5;
+      let wasPausedByPress = false;
 
-  gsap.utils.toArray(canvas).forEach((element) => {
-    let startY: number;
-    let isDragging = false;
-    let velocityTween: any;
-    let volumeTween: any;
-    let distortionTween: any;
-    let wheelTimeout: number | null = null; // For debouncing wheel events
-    const mobileRatio = 1;
-    const desktopRatio = 5;
-    let wasPausedByPress = false;
+      let pressTimeout: number | null = null;
 
-    let pressTimeout: number | null = null;
+      // desktop, pointer
 
-    // desktop, pointer
+      Observer.create({
+        target: element as HTMLElement,
+        type: "pointer",
+        onPress: (self) => {
+          if (velocityTween) velocityTween.kill();
+          if (wheelTimeout) clearTimeout(wheelTimeout);
 
-    Observer.create({
-      target: element as HTMLElement,
-      type: "pointer",
-      onPress: (self) => {
-        if (velocityTween) velocityTween.kill();
-        if (wheelTimeout) clearTimeout(wheelTimeout);
-
-        startY = self.y ?? 0;
-        isDragging = true;
-
-        if (triggered) {
-          audioManager.pause();
-          isPlaying = false;
-        }
-      },
-      onRelease: (self) => {
-        if (triggered) {
-          isPlaying = true;
-          audioManager.play();
-        }
-      },
-    });
-
-    Observer.create({
-      target: element as HTMLElement,
-      type: "touch,wheel,scroll",
-      onPress: (self) => {
-        if (velocityTween) velocityTween.kill();
-        if (wheelTimeout) clearTimeout(wheelTimeout);
-
-        startY = self.y ?? 0;
-        logger.log("Press started at:", startY);
-
-        // Reset the flag
-        wasPausedByPress = false;
-
-        // Set a timeout to detect a press without dragging
-        pressTimeout = window.setTimeout(() => {
-          logger.log("User just pressed down");
-          audioManager.pause();
-          isPlaying = false;
-          wasPausedByPress = true;
-        }, 100);
-      },
-
-      onDrag: (self) => {
-        if (pressTimeout) {
-          clearTimeout(pressTimeout);
-          pressTimeout = null;
-        }
-
-        if (wasPausedByPress) {
-          logger.log(
-            "Skipping speed update because the animation was paused by press."
-          );
-          return;
-        }
-
-        if (!isDragging) {
+          startY = self.y ?? 0;
           isDragging = true;
-        }
 
-        logger.log("User is dragging");
-        const currentY = self.y ?? 0;
-        const deltaY = currentY - startY;
-        let newSpeed = deltaY / mobileRatio;
-        newSpeed = -newSpeed;
-        updateSpeed(newSpeed);
-        startY = currentY;
-      },
-      onRelease: () => {
-        if (pressTimeout) {
-          clearTimeout(pressTimeout);
-          pressTimeout = null;
-        }
-        if (triggered) {
-          if (isDragging) {
-            isDragging = false;
+          if (triggered) {
+            audioManager.pause();
+            isPlaying = false;
+          }
+        },
+        onRelease: (self) => {
+          if (triggered) {
+            isPlaying = true;
+            audioManager.play();
+          }
+        },
+      });
+
+      Observer.create({
+        target: element as HTMLElement,
+        type: "touch,wheel,scroll",
+        onPress: (self) => {
+          if (velocityTween) velocityTween.kill();
+          if (wheelTimeout) clearTimeout(wheelTimeout);
+
+          startY = self.y ?? 0;
+          logger.log("Press started at:", startY);
+
+          // Reset the flag
+          wasPausedByPress = false;
+
+          // Set a timeout to detect a press without dragging
+          pressTimeout = window.setTimeout(() => {
+            logger.log("User just pressed down");
+            audioManager.pause();
+            isPlaying = false;
+            wasPausedByPress = true;
+          }, 100);
+        },
+
+        onDrag: (self) => {
+          if (pressTimeout) {
+            clearTimeout(pressTimeout);
+            pressTimeout = null;
           }
 
-          audioManager.play();
-          animateToNormalSpeed();
-          isPlaying = true;
-        }
-      },
-      onWheel: (self) => {
-        if (velocityTween) velocityTween.kill();
-        if (wheelTimeout) clearTimeout(wheelTimeout);
+          if (wasPausedByPress) {
+            logger.log(
+              "Skipping speed update because the animation was paused by press."
+            );
+            return;
+          }
 
-        const newSpeed = self.deltaY / desktopRatio;
-        updateSpeed(newSpeed);
+          if (!isDragging) {
+            isDragging = true;
+          }
 
-        wheelTimeout = window.setTimeout(() => {
-          animateToNormalSpeed();
-        }, 150);
-      },
+          logger.log("User is dragging");
+          const currentY = self.y ?? 0;
+          const deltaY = currentY - startY;
+          let newSpeed = deltaY / mobileRatio;
+          newSpeed = -newSpeed;
+          updateSpeed(newSpeed);
+          startY = currentY;
+        },
+        onRelease: () => {
+          if (pressTimeout) {
+            clearTimeout(pressTimeout);
+            pressTimeout = null;
+          }
+          if (triggered) {
+            if (isDragging) {
+              isDragging = false;
+            }
+
+            audioManager.play();
+            animateToNormalSpeed();
+            isPlaying = true;
+          }
+        },
+        onWheel: (self) => {
+          if (velocityTween) velocityTween.kill();
+          if (wheelTimeout) clearTimeout(wheelTimeout);
+
+          const newSpeed = self.deltaY / desktopRatio;
+          updateSpeed(newSpeed);
+
+          wheelTimeout = window.setTimeout(() => {
+            animateToNormalSpeed();
+          }, 150);
+        },
+      });
+
+      function animateToNormalSpeed() {
+        velocityTween = gsap.to(
+          {
+            speed: speed,
+          },
+          {
+            speed: 1,
+            duration: 1.3,
+            ease: "power1.out",
+            onUpdate: function () {
+              const newSpeed = this.targets()[0].speed;
+              updateSpeed(newSpeed);
+              // updateAudioVolume(newSpeed);
+            },
+          }
+        );
+
+        volumeTween = gsap.fromTo(
+          audioManager,
+          {
+            volume: 0.3,
+          },
+          {
+            volume: 1,
+            duration: 1.3,
+            ease: "power1.out",
+            onUpdate: function () {
+              const newVolume = this.targets()[0].volume;
+              audioManager.setVolume(newVolume);
+            },
+          }
+        );
+      }
     });
-
-    function animateToNormalSpeed() {
-      velocityTween = gsap.to(
-        {
-          speed: speed,
-        },
-        {
-          speed: 1,
-          duration: 1.3,
-          ease: "power1.out",
-          onUpdate: function () {
-            const newSpeed = this.targets()[0].speed;
-            updateSpeed(newSpeed);
-            // updateAudioVolume(newSpeed);
-          },
-        }
-      );
-
-      volumeTween = gsap.fromTo(
-        audioManager,
-        {
-          volume: 0.3,
-        },
-        {
-          volume: 1,
-          duration: 1.3,
-          ease: "power1.out",
-          onUpdate: function () {
-            const newVolume = this.targets()[0].volume;
-            audioManager.setVolume(newVolume);
-          },
-        }
-      );
-    }
-  });
-
+  }
   /**
    * Go to a specific time in the animation.
    * Tweak the speed to do so.
@@ -715,35 +647,37 @@
     });
   }
 
-  setupBackgroundAssetsLoading();
-  const { riveAnimation, riveCanvas } = await loadInitialData();
+  if (canvas) {
+    setupBackgroundAssetsLoading();
+    const { riveAnimation, riveCanvas } = await loadInitialData();
 
-  // Update first loading state
-  const loadingRiveEl = document.getElementById("loading-rive");
-  if (loadingRiveEl) {
-    loadingRiveEl.style.opacity = "1";
-  }
+    // Update first loading state
+    const loadingRiveEl = document.getElementById("loading-rive");
+    if (loadingRiveEl) {
+      loadingRiveEl.style.opacity = "1";
+    }
 
-  await init(riveAnimation, riveCanvas);
+    await init(riveAnimation, riveCanvas);
 
-  // if playing, check for drifts every 4 seconds
-  setInterval(() => {
-    if (isPlaying) {
-      logger.log("Checking for drifts");
-      const animationTime = activeAnimation?.time || 0;
-      const audioTime = audioManager.getCurrentTime();
-      const drift = Math.abs(animationTime - audioTime);
+    // if playing, check for drifts every 4 seconds
+    setInterval(() => {
+      if (isPlaying) {
+        logger.log("Checking for drifts");
+        const animationTime = activeAnimation?.time || 0;
+        const audioTime = audioManager.getCurrentTime();
+        const drift = Math.abs(animationTime - audioTime);
 
-      if (drift > 0.1) {
-        // Threshold of 100ms drift
-        logger.log(`Drift detected: ${drift.toFixed(3)}s`);
-        // Adjust animation time to match audio
-        if (activeAnimation) {
-          activeAnimation.time = audioTime;
+        if (drift > 0.1) {
+          // Threshold of 100ms drift
+          logger.log(`Drift detected: ${drift.toFixed(3)}s`);
+          // Adjust animation time to match audio
+          if (activeAnimation) {
+            activeAnimation.time = audioTime;
+          }
         }
       }
-    }
-  }, 4000);
+    }, 4000);
+  }
 </script>
 
 <style>
