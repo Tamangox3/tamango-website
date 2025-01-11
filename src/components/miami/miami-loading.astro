@@ -28,13 +28,13 @@
   src="/miami/loading/bg-1.webp"
   alt="background"
   class="hidden bg"
-  data-bg="1"
+  miami-loading-data-bg="1"
 />
 <img
   src="/miami/loading/bg-2.webp"
   alt="background"
   class="hidden bg"
-  data-bg="2"
+  miami-loading-data-bg="2"
 />
 
 <script>
@@ -44,13 +44,9 @@
     let currentBG = 1;
     const MAX_BG = 2;
     const bgs = new Map<string, HTMLImageElement>();
-    document.querySelectorAll("[data-bg]").forEach(async (bg) => {
+    console.log("bgs", bgs);
+    document.querySelectorAll("[miami-loading-data-bg]").forEach(async (bg) => {
       if (bg instanceof HTMLImageElement) {
-        if (!bg.complete) {
-          await new Promise((resolve) => {
-            bg.onload = resolve;
-          });
-        }
         bgs.set(bg.dataset.bg!, bg);
       }
     });
