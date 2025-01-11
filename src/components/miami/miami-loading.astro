@@ -38,16 +38,19 @@
 />
 
 <script>
-  document.addEventListener("DOMContentLoaded", async () => {
-    console.log("Miami loading component loaded");
-    const container = document.getElementById("miami-loading-container");
-    if (!container) return;
+  const container = document.getElementById("miami-loading-container");
+  if (container) {
     // Set bg image
     let currentBG = 1;
     const MAX_BG = 2;
     const bgs = new Map<string, HTMLImageElement>();
     document.querySelectorAll("[data-bg]").forEach(async (bg) => {
       if (bg instanceof HTMLImageElement) {
+        if (!bg.complete) {
+          await new Promise((resolve) => {
+            bg.onload = resolve;
+          });
+        }
         bgs.set(bg.dataset.bg!, bg);
       }
     });
@@ -56,10 +59,9 @@
     setInterval(() => {
       currentBG = currentBG === MAX_BG ? 1 : currentBG + 1;
       const imgTag = bgs.get(currentBG.toString());
-      console.log("Switching bg to", currentBG, imgTag?.src);
       container.style.backgroundImage = `url(${imgTag?.src})`;
     }, 150);
-  });
+  }
 </script>
 
 <style lang="scss">
