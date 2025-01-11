@@ -48,14 +48,7 @@
     const bgs = new Map<string, HTMLImageElement>();
     document.querySelectorAll("[data-bg]").forEach(async (bg) => {
       if (bg instanceof HTMLImageElement) {
-        // await img load if not already loaded
-        if (!bg.complete) {
-          await new Promise((resolve) => {
-            bg.onload = resolve;
-          });
-        }
         bgs.set(bg.dataset.bg!, bg);
-        return;
       }
     });
     container.style.backgroundImage = `url(${bgs.get(currentBG.toString())?.src})`;
