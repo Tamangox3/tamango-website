@@ -25,6 +25,12 @@ import MiamiLoading from "./miami-loading.astro";
           no-controls
           muted
           playsinline></video>
+        <video
+          id="reverse-video"
+          no-controls
+          muted
+          playsinline
+          style="display: none;"></video>
       </div>
 
       <!-- Debug stuff -->
@@ -46,17 +52,24 @@ import MiamiLoading from "./miami-loading.astro";
   import Hls from "hls.js";
 
   const VIDEO_ROOT = "https://miami-bucket.tamango.co/v1/playlist.m3u8";
+  const VIDEO_ROOT_REVERSE =
+    "https://miami-bucket.tamango.co/v1-reverse/playlist.m3u8";
 
   gsap.registerPlugin(ScrollTrigger, Observer);
 
   const logger = createMiamiLogger("Main");
   const scrollVelocityEl = document.getElementById("scroll-velocity");
   const videoTag = document.getElementById("video") as HTMLVideoElement | null;
+  const reverseVideoTag = document.getElementById(
+    "reverse-video"
+  ) as HTMLVideoElement | null;
   const container = document.getElementById("video-container");
   const startedLoadingAt = Date.now();
   const audioManager = new AudioManager();
   let triggered = false;
   let isPlaying = false;
+  let isReverse = false;
+
   let speed: number = 1;
   let lastTime: number;
 
@@ -73,12 +86,17 @@ import MiamiLoading from "./miami-loading.astro";
   window.addEventListener("blur", () => {
     audioManager.pause();
     videoTag?.pause();
+    reverseVideoTag?.pause();
   });
 
   window.addEventListener("focus", () => {
     if (triggered) {
       audioManager.play(audioManager.getBufferOffset());
-      videoTag?.play();
+      if (isReverse) {
+        reverseVideoTag?.play();
+      } else {
+        videoTag?.play();
+      }
     }
   });
 
@@ -86,11 +104,17 @@ import MiamiLoading from "./miami-loading.astro";
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       audioManager.pause();
+
       videoTag?.pause();
+      reverseVideoTag?.pause();
     } else {
       if (triggered) {
         audioManager.play(audioManager.getBufferOffset());
-        videoTag?.play();
+        if (isReverse) {
+          reverseVideoTag?.play();
+        } else {
+          videoTag?.play();
+        }
       }
     }
   });
@@ -156,9 +180,57 @@ import MiamiLoading from "./miami-loading.astro";
 
     // Update audio playback
     audioManager.setPlaybackRate(newSpeed);
-    if (videoTag && newSpeed >= 0) {
-      // Negative playback rate is not supported
-      videoTag.playbackRate = newSpeed;
+    audioManager.setPlaybackRate(newSpeed);
+
+    if (videoTag && reverseVideoTag) {
+      if (newSpeed >= 0) {
+        if (isReverse) {
+          isReverse = false;
+          const currentTimeStamp = reverseVideoTag.currentTime;
+          logger.log(
+            "REVERSE --> FORWARD: Current time stamp",
+            currentTimeStamp
+          );
+          const newTimeStamp = reverseVideoTag.duration - currentTimeStamp;
+          videoTag.currentTime = newTimeStamp;
+
+          reverseVideoTag.style.display = "none";
+          videoTag.style.display = "block";
+          videoTag.addEventListener(
+            "seeked",
+            () => {
+              videoTag.play();
+            },
+            { once: true }
+          );
+          logger.log("New time stamp: FORWARD", currentTimeStamp);
+        }
+
+        videoTag.playbackRate = newSpeed;
+      } else {
+        if (!isReverse) {
+          isReverse = true;
+          const currentTimeStamp = videoTag.currentTime;
+          logger.log(
+            "FORWARD --> REVERSE: Current time stamp",
+            currentTimeStamp
+          );
+          const newTimeStamp = videoTag.duration - currentTimeStamp;
+          logger.log("New time stamp: REVERSE", newTimeStamp);
+          reverseVideoTag.currentTime = newTimeStamp;
+          reverseVideoTag.style.display = "block";
+          videoTag.style.display = "none";
+          reverseVideoTag.addEventListener(
+            "seeked",
+            () => {
+              reverseVideoTag.play();
+            },
+            { once: true }
+          );
+        }
+
+        reverseVideoTag.playbackRate = -newSpeed;
+      }
     }
   }
 
@@ -174,7 +246,7 @@ import MiamiLoading from "./miami-loading.astro";
         );
       });
     }
-    if (videoTag) {
+    if (videoTag && reverseVideoTag) {
       await loadingDone();
       audioManager.play();
       videoTag.play();
@@ -210,6 +282,7 @@ import MiamiLoading from "./miami-loading.astro";
           if (triggered) {
             audioManager.pause();
             videoTag?.pause();
+            reverseVideoTag?.pause();
           }
         },
         onRelease: () => {
@@ -217,7 +290,11 @@ import MiamiLoading from "./miami-loading.astro";
           if (triggered) {
             isPlaying = true;
             audioManager.play();
-            videoTag?.play();
+            if (isReverse) {
+              reverseVideoTag?.play();
+            } else {
+              videoTag?.play();
+            }
           }
         },
       });
@@ -340,7 +417,7 @@ import MiamiLoading from "./miami-loading.astro";
     await audioManager.loadAudio("/miami/audio/audio_seq_started.mp3");
   }
 
-  if (videoTag) {
+  if (videoTag && reverseVideoTag) {
     setupGSAP();
     await loadAudio();
 
@@ -349,9 +426,17 @@ import MiamiLoading from "./miami-loading.astro";
       hls.loadSource(VIDEO_ROOT);
       hls.attachMedia(videoTag);
       hls.on(Hls.Events.MANIFEST_PARSED, videoCanStart);
+
+      const hlsReverse = new Hls();
+      hlsReverse.loadSource(VIDEO_ROOT_REVERSE);
+      hlsReverse.attachMedia(reverseVideoTag);
+      hlsReverse.on(Hls.Events.MANIFEST_PARSED, videoCanStart);
     } else if (videoTag.canPlayType("application/vnd.apple.mpegurl")) {
       videoTag.src = VIDEO_ROOT;
       videoTag.addEventListener("canplay", videoCanStart);
+
+      reverseVideoTag.src = VIDEO_ROOT_REVERSE;
+      reverseVideoTag.addEventListener("canplay", videoCanStart);
     }
 
     // if playing, check for drifts every 4 seconds
@@ -362,7 +447,7 @@ import MiamiLoading from "./miami-loading.astro";
         const audioTime = audioManager.getCurrentTime();
         const drift = Math.abs(videoTime - audioTime);
 
-        if (drift > 0.25) {
+        if (drift > 0.25 && !isReverse) {
           // Threshold of 250ms drift
           logger.log(`Drift detected: ${drift.toFixed(3)}s`);
           // Adjust video time to match audio
