@@ -94,14 +94,34 @@ import MiamiLoading from "./miami-loading.astro";
   async function loadingDone() {
     const loading = document.getElementById("loading");
     if (!loading) return;
-    // Hide loading div by using transform one step at a time
-    loading.style.setProperty("transform", "rotate(10deg) translateY(-20%)");
-    await sleep(800);
-    loading.style.setProperty("transform", "rotate(-8deg) translateY(-40%)");
-    await sleep(800);
-    loading.style.setProperty("transform", "rotate(5deg) translateY(-60%)");
-    await sleep(800);
-    loading.remove();
+    document.getElementById("caricamento")?.remove();
+    const btn = document.getElementById(
+      "vai-animazione"
+    ) as HTMLButtonElement | null;
+    if (!btn) {
+      logger.error("Button not found");
+      return;
+    }
+    btn.style.display = "block";
+    return new Promise<void>((resolve) => {
+      btn.addEventListener("click", async () => {
+        // Hide loading div by using transform one step at a time
+        loading.style.setProperty(
+          "transform",
+          "rotate(10deg) translateY(-20%)"
+        );
+        await sleep(300);
+        loading.style.setProperty(
+          "transform",
+          "rotate(-8deg) translateY(-40%)"
+        );
+        await sleep(300);
+        loading.style.setProperty("transform", "rotate(5deg) translateY(-60%)");
+        await sleep(300);
+        loading.remove();
+        resolve();
+      });
+    });
   }
 
   function updateSpeed(newSpeed: number) {

@@ -20,46 +20,20 @@
     />
   </div>
   <div class="mb-[64px] text-center">
-    <p class="text-2xl font-bold text-[#DA101C] uppercase pulse">Caricamento</p>
+    <p
+      id="caricamento"
+      class="text-2xl font-bold text-[#DA101C] uppercase pulse py-2"
+    >
+      Caricamento
+    </p>
+    <button
+      id="vai-animazione"
+      class="text-2xl bg-[#DA101C] text-white uppercase focus:outline-none hidden m-auto px-4 py-2 rounded-md"
+    >
+      Vai all'animazione
+    </button>
   </div>
 </div>
-
-<img
-  src="/miami/loading/bg-1.webp"
-  alt="background"
-  class="hidden bg"
-  data-miamiloadingbg="1"
-/>
-<img
-  src="/miami/loading/bg-2.webp"
-  alt="background"
-  class="hidden bg"
-  data-miamiloadingbg="2"
-/>
-
-<script is:inline>
-  document.addEventListener("DOMContentLoaded", () => {
-    const container = document.getElementById("miami-loading-container");
-    if (container) {
-      // Set bg image
-      let currentBG = 1;
-      const MAX_BG = 2;
-      const bgs = new Map();
-      document.querySelectorAll("[data-miamiloadingbg]").forEach(async (bg) => {
-        if (bg instanceof HTMLImageElement) {
-          bgs.set(bg.dataset["miamiloadingbg"], bg);
-        }
-      });
-      container.style.backgroundImage = `url(${bgs.get(currentBG.toString())?.src})`;
-      // Programmatically switch bg image
-      setInterval(() => {
-        currentBG = currentBG === MAX_BG ? 1 : currentBG + 1;
-        const imgTag = bgs.get(currentBG.toString());
-        container.style.backgroundImage = `url(${imgTag?.src})`;
-      }, 150);
-    }
-  });
-</script>
 
 <style lang="scss">
   @keyframes pulse {
@@ -86,10 +60,26 @@
     animation: pulse 2s infinite;
   }
 
+  @keyframes bg-stop-motion {
+    0% {
+      background-image: url("/miami/loading/bg-1.webp");
+    }
+    50% {
+      background-image: url("/miami/loading/bg-2.webp");
+    }
+    100% {
+      background-image: url("/miami/loading/bg-1.webp");
+    }
+  }
+
   .spin {
     animation: spin-with-pause 2s ease-in-out infinite;
     &--reverse {
       animation-direction: reverse;
     }
+  }
+
+  #miami-loading-container {
+    animation: bg-stop-motion 0.3s infinite;
   }
 </style>
