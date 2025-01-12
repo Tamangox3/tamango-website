@@ -4,6 +4,7 @@ const isDev = import.meta.env.MODE === "development";
 export type MiamiLogger = {
   log: (...args: unknown[]) => void;
   error: (...args: unknown[]) => void;
+  warn: (...args: unknown[]) => void;
 };
 
 export const createMiamiLogger = (prefix: string): MiamiLogger => {
@@ -17,6 +18,10 @@ export const createMiamiLogger = (prefix: string): MiamiLogger => {
     error: (...args: unknown[]) => {
       // Always log errors
       console.error(`${prefix}`, ...args);
-    }
+    },
+    warn: (...args: unknown[]) => {
+      // Always log warnings
+      console.warn(`${prefix}`, ...args);
+    },
   }
 }

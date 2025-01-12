@@ -11,40 +11,8 @@ import MiamiLoading from "./miami-loading.astro";
 </div>
 
 <!-- Canvas -->
-<div id="animation-canvas">
-  <canvas data-trigger data-animation-canvas></canvas>
-  <div class="flex flex-col gap-2 absolute bottom-0 right-0 p-4">
-    <button aria-label="previous section" id="prev-section-btn">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-6 w-6 text-white rotate-90"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M15 19l-7-7 7-7"></path>
-      </svg>
-    </button>
-    <button aria-label="next section" id="next-section-btn">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-6 w-6 text-white rotate-90"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M9 5l7 7-7 7"></path>
-      </svg>
-    </button>
-  </div>
+<div id="video-container">
+  <video id="video" no-controls muted playsinline></video>
 </div>
 
 <!-- Debug stuff -->
@@ -54,69 +22,30 @@ import MiamiLoading from "./miami-loading.astro";
 >
   <div class="flex flex-col gap-[2px] text-sm m-[2px]">
     <span>Scroll speed: <span id="scroll-velocity">0</span></span>
-    <span>Audio: <span id="audio-progress">00:00</span></span>
-    <span>Animation: <span id="frame-progress">00:00</span></span>
   </div>
 </div>
 
 <script>
-  import type { MiamiAssetsMap } from "@lib/miami/rive-assets";
   import { AudioManager } from "@lib/miami/audio";
-  import {
-    type RiveCanvas as RiveCanvasType,
-    type File as RiveFileType,
-    type LinearAnimationInstance,
-  } from "@rive-app/canvas-advanced";
-  import { RuntimeLoader } from "@rive-app/canvas";
-  import { loadRiveAsset, RIVE_ASSETS } from "@lib/miami/rive-assets";
   import { gsap } from "gsap";
   import { ScrollTrigger } from "gsap/ScrollTrigger";
   import { Observer } from "gsap/Observer";
-  import { miamiAssetLoader } from "@lib/miami/rive-assets";
   import { createMiamiLogger } from "@lib/miami/logger";
+  import Hls from "hls.js";
+
+  const VIDEO_ROOT =
+    "https://pub-543f8b9c671f4c5f95e97e612d3411f2.r2.dev/v1/playlist.m3u8";
 
   gsap.registerPlugin(ScrollTrigger, Observer);
 
-  // utils
-  const isDev = import.meta.env.MODE === "development";
   const logger = createMiamiLogger("Main");
-
-  // html elements
-  const canvas = document.querySelector("[data-animation-canvas]") as
-    | HTMLCanvasElement
-    | null
-    | undefined;
   const scrollVelocityEl = document.getElementById("scroll-velocity");
-  const loadingDiv = document.getElementById("loading");
-
-  // Assets base path
-  const ASSETS_BASE_PATH = "/miami/miami_v7/assets/compressed";
-  const assets: MiamiAssetsMap = new Map<
-    string,
-    (() => Promise<Uint8Array>) | Uint8Array
-  >();
-
-  // audio manager
+  const videoTag = document.getElementById("video") as HTMLVideoElement | null;
+  const container = document.getElementById("video-container");
+  const startedLoadingAt = Date.now();
   const audioManager = new AudioManager();
   let triggered = false;
   let isPlaying = false;
-  let requestPrevSection = 0;
-  let requestNextSection = 0;
-  const animationSectionsMs = [0, 8000, 20000, 35000, 60000];
-
-  document.getElementById("prev-section-btn")?.addEventListener("click", () => {
-    requestPrevSection++;
-  });
-
-  document.getElementById("next-section-btn")?.addEventListener("click", () => {
-    requestNextSection++;
-  });
-
-  // animation context
-  let activeAnimation: LinearAnimationInstance | null = null;
-  let idleAnimation: LinearAnimationInstance | null = null;
-
-  // global speed
   let speed: number = 1;
   let lastTime: number;
 
@@ -129,299 +58,63 @@ import MiamiLoading from "./miami-loading.astro";
     { passive: false }
   );
 
-  // ---------------------------- //
-
   // pause audio + animation on blur
   window.addEventListener("blur", () => {
-    console.log("blur event");
     audioManager.pause();
-    isPlaying = false;
+    videoTag?.pause();
   });
 
   window.addEventListener("focus", () => {
-    console.log("focus event");
     if (triggered) {
       audioManager.play(audioManager.getBufferOffset());
-      isPlaying = true;
+      videoTag?.play();
     }
   });
 
   // pause audio + animation on visibility change
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
-      console.log("visibility change event");
       audioManager.pause();
-      isPlaying = false;
+      videoTag?.pause();
     } else {
       if (triggered) {
         audioManager.play(audioManager.getBufferOffset());
-        isPlaying = true;
+        videoTag?.play();
       }
     }
   });
 
-  function updateProgressDisplays(audioPosition: number, activeAnimation: any) {
-    // Update audio progress
-    const audioProgressEl = document.getElementById("audio-progress");
-
-    if (audioProgressEl) {
-      audioProgressEl.textContent = audioPosition.toFixed(2);
-    }
-
-    // Update animation progress
-    const frameProgressEl = document.getElementById("frame-progress");
-    if (frameProgressEl) {
-      frameProgressEl.textContent = activeAnimation.time.toFixed(2);
-    }
+  async function sleep(ms: number) {
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, ms);
+    });
   }
 
-  // =============== Animation Setup Functions ===============
-  function setupCanvas() {
-    if (!canvas) throw new Error("Canvas not found");
-
-    function computeSize() {
-      if (!canvas) return;
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-
-    window.onresize = computeSize;
-    computeSize();
-  }
-
-  async function setupRive(
-    canvas: HTMLCanvasElement,
-    riveCanvas: RiveCanvasType,
-    riveAnimation: Uint8Array
-  ) {
-    const loadingRiveInstanceEl = document.getElementById(
-      "loading-rive-instance"
-    );
-    if (loadingRiveInstanceEl) {
-      loadingRiveInstanceEl.style.opacity = "1";
-    }
-
-    // const file = (await rive.load(riveBytes)) as RiveFileType;
-
-    const loadingFileEl = document.getElementById("loading-file");
-    if (loadingFileEl) {
-      loadingFileEl.style.opacity = "1";
-    }
-
-    const file = (await riveCanvas.load(
-      riveAnimation,
-      new riveCanvas.CustomFileAssetLoader({
-        loadContents: miamiAssetLoader(assets, logger),
-      })
-    )) as RiveFileType;
-
-    logger.log("SetupRive --> loaded file");
-
-    // Update loading state for file loaded
-
-    const renderer = riveCanvas.makeRenderer(canvas);
-    logger.log("SetupRive --> File rendered");
-    // const fileBytes = new Uint8Array(
-    // await (await fetch("/miami/miami_v4_embedded/r4.riv")).arrayBuffer()
-    // );
-
-    // const file = (await rive.load(riveBytes)) as RiveFileType;
-
-    // logger.log("SetupRive --> loaded file")
-
-    // Update loading state for renderer
-    const loadingRendererEl = document.getElementById("loading-renderer");
-    if (loadingRendererEl) {
-      loadingRendererEl.style.opacity = "1";
-    }
-
-    if (isDev) riveCanvas.enableFPSCounter();
-
-    return { riveCanvas, file, renderer };
-  }
-
-  function loadingDone() {
+  async function loadingDone() {
     const loading = document.getElementById("loading");
     if (!loading) return;
-    loading.style.setProperty("opacity", "0");
-    setTimeout(() => {
-      loading.style.setProperty("display", "none");
-    }, 300);
-  }
-
-  function setupAnimations(rive: RiveCanvasType, file: RiveFileType) {
-    const artboard = file.artboardByName(file.defaultArtboard().name);
-    logger.log("setupAnimations --> loaded artboard");
-    logger.log("Default artboard: ", file.defaultArtboard().name);
-
-    // Update loading state for artboard
-    const loadingArtboardEl = document.getElementById("loading-artboard");
-    if (loadingArtboardEl) {
-      loadingArtboardEl.style.opacity = "1";
-    }
-
-    const stateMachine = new rive.StateMachineInstance(
-      artboard.stateMachineByIndex(0),
-      artboard
-    );
-    logger.log("setupAnimations --> loaded stateMachine");
-
-    // Update loading state for state machine
-    const loadingStateMachineEl = document.getElementById(
-      "loading-state-machine"
-    );
-    if (loadingStateMachineEl) {
-      loadingStateMachineEl.style.opacity = "1";
-    }
-
-    idleAnimation = new rive.LinearAnimationInstance(
-      artboard.animationByIndex(0),
-      artboard
-    );
-    activeAnimation = new rive.LinearAnimationInstance(
-      artboard.animationByIndex(1),
-      artboard
-    );
-    logger.log("setupAnimations --> loaded animations");
-
-    // Update loading state for animations
-    const loadingAnimationsEl = document.getElementById("loading-animations");
-    if (loadingAnimationsEl) {
-      loadingAnimationsEl.style.opacity = "1";
-    }
-
-    return { artboard, stateMachine, idleAnimation };
-  }
-
-  function createDrawLoop(
-    rive: RiveCanvasType,
-    renderer: any,
-    artboard: any,
-    stateMachine: any,
-    canvas: HTMLCanvasElement
-  ) {
-    function draw(time: number) {
-      if (!lastTime) lastTime = time;
-
-      const currentAudioPosition = audioManager.getCurrentTime();
-
-      renderer.clear();
-
-      const elapsedSeconds = (time - lastTime) / 1000;
-      lastTime = time;
-
-      if (isPlaying || !triggered) {
-        artboard.advance(elapsedSeconds * speed);
-        stateMachine.advance(elapsedSeconds * speed);
-        activeAnimation?.advance(elapsedSeconds * speed);
-        if (requestNextSection > 0) {
-          requestNextSection--;
-          animationGoToMs(animationSectionsMs[1]);
-        }
-        if (requestPrevSection > 0) {
-          requestPrevSection--;
-          animationGoToMs(animationSectionsMs[0]);
-        }
-      }
-
-      renderer.save();
-      renderer.align(
-        // if mobile, cover, otherwise contain
-        document.body.clientWidth < 640 ? rive.Fit.cover : rive.Fit.contain,
-        rive.Alignment.center,
-        {
-          minX: 0,
-          minY: 0,
-          maxX: canvas?.width ?? window.innerWidth,
-          maxY: canvas?.height ?? window.innerHeight,
-        },
-        artboard.bounds
-      );
-      artboard.draw(renderer);
-      renderer.restore();
-
-      if (activeAnimation) {
-        updateProgressDisplays(currentAudioPosition, activeAnimation);
-      }
-
-      rive.requestAnimationFrame(draw);
-    }
-
-    return draw;
-  }
-
-  async function init(riveAnimation: Uint8Array, riveCanvas: RiveCanvasType) {
-    setupCanvas();
-
-    if (!canvas) throw new Error("Canvas not found");
-
-    const { file, renderer } = await setupRive(
-      canvas,
-      riveCanvas,
-      riveAnimation
-    );
-    const { artboard, stateMachine } = setupAnimations(riveCanvas, file);
-
-    canvas.addEventListener("click", () => {
-      logger.log(
-        "status: {triggered: " +
-          triggered +
-          ", isPlaying: " +
-          audioManager.getIsPlaying() +
-          "}"
-      );
-      if (!triggered) {
-        stateMachine.input(0).asTrigger().fire();
-        triggered = true;
-        isPlaying = true;
-        audioManager.play(0);
-        if (activeAnimation) {
-          activeAnimation.time = 0;
-        }
-      }
-    });
-
-    logger.log("init --> before createDrawLoop");
-    // Update loading state for draw loop creation
-    const loadingDrawEl = document.getElementById("loading-draw");
-    if (loadingDrawEl) {
-      loadingDrawEl.style.opacity = "1";
-    }
-
-    const drawLoop = createDrawLoop(
-      riveCanvas,
-      renderer,
-      artboard,
-      stateMachine,
-      canvas
-    );
-    riveCanvas.requestAnimationFrame(drawLoop);
-
-    logger.log("init --> after createDrawLoop");
-    // Update loading state for first frame request
-    const loadingFrameEl = document.getElementById("loading-frame");
-    if (loadingFrameEl) {
-      loadingFrameEl.style.opacity = "1";
-    }
-
-    loadingDone();
-
-    return riveCanvas;
+    // Hide loading div by using transform one step at a time
+    loading.style.setProperty("transform", "rotate(10deg) translateY(-20%)");
+    await sleep(800);
+    loading.style.setProperty("transform", "rotate(-8deg) translateY(-40%)");
+    await sleep(800);
+    loading.style.setProperty("transform", "rotate(5deg) translateY(-60%)");
+    await sleep(800);
+    loading.remove();
   }
 
   function updateSpeed(newSpeed: number) {
     // Clamp the absolute value but preserve sign
     const sign = Math.sign(newSpeed);
     const absSpeed = Math.abs(newSpeed);
-    const clampedAbsSpeed = Math.max(0.1, Math.min(absSpeed, 30));
+    const clampedAbsSpeed = Math.max(0.1, Math.min(absSpeed, 16)); // needs to cap at 16 otherwise browser complains
     newSpeed = sign * clampedAbsSpeed;
 
     // Update global speed variables
     speed = newSpeed;
 
-    // Update slider and label
-    // const slider = document.getElementById("progress-bar") as HTMLInputElement;
-    // if (slider) slider.value = newSpeed.toString();
     const label = document.querySelector(`label[for="progress-bar"]`);
     if (label) label.textContent = `${newSpeed.toFixed(2)}x`;
 
@@ -432,16 +125,38 @@ import MiamiLoading from "./miami-loading.astro";
 
     // Update audio playback
     audioManager.setPlaybackRate(newSpeed);
+    if (videoTag) {
+      if (newSpeed >= 0) {
+        videoTag.playbackRate = newSpeed;
+      } else {
+        videoTag.playbackRate = 1;
+      }
+    }
   }
 
-  // need two approaches, one for mobile and one for desktop
-  // for mobile higher sensitivity (divide by 15)
-  // for desktop lower sensitivity (divide by 5)
+  async function videoCanStart() {
+    const now = Date.now();
+    if (now - startedLoadingAt < 4000) {
+      await new Promise<void>((resolve) => {
+        setTimeout(
+          () => {
+            resolve();
+          },
+          4000 - (now - startedLoadingAt)
+        );
+      });
+    }
+    if (videoTag) {
+      await loadingDone();
+      audioManager.play();
+      videoTag.play();
+      triggered = true;
+      isPlaying = true;
+    }
+  }
 
-  // desktop: wheel debounce (150ms)
-  // mobile: release is immediate, use tween to animate back to normal speed
-  if (canvas) {
-    gsap.utils.toArray(canvas).forEach((element) => {
+  function setupGSAP() {
+    gsap.utils.toArray(container).forEach((element) => {
       let startY: number;
       let isDragging = false;
       let velocityTween: any;
@@ -451,10 +166,7 @@ import MiamiLoading from "./miami-loading.astro";
       const mobileRatio = 1;
       const desktopRatio = 5;
       let wasPausedByPress = false;
-
       let pressTimeout: number | null = null;
-
-      // desktop, pointer
 
       Observer.create({
         target: element as HTMLElement,
@@ -468,13 +180,14 @@ import MiamiLoading from "./miami-loading.astro";
 
           if (triggered) {
             audioManager.pause();
-            isPlaying = false;
+            videoTag?.pause();
           }
         },
         onRelease: (self) => {
           if (triggered) {
             isPlaying = true;
             audioManager.play();
+            videoTag?.play();
           }
         },
       });
@@ -589,94 +302,42 @@ import MiamiLoading from "./miami-loading.astro";
       }
     });
   }
-  /**
-   * Go to a specific time in the animation.
-   * Tweak the speed to do so.
-   *
-   * @param ms Time in milliseconds of the animation
-   * @param inMs Duration in milliseconds of transition
-   */
-  function animationGoToMs(ms: number, inMs: number = 2000) {
-    if (!activeAnimation) return;
-    logger.log("animationGoToMs", ms, inMs);
-    const currentProgress = activeAnimation.time;
-    const msDiff = ms - currentProgress;
-    const newSpeed = msDiff / inMs;
 
-    // TODO: Set speed to reach the target time for inMs and then reset to 1
+  async function loadAudio() {
+    await audioManager.loadAudio("/miami/audio/audio_seq_started.mp3");
   }
 
-  // Load rive, audio and first sequence assets
-  async function loadInitialData() {
-    const firstSeqAssets = RIVE_ASSETS.filter((asset) =>
-      asset.startsWith("SEQ1_")
-    );
-    const [riveAnimation, riveCanvas] = await Promise.all([
-      fetch("/miami/miami_v7/r.riv").then((res) => res.arrayBuffer()),
-      RuntimeLoader.awaitInstance(),
-      audioManager.loadAudio("/miami/audio/audio_seq_started.mp3"),
-      // Ensure that Seq1 assets are loaded before showing the animation
-      Promise.allSettled(
-        firstSeqAssets.map((asset) => {
-          const filename = asset.split(".")[0];
-          if (!assets.has(filename)) {
-            logger.log(`Asset ${filename} not found`);
-            return Promise.resolve();
-          }
-          return (assets.get(filename) as () => Promise<Uint8Array>)().then(
-            (data) => {
-              assets.set(filename, data);
-            }
-          );
-        })
-      ),
-    ]);
+  if (videoTag) {
+    setupGSAP();
+    await loadAudio();
 
-    return {
-      riveAnimation: new Uint8Array(riveAnimation),
-      riveCanvas,
-    };
-  }
-
-  // Start background loading of assets
-  function setupBackgroundAssetsLoading() {
-    RIVE_ASSETS.forEach((asset) => {
-      const filename = asset.split(".")[0];
-      // Store a lazy function that initializes the loading when called
-      assets.set(filename, () => loadRiveAsset(ASSETS_BASE_PATH, asset));
-    });
-  }
-
-  if (canvas) {
-    setupBackgroundAssetsLoading();
-    const { riveAnimation, riveCanvas } = await loadInitialData();
-
-    // Update first loading state
-    const loadingRiveEl = document.getElementById("loading-rive");
-    if (loadingRiveEl) {
-      loadingRiveEl.style.opacity = "1";
+    if (Hls.isSupported()) {
+      var hls = new Hls();
+      hls.loadSource(VIDEO_ROOT);
+      hls.attachMedia(videoTag);
+      hls.on(Hls.Events.MANIFEST_PARSED, videoCanStart);
+      hls.on;
+    } else if (videoTag.canPlayType("application/vnd.apple.mpegurl")) {
+      videoTag.src = VIDEO_ROOT;
+      videoTag.addEventListener("canplay", videoCanStart);
     }
-
-    await init(riveAnimation, riveCanvas);
 
     // if playing, check for drifts every 4 seconds
     setInterval(() => {
       if (isPlaying) {
         logger.log("Checking for drifts");
-        const animationTime = activeAnimation?.time || 0;
+        const videoTime = videoTag?.currentTime;
         const audioTime = audioManager.getCurrentTime();
-        const drift = Math.abs(animationTime - audioTime);
+        const drift = Math.abs(videoTime - audioTime);
 
         if (drift > 0.1) {
           // Threshold of 100ms drift
           logger.log(`Drift detected: ${drift.toFixed(3)}s`);
-          // Adjust animation time to match audio
-          if (activeAnimation) {
-            activeAnimation.time = audioTime;
-          }
+          // Adjust video time to match audio
+          videoTag.currentTime = audioTime;
         }
       }
-    }, 4000);
+    }, 1000);
   }
 </script>
 
@@ -686,24 +347,7 @@ import MiamiLoading from "./miami-loading.astro";
     overscroll-behavior: none; /* Prevents scroll chaining and overscrolling */
   }
 
-  #speed-minus-one,
-  #speed-one,
-  #speed-two {
-    background-color: #3b82f6;
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border: none;
-    border-radius: 0.375rem;
-    cursor: pointer;
-    font-weight: bold;
-  }
-
-  #speed-minus-one:hover,
-  #speed-one:hover,
-  #speed-two:hover {
-    background-color: #2563eb;
-  }
-  #animation-canvas {
+  #video-container {
     position: fixed;
     top: 0;
     left: 0;
