@@ -245,7 +245,7 @@ createDistortionCurve(amount: number) {
 
   getCurrentTime(): number {
     if (!this.isPlaying) return this.bufferOffset;
-  
+
     const elapsed = this.audioContext.currentTime - this.startTime;
     const elapsedWithSpeed = elapsed * Math.abs(this.playbackRate);
     let currentTime: number;

@@ -2,7 +2,9 @@
 import MiamiLoading from "./miami-loading.astro";
 ---
 
-<div class="app w-screen h-dvh flex flex-col items-center antialiased">
+<div
+  class="fixed top-0 bottom-0 left-0 right-0 md:relative w-screen h-dvh flex flex-col items-center antialiased"
+>
   <section class="w-full h-full flex flex-col items-center justify-center">
     <div
       class="relative h-dvh md:aspect-[9/16] md:rounded-[42px] md:h-[90svh] md:drop-shadow-xl md:overflow-hidden"
@@ -154,12 +156,9 @@ import MiamiLoading from "./miami-loading.astro";
 
     // Update audio playback
     audioManager.setPlaybackRate(newSpeed);
-    if (videoTag) {
-      if (newSpeed >= 0) {
-        videoTag.playbackRate = newSpeed;
-      } else {
-        videoTag.playbackRate = 1;
-      }
+    if (videoTag && newSpeed >= 0) {
+      // Negative playback rate is not supported
+      videoTag.playbackRate = newSpeed;
     }
   }
 
@@ -201,6 +200,7 @@ import MiamiLoading from "./miami-loading.astro";
         target: element as HTMLElement,
         type: "pointer",
         onPress: (self) => {
+          logger.log("User pressed the pointer", self);
           if (velocityTween) velocityTween.kill();
           if (wheelTimeout) clearTimeout(wheelTimeout);
 
@@ -212,7 +212,8 @@ import MiamiLoading from "./miami-loading.astro";
             videoTag?.pause();
           }
         },
-        onRelease: (self) => {
+        onRelease: () => {
+          logger.log("User released the pointer");
           if (triggered) {
             isPlaying = true;
             audioManager.play();
@@ -225,6 +226,7 @@ import MiamiLoading from "./miami-loading.astro";
         target: element as HTMLElement,
         type: "touch,wheel,scroll",
         onPress: (self) => {
+          logger.log("Press started at:", self.y);
           if (velocityTween) velocityTween.kill();
           if (wheelTimeout) clearTimeout(wheelTimeout);
 
@@ -238,12 +240,13 @@ import MiamiLoading from "./miami-loading.astro";
           pressTimeout = window.setTimeout(() => {
             logger.log("User just pressed down");
             audioManager.pause();
+            videoTag?.pause();
             isPlaying = false;
             wasPausedByPress = true;
           }, 100);
         },
-
         onDrag: (self) => {
+          logger.log("Drag event detected", self);
           if (pressTimeout) {
             clearTimeout(pressTimeout);
             pressTimeout = null;
@@ -260,7 +263,6 @@ import MiamiLoading from "./miami-loading.astro";
             isDragging = true;
           }
 
-          logger.log("User is dragging");
           const currentY = self.y ?? 0;
           const deltaY = currentY - startY;
           let newSpeed = deltaY / mobileRatio;
@@ -269,6 +271,7 @@ import MiamiLoading from "./miami-loading.astro";
           startY = currentY;
         },
         onRelease: () => {
+          logger.log("User released the drag");
           if (pressTimeout) {
             clearTimeout(pressTimeout);
             pressTimeout = null;
@@ -279,11 +282,13 @@ import MiamiLoading from "./miami-loading.astro";
             }
 
             audioManager.play();
-            animateToNormalSpeed();
+            videoTag?.play();
             isPlaying = true;
+            animateToNormalSpeed();
           }
         },
         onWheel: (self) => {
+          logger.log("Wheel event detected", self);
           if (velocityTween) velocityTween.kill();
           if (wheelTimeout) clearTimeout(wheelTimeout);
 
@@ -308,7 +313,6 @@ import MiamiLoading from "./miami-loading.astro";
             onUpdate: function () {
               const newSpeed = this.targets()[0].speed;
               updateSpeed(newSpeed);
-              // updateAudioVolume(newSpeed);
             },
           }
         );
@@ -345,7 +349,6 @@ import MiamiLoading from "./miami-loading.astro";
       hls.loadSource(VIDEO_ROOT);
       hls.attachMedia(videoTag);
       hls.on(Hls.Events.MANIFEST_PARSED, videoCanStart);
-      hls.on;
     } else if (videoTag.canPlayType("application/vnd.apple.mpegurl")) {
       videoTag.src = VIDEO_ROOT;
       videoTag.addEventListener("canplay", videoCanStart);
@@ -359,14 +362,14 @@ import MiamiLoading from "./miami-loading.astro";
         const audioTime = audioManager.getCurrentTime();
         const drift = Math.abs(videoTime - audioTime);
 
-        if (drift > 0.1) {
-          // Threshold of 100ms drift
+        if (drift > 0.25) {
+          // Threshold of 250ms drift
           logger.log(`Drift detected: ${drift.toFixed(3)}s`);
           // Adjust video time to match audio
           videoTag.currentTime = audioTime;
         }
       }
-    }, 1000);
+    }, 4000);
   }
 </script>
 

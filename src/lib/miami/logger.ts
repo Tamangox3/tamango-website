@@ -7,21 +7,21 @@ export type MiamiLogger = {
   warn: (...args: unknown[]) => void;
 };
 
-export const createMiamiLogger = (prefix: string): MiamiLogger => {
+export const createMiamiLogger = (prefix?: string): MiamiLogger => {
   return {
     log: (...args: unknown[]) => {
       // Only log in development
       if (isDev) {
-        console.log(`${prefix}`, ...args);
+        console.log(`LOG: ${prefix ? '[' + prefix + ']' : ''}`, ...args);
       }
     },
     error: (...args: unknown[]) => {
       // Always log errors
-      console.error(`${prefix}`, ...args);
+      console.error(`ERROR: ${prefix ? '[' + prefix + ']' : ''}`, ...args);
     },
     warn: (...args: unknown[]) => {
       // Always log warnings
-      console.warn(`${prefix}`, ...args);
+      console.warn(`WARN: ${prefix ? '[' + prefix + ']' : ''}`, ...args);
     },
   }
 }
