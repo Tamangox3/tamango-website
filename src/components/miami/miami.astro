@@ -2,27 +2,37 @@
 import MiamiLoading from "./miami-loading.astro";
 ---
 
-<!-- Loading section -->
-<div
-  id="loading"
-  class="fixed inset-0 bg-black z-50 transition-opacity duration-300 ease-in-out"
->
-  <MiamiLoading />
-</div>
+<div class="app w-screen h-dvh flex flex-col items-center antialiased">
+  <section class="w-full h-full flex flex-col items-center justify-center">
+    <div
+      class="relative h-dvh md:aspect-[9/16] md:rounded-[42px] md:h-[90svh] md:drop-shadow-xl md:overflow-hidden"
+    >
+      <!-- Loading section -->
+      <div
+        id="loading"
+        class="fixed inset-0 bg-black z-50 transition-opacity duration-300 ease-in-out"
+      >
+        <MiamiLoading />
+      </div>
 
-<!-- Canvas -->
-<div id="video-container">
-  <video id="video" no-controls muted playsinline></video>
-</div>
+      <!-- Canvas -->
+      <div id="video-container">
+        <video
+          id="video"
+          class="h-dvh w-dvw object-cover md:h-full md:w-full md:object-contain"
+          no-controls
+          muted
+          playsinline></video>
+      </div>
 
-<!-- Debug stuff -->
-<div
-  class="miami-slider fixed z-10 top-0 left-0 pointer-events-none"
-  style="user-select: none;"
->
-  <div class="flex flex-col gap-[2px] text-sm m-[2px]">
-    <span>Scroll speed: <span id="scroll-velocity">0</span></span>
-  </div>
+      <!-- Debug stuff -->
+      <div
+        class="flex flex-row items-center justify-center absolute bottom-0 right-0 left-0 p-4"
+      >
+        <span>Scroll speed: <span id="scroll-velocity">0</span></span>
+      </div>
+    </div>
+  </section>
 </div>
 
 <script>
@@ -364,18 +374,6 @@ import MiamiLoading from "./miami-loading.astro";
   html,
   body {
     overscroll-behavior: none; /* Prevents scroll chaining and overscrolling */
-  }
-
-  #video-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    & video {
-      max-width: min(720px, 100%);
-      max-height: min(1280px, 100vh);
-      margin: auto;
-    }
+    user-select: none;
   }
 </style>
