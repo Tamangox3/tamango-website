@@ -341,7 +341,7 @@ import MiamiLoading from "./miami-loading.astro";
   }
 </script>
 
-<style>
+<style lang="scss">
   html,
   body {
     overscroll-behavior: none; /* Prevents scroll chaining and overscrolling */
@@ -353,5 +353,10 @@ import MiamiLoading from "./miami-loading.astro";
     left: 0;
     bottom: 0;
     right: 0;
+    & video {
+      max-width: min(720px, 100%);
+      max-height: min(1280px, 100vh);
+      margin: auto;
+    }
   }
 </style>
