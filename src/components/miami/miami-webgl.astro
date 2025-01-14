@@ -219,7 +219,7 @@ import MiamiLoading from "./miami-loading.astro";
     const renderer = rive.makeRenderer(canvas, true);
 
      const bytes = await (
-    await fetch(new Request("/miami/miami_v9/r.riv"))
+    await fetch(new Request("/miami/miami_v10/r.riv"))
   ).arrayBuffer();
   const file = (await rive.load(new Uint8Array(bytes))); //as File;
     const artboard = file.defaultArtboard();
@@ -700,7 +700,7 @@ import MiamiLoading from "./miami-loading.astro";
             return true;
           }
           await fetch(
-            "/miami/miami_v9/assets/compressed/" +
+            "/miami/miami_v10/assets/compressed/" +
               asset.uniqueFilename.split(".")[0] +
               ".webp",
           ).then(async (response) => {
@@ -715,7 +715,7 @@ import MiamiLoading from "./miami-loading.astro";
     )) as RiveFileType;
     const artboard = file.defaultArtboard();
 
-    console.log("ARTBOARD ", artboard.name)
+    // console.log("ARTBOARD ", artboard.name)
 
     const renderer = rive.makeRenderer(canvas, true);
 
