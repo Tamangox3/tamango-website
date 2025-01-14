@@ -34,6 +34,7 @@ interface LottieScrollTriggerVars {
   scrollTriggerVars?: Partial<ScrollTrigger.Vars>;
   debug?: boolean;
   logger?: DummyLogger;
+  assetsPath?: string;
 }
 
 export class LottieScrollTrigger {
@@ -73,7 +74,7 @@ export class LottieScrollTrigger {
       loop: false,
       autoplay: false,
       rendererSettings: vars.rendererSettings ?? {},
-      assetsPath: '/miami1/images/'
+      assetsPath: vars.assetsPath,
     });
 
     const scrollTrigger = {
@@ -98,14 +99,15 @@ export class LottieScrollTrigger {
         ease: "none",
         duration: frameAnimation.duration() || 1,
         onUpdate: () => {
+          const progress = playhead.frame / this.animation.totalFrames;
+          const animationProgress = this.animation.currentFrame / this.animation.totalFrames;
           if (this.isPaused) {
             this.animation.goToAndStop(playhead.frame, true);
-          } else {
+          } else if (Math.abs(progress - animationProgress) > 0.01) {
             this.animation.goToAndPlay(playhead.frame, true);
           }
           // if audio and animation are not in sync, this is where you'd update the audio
           if (this.audioLayer) {
-            const progress = playhead.frame / this.animation.totalFrames; // Between 0 and 1
             const audioCurrentTime = this.audioLayer.seek();
             const audioShouldBe = this.audioLayer.duration() * progress;
             if (Math.abs(audioCurrentTime - audioShouldBe) > 0.25) {
@@ -138,12 +140,25 @@ export class LottieScrollTrigger {
       },
       ease: 'none', // linear
       duration,
+      onComplete: () => {
+        this.logger?.log("Autoscroll completed");
+        // Scroll one whole page up to avoid the user seeing the end of the animation
+        gsap.to(window, {
+          scrollTo: {
+            y: this.durationPx,
+            autoKill: true,
+          },
+          ease: 'none',
+          duration: 1,
+        });
+      }
     });
   }
 
   toggleAutoscroll(isEnabled: boolean) {
     if (!this.audioLayer) return;
     if (isEnabled) {
+      // We want to scroll to durationPx in the remaining time of the audio + the time to scroll a whole page
       const remaining = this.audioLayer.duration() - this.audioLayer.seek();
       this.logger?.log(`Scroll to ${this.durationPx} in ${remaining} seconds`);
       this.autoscroll(remaining);
@@ -185,6 +200,7 @@ export class LottieScrollTrigger {
   private setupDebug() {
     this.setupLottieDebug();
     this.setupAudioDebug();
+    this.setupScrollDebug();
   }
 
   private setupLottieDebug() {
@@ -233,6 +249,22 @@ export class LottieScrollTrigger {
       });
     });
     document.body.appendChild(audioProgress);
+  }
+
+  private setupScrollDebug() {
+    const scrollProgress = document.createElement("div");
+    scrollProgress.style.position = "fixed";
+    scrollProgress.style.bottom = "88px";
+    scrollProgress.style.left = "0";
+    scrollProgress.style.zIndex = "1000";
+    scrollProgress.style.padding = "10px";
+    scrollProgress.style.backgroundColor = "rgba(0,0,0,.5)";
+    scrollProgress.style.color = "white";
+    scrollProgress.textContent = `Scroll: 0 / ${this.durationPx}px`;
+    window.addEventListener("scroll", () => {
+      scrollProgress.textContent = `Scroll: ${window.scrollY.toFixed(0)} / ${this.durationPx}px`;
+    });
+    document.body.appendChild(scrollProgress);
   }
 }
 
