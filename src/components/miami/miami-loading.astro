@@ -3,7 +3,7 @@
   class="absolute bg-cover top-0 bottom-0 left-0 right-0 flex flex-col justify-between"
 >
   <div class="mt-[64px]"></div>
-  <div class="mx-auto w-full max-w-[800px] relative">
+  <div class="mx-auto w-10/12 mb-[80px] max-w-[800px] relative">
     <img
       src="/miami/loading/lettere.webp"
       alt="Chi ha paura dello sparviero?"
@@ -11,26 +11,23 @@
     <img
       src="/miami/loading/stella-sx.webp"
       alt="stella"
-      class="absolute top-0 bottom-0 m-auto spin h-[32%] left-[12%]"
+      class="absolute top-0 bottom-0 m-auto spin h-[27%] left-[14%]"
     />
     <img
       src="/miami/loading/stella-dx.webp"
       alt="stella"
-      class="absolute top-0 bottom-0 m-auto right-[16%] h-[32%] spin spin--reverse"
+      class="absolute top-0 bottom-0 m-auto right-[14%] h-[25%] spin spin--reverse"
     />
   </div>
-  <div class="mb-[64px] text-center">
-    <p
-      id="caricamento"
-      class="text-2xl font-bold text-[#DA101C] uppercase pulse py-2"
-    >
-      Caricamento
+  <div class="mb-[80px] text-center">
+    <p id="caricamento" class="pulse w-full flex justify-center">
+      <img src="/miami/loading/caricamento.webp" class="w-[270px]" />
     </p>
     <button
       id="vai-animazione"
-      class="text-2xl bg-[#DA101C] text-white uppercase focus:outline-none hidden m-auto px-4 py-2 rounded-md"
+      class="focus:outline-none hidden m-auto rounded-md"
     >
-      Vai all'animazione
+      <img src="/miami/loading/btn_via.webp" class="w-[270px]" />
     </button>
   </div>
 </div>
@@ -60,7 +57,13 @@
     0% {
       background-image: url("/miami/loading/bg-1.webp");
     }
+    49% {
+      background-image: url("/miami/loading/bg-1.webp");
+    }
     50% {
+      background-image: url("/miami/loading/bg-2.webp");
+    }
+    99% {
       background-image: url("/miami/loading/bg-2.webp");
     }
     100% {
@@ -80,6 +83,6 @@
   }
 
   #miami-loading-container {
-    animation: bg-stop-motion 0.5s infinite;
+    animation: bg-stop-motion 0.5s linear infinite;
   }
 </style>

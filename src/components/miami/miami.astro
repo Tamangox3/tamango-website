@@ -39,6 +39,7 @@ import MiamiLoading from "./miami-loading.astro";
     type RiveCanvas as RiveCanvasType,
     type File as RiveFileType,
     type LinearAnimationInstance,
+    type StateMachineInstance,
   } from "@rive-app/webgl2-advanced";
   import RiveWebGL from "@rive-app/webgl2-advanced";
   import { loadRiveAsset, RIVE_ASSETS } from "@lib/miami/rive-assets";
@@ -63,7 +64,7 @@ import MiamiLoading from "./miami-loading.astro";
   const loadingDiv = document.getElementById("loading");
 
   // Assets base path
-  const ASSETS_BASE_PATH = "/miami/miami_v7/assets/compressed";
+  const ASSETS_BASE_PATH = "/miami/miami_v10/assets/original";
   const assets: MiamiAssetsMap = new Map<
     string,
     (() => Promise<Uint8Array>) | Uint8Array
@@ -209,43 +210,6 @@ import MiamiLoading from "./miami-loading.astro";
     });
   }
 
-  async function loadingDone() {
-    const loading = document.getElementById("loading");
-    if (!loading) {
-      logger.error("Loading div not found");
-      return;
-    }
-    document.getElementById("caricamento")?.remove();
-    const btn = document.getElementById(
-      "vai-animazione"
-    ) as HTMLButtonElement | null;
-    if (!btn) {
-      logger.error("Button not found");
-      return;
-    }
-    btn.style.display = "block";
-    return new Promise<void>((resolve) => {
-      btn.addEventListener("click", async () => {
-        // Hide loading div by using transform one step at a time
-        btn.remove();
-        loading.style.setProperty(
-          "transform",
-          "rotate(10deg) translateY(-20%)"
-        );
-        await sleep(150);
-        loading.style.setProperty(
-          "transform",
-          "rotate(-8deg) translateY(-40%)"
-        );
-        await sleep(150);
-        loading.style.setProperty("transform", "rotate(5deg) translateY(-60%)");
-        await sleep(150);
-        loading.remove();
-        resolve();
-      });
-    });
-  }
-
   function setupAnimations(rive: RiveCanvasType, file: RiveFileType) {
     const artboard = file.artboardByName(file.defaultArtboard().name);
     logger.log("setupAnimations --> loaded artboard");
@@ -359,25 +323,6 @@ import MiamiLoading from "./miami-loading.astro";
     );
     const { artboard, stateMachine } = setupAnimations(riveCanvas, file);
 
-    canvas.addEventListener("click", () => {
-      logger.log(
-        "status: {triggered: " +
-          triggered +
-          ", isPlaying: " +
-          audioManager.getIsPlaying() +
-          "}"
-      );
-      if (!triggered) {
-        stateMachine.input(0).asTrigger().fire();
-        triggered = true;
-        isPlaying = true;
-        audioManager.play(0);
-        if (activeAnimation) {
-          activeAnimation.time = 0;
-        }
-      }
-    });
-
     logger.log("init --> before createDrawLoop");
     // Update loading state for draw loop creation
     const loadingDrawEl = document.getElementById("loading-draw");
@@ -401,7 +346,7 @@ import MiamiLoading from "./miami-loading.astro";
       loadingFrameEl.style.opacity = "1";
     }
 
-    loadingDone();
+    loadingDone(stateMachine);
 
     return riveCanvas;
   }
@@ -429,6 +374,59 @@ import MiamiLoading from "./miami-loading.astro";
 
     // Update audio playback
     audioManager.setPlaybackRate(newSpeed);
+  }
+
+  async function loadingDone(stateMachine: StateMachineInstance) {
+    const loading = document.getElementById("loading");
+    if (!loading) {
+      logger.error("Loading div not found");
+      return;
+    }
+    document.getElementById("caricamento")?.remove();
+    const btn = document.getElementById(
+      "vai-animazione"
+    ) as HTMLButtonElement | null;
+    if (!btn) {
+      logger.error("Button not found");
+      return;
+    }
+    btn.style.display = "block";
+    return new Promise<void>((resolve) => {
+      btn.addEventListener("click", async () => {
+        // Hide loading div by using transform one step at a time
+        logger.log(
+          "status: {triggered: " +
+            triggered +
+            ", isPlaying: " +
+            audioManager.getIsPlaying() +
+            "}"
+        );
+        if (!triggered) {
+          stateMachine.input(0).asTrigger().fire();
+          triggered = true;
+          isPlaying = true;
+          audioManager.play(0);
+          if (activeAnimation) {
+            activeAnimation.time = 0;
+          }
+        }
+        btn.remove();
+        loading.style.setProperty(
+          "transform",
+          "rotate(10deg) translateY(-20%)"
+        );
+        await sleep(150);
+        loading.style.setProperty(
+          "transform",
+          "rotate(-8deg) translateY(-40%)"
+        );
+        await sleep(150);
+        loading.style.setProperty("transform", "rotate(5deg) translateY(-60%)");
+        await sleep(150);
+        loading.remove();
+        resolve();
+      });
+    });
   }
 
   // need two approaches, one for mobile and one for desktop
@@ -610,7 +608,7 @@ import MiamiLoading from "./miami-loading.astro";
       asset.startsWith("SEQ1_")
     );
     const [riveAnimation, riveCanvas] = await Promise.all([
-      fetch("/miami/miami_v7/r.riv").then((res) => res.arrayBuffer()),
+      fetch("/miami/miami_v10/r.riv").then((res) => res.arrayBuffer()),
       RiveWebGL({
         locateFile: (_) =>
           `https://unpkg.com/@rive-app/webgl2-advanced@2.25.4/rive.wasm`,
