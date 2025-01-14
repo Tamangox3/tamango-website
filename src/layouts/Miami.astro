@@ -3,12 +3,13 @@ import type { TypePageSkeleton } from "@lib/generated/contentful";
 import type { Entry } from "@lib/types";
 import Base from "./Base.astro";
 import MiamiScroll2 from "@components/miami/miami.astro";
+import MiamiScrollWebGl from "@components/miami/miami-webgl.astro";
 
 interface Props extends Entry<TypePageSkeleton> {}
 
 const page = Astro.props;
 
-const MiamiComponent = MiamiScroll2;
+const MiamiComponent = MiamiScrollWebGl; // MiamiScroll2;
 
 const props = { ...page, introAnimation: false };
 ---
