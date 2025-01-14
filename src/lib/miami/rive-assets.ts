@@ -448,19 +448,13 @@ export const miamiAssetLoader = (assets: MiamiAssetsMap, logger?: MiamiLogger) =
     if (isFunction<Promise<Uint8Array>>(assetLoader)) {
       assetLoader()
         .then(async (data) => {
-          const decodedImage = await decodeImage(data);
-          // Temporary comment out the line below to avoid crashing safari
-          (asset as ImageAsset).setRenderImage(decodedImage);
-          decodedImage.unref();           
+          asset.decode(data);          
         })
         .catch((err) => {
           logger?.error("Error loading asset", err);
         });
     } else if (assetLoader instanceof Uint8Array) {
-      decodeImage(assetLoader).then((decodedImage) => {
-        (asset as ImageAsset).setRenderImage(decodedImage);     
-        decodedImage.unref();  
-      });
+      asset.decode(assetLoader);
     } else {
       logger?.error("Asset loader is not a function or Uint8Array");
       return false;

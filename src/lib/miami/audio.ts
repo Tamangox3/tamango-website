@@ -1,3 +1,5 @@
+import { createMiamiLogger } from "./logger";
+
 export class AudioManager {
   private audioContext: AudioContext;
   private audioForwardBuffer: AudioBuffer | null = null;
@@ -9,6 +11,7 @@ export class AudioManager {
   private isPlaying: boolean = false;
   private playbackRate: number = 1;
   private playbackDirection: number = 1;
+  private logger = createMiamiLogger('AudioManager');
 
   // nodes
   // volume
@@ -21,7 +24,7 @@ export class AudioManager {
 
   constructor() {
     this.audioContext = new AudioContext();
-    console.log('AudioManager initialized');
+    this.logger.log('AudioManager initialized');
     this.gainNode = this.audioContext.createGain();
         
     // Create effect nodes
@@ -32,27 +35,23 @@ export class AudioManager {
     // Default setup
     this.filter.type = 'lowpass';
     this.filter.frequency.value = 20000; // Start with no filtering
-    
-    // Chain the audio nodes together
-
     this.filter.connect(this.gainNode);
-    // this.waveshaper.connect(this.gainNode);
     this.gainNode.connect(this.audioContext.destination);
   }
 
   async loadAudio(url: string): Promise<void> {
-    console.log(`Loading audio from: ${url}`);
+    this.logger.log(`Loading audio from: ${url}`);
     const response = await fetch(url);
     const arrayBuffer = await response.arrayBuffer();
     this.currentBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
     this.audioForwardBuffer = this.currentBuffer;
     this.audioReverseBuffer = this.reverseAudioBuffer();
-    console.log('Audio loaded and decoded');
+    this.logger.log('Audio loaded and decoded');
   }
 
   play(startPosition?: number): void {
     if (!this.currentBuffer) {
-      console.warn('No audio buffer available to play');
+      this.logger.warn('No audio buffer available to play');
       return;
     }
 
@@ -101,7 +100,7 @@ export class AudioManager {
 
   async pause(): Promise<void> {
     if (!this.isPlaying || !this.currentSource) {
-      console.warn('Audio is not playing or no current source to pause');
+      this.logger.warn('Audio is not playing or no current source to pause');
       return;
     }
 
@@ -109,7 +108,7 @@ export class AudioManager {
     const elapsed = this.audioContext.currentTime - this.startTime;
     this.bufferOffset += elapsed * Math.abs(this.playbackRate) * this.playbackDirection;
 
-    console.log(`Pausing audio at position: ${this.bufferOffset}`);
+    this.logger.log(`Pausing audio at position: ${this.bufferOffset}`);
     this.currentSource.stop(0);
     this.currentSource.disconnect();
     this.currentSource = null;
@@ -120,7 +119,7 @@ export class AudioManager {
 
   seek(position: number): void {
     if (!this.currentBuffer) {
-      console.warn('No audio buffer available to seek');
+      this.logger.warn('No audio buffer available to seek');
       return;
     }
 
@@ -130,7 +129,7 @@ export class AudioManager {
     }
 
     const clampedPosition = Math.max(0, Math.min(position, this.getDuration()));
-    console.log(`Seeking to position: ${clampedPosition}`);
+    this.logger.log(`Seeking to position: ${clampedPosition}`);
 
     if (this.isPlaying) {
       this.play(clampedPosition);
@@ -141,7 +140,7 @@ export class AudioManager {
 
   reverseAudioBuffer(): AudioBuffer {
     if (!this.currentBuffer) {
-      console.warn('No audio buffer available to reverse');
+      this.logger.warn('No audio buffer available to reverse');
       return new AudioBuffer({
         length: 0,
         numberOfChannels: 1,
@@ -149,7 +148,7 @@ export class AudioManager {
       });
     }
 
-    console.log('Reversing audio buffer');
+    this.logger.log('Reversing audio buffer');
     const numberOfChannels = this.currentBuffer.numberOfChannels;
     const length = this.currentBuffer.length;
     const sampleRate = this.currentBuffer.sampleRate;
@@ -183,7 +182,7 @@ createDistortionCurve(amount: number) {
 
   setPlaybackRate(rate: number): void {
     if (!this.currentBuffer || !this.audioForwardBuffer || !this.audioReverseBuffer) {
-      console.warn('No audio buffer available');
+      this.logger.warn('No audio buffer available');
       return;
     }
 
@@ -246,7 +245,7 @@ createDistortionCurve(amount: number) {
 
   getCurrentTime(): number {
     if (!this.isPlaying) return this.bufferOffset;
-  
+
     const elapsed = this.audioContext.currentTime - this.startTime;
     const elapsedWithSpeed = elapsed * Math.abs(this.playbackRate);
     let currentTime: number;
@@ -273,8 +272,6 @@ createDistortionCurve(amount: number) {
   getPlaybackDirection(): number {
     return this.playbackDirection;
   }
-
-
 
   getBufferOffset(): number {
     return this.bufferOffset;

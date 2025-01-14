@@ -2,61 +2,34 @@
 import MiamiLoading from "./miami-loading.astro";
 ---
 
-<!-- Loading section -->
 <div
-  id="loading"
-  class="fixed inset-0 bg-black z-50 transition-opacity duration-300 ease-in-out"
+  class="fixed top-0 bottom-0 left-0 right-0 md:relative w-screen h-dvh flex flex-col items-center antialiased"
 >
-  <MiamiLoading />
-</div>
-
-<!-- Canvas -->
-<div id="animation-canvas">
-  <canvas data-trigger data-animation-canvas></canvas>
-  <div class="flex flex-col gap-2 absolute bottom-0 right-0 p-4">
-    <button aria-label="previous section" id="prev-section-btn">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-6 w-6 text-white rotate-90"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
+  <section class="w-full h-full flex flex-col items-center justify-center">
+    <div
+      class="relative h-dvh md:aspect-[9/16] md:rounded-[42px] md:h-[90svh] md:drop-shadow-xl md:overflow-hidden"
+    >
+      <!-- Loading section -->
+      <div
+        id="loading"
+        class="fixed inset-0 bg-black z-50 transition-opacity duration-300 ease-in-out"
       >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M15 19l-7-7 7-7"></path>
-      </svg>
-    </button>
-    <button aria-label="next section" id="next-section-btn">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-6 w-6 text-white rotate-90"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M9 5l7 7-7 7"></path>
-      </svg>
-    </button>
-  </div>
-</div>
+        <MiamiLoading />
+      </div>
 
-<!-- Debug stuff -->
-<div
-  class="miami-slider fixed z-10 top-0 left-0 pointer-events-none"
-  style="user-select: none;"
->
-  <div class="flex flex-col gap-[2px] text-sm m-[2px]">
-    <span>Scroll speed: <span id="scroll-velocity">0</span></span>
-    <span>Audio: <span id="audio-progress">00:00</span></span>
-    <span>Animation: <span id="frame-progress">00:00</span></span>
-  </div>
+      <!-- Canvas -->
+      <div id="animation-canvas">
+        <canvas data-trigger data-animation-canvas></canvas>
+      </div>
+
+      <!-- Debug stuff -->
+      <div
+        class="flex flex-row items-center justify-center absolute bottom-0 right-0 left-0 p-4"
+      >
+        <span>Scroll speed: <span id="scroll-velocity">0</span></span>
+      </div>
+    </div>
+  </section>
 </div>
 
 <script>
@@ -66,10 +39,8 @@ import MiamiLoading from "./miami-loading.astro";
     type RiveCanvas as RiveCanvasType,
     type File as RiveFileType,
     type LinearAnimationInstance,
-  } from "@rive-app/canvas-advanced";
-
-  
-  import { RuntimeLoader } from "@rive-app/canvas";
+  } from "@rive-app/webgl2-advanced";
+  import RiveWebGL from "@rive-app/webgl2-advanced";
   import { loadRiveAsset, RIVE_ASSETS } from "@lib/miami/rive-assets";
   import { gsap } from "gsap";
   import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -203,8 +174,6 @@ import MiamiLoading from "./miami-loading.astro";
       loadingRiveInstanceEl.style.opacity = "1";
     }
 
-    // const file = (await rive.load(riveBytes)) as RiveFileType;
-
     const loadingFileEl = document.getElementById("loading-file");
     if (loadingFileEl) {
       loadingFileEl.style.opacity = "1";
@@ -218,18 +187,8 @@ import MiamiLoading from "./miami-loading.astro";
     )) as RiveFileType;
 
     logger.log("SetupRive --> loaded file");
-
-    // Update loading state for file loaded
-
     const renderer = riveCanvas.makeRenderer(canvas);
     logger.log("SetupRive --> File rendered");
-    // const fileBytes = new Uint8Array(
-    // await (await fetch("/miami/miami_v4_embedded/r4.riv")).arrayBuffer()
-    // );
-
-    // const file = (await rive.load(riveBytes)) as RiveFileType;
-
-    // logger.log("SetupRive --> loaded file")
 
     // Update loading state for renderer
     const loadingRendererEl = document.getElementById("loading-renderer");
@@ -242,13 +201,49 @@ import MiamiLoading from "./miami-loading.astro";
     return { riveCanvas, file, renderer };
   }
 
-  function loadingDone() {
+  async function sleep(ms: number) {
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, ms);
+    });
+  }
+
+  async function loadingDone() {
     const loading = document.getElementById("loading");
-    if (!loading) return;
-    loading.style.setProperty("opacity", "0");
-    setTimeout(() => {
-      loading.style.setProperty("display", "none");
-    }, 300);
+    if (!loading) {
+      logger.error("Loading div not found");
+      return;
+    }
+    document.getElementById("caricamento")?.remove();
+    const btn = document.getElementById(
+      "vai-animazione"
+    ) as HTMLButtonElement | null;
+    if (!btn) {
+      logger.error("Button not found");
+      return;
+    }
+    btn.style.display = "block";
+    return new Promise<void>((resolve) => {
+      btn.addEventListener("click", async () => {
+        // Hide loading div by using transform one step at a time
+        btn.remove();
+        loading.style.setProperty(
+          "transform",
+          "rotate(10deg) translateY(-20%)"
+        );
+        await sleep(150);
+        loading.style.setProperty(
+          "transform",
+          "rotate(-8deg) translateY(-40%)"
+        );
+        await sleep(150);
+        loading.style.setProperty("transform", "rotate(5deg) translateY(-60%)");
+        await sleep(150);
+        loading.remove();
+        resolve();
+      });
+    });
   }
 
   function setupAnimations(rive: RiveCanvasType, file: RiveFileType) {
@@ -328,19 +323,19 @@ import MiamiLoading from "./miami-loading.astro";
 
       renderer.save();
       renderer.align(
-        // if mobile, cover, otherwise contain
-        document.body.clientWidth < 640 ? rive.Fit.cover : rive.Fit.contain,
+        rive.Fit.cover,
         rive.Alignment.center,
         {
           minX: 0,
           minY: 0,
-          maxX: canvas?.width ?? window.innerWidth,
-          maxY: canvas?.height ?? window.innerHeight,
+          maxX: canvas.width,
+          maxY: canvas.height,
         },
         artboard.bounds
       );
       artboard.draw(renderer);
       renderer.restore();
+      renderer.flush();
 
       if (activeAnimation) {
         updateProgressDisplays(currentAudioPosition, activeAnimation);
@@ -591,6 +586,7 @@ import MiamiLoading from "./miami-loading.astro";
       }
     });
   }
+
   /**
    * Go to a specific time in the animation.
    * Tweak the speed to do so.
@@ -615,7 +611,10 @@ import MiamiLoading from "./miami-loading.astro";
     );
     const [riveAnimation, riveCanvas] = await Promise.all([
       fetch("/miami/miami_v7/r.riv").then((res) => res.arrayBuffer()),
-      RuntimeLoader.awaitInstance(),
+      RiveWebGL({
+        locateFile: (_) =>
+          `https://unpkg.com/@rive-app/webgl2-advanced@2.25.4/rive.wasm`,
+      }),
       audioManager.loadAudio("/miami/audio/audio_seq_started.mp3"),
       // Ensure that Seq1 assets are loaded before showing the animation
       Promise.allSettled(
@@ -682,28 +681,10 @@ import MiamiLoading from "./miami-loading.astro";
   }
 </script>
 
-<style>
+<style lang="scss">
   html,
   body {
     overscroll-behavior: none; /* Prevents scroll chaining and overscrolling */
-  }
-
-  #speed-minus-one,
-  #speed-one,
-  #speed-two {
-    background-color: #3b82f6;
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border: none;
-    border-radius: 0.375rem;
-    cursor: pointer;
-    font-weight: bold;
-  }
-
-  #speed-minus-one:hover,
-  #speed-one:hover,
-  #speed-two:hover {
-    background-color: #2563eb;
   }
   #animation-canvas {
     position: fixed;
@@ -711,5 +692,9 @@ import MiamiLoading from "./miami-loading.astro";
     left: 0;
     bottom: 0;
     right: 0;
+    & canvas {
+      width: 100%;
+      height: 100%;
+    }
   }
 </style>
