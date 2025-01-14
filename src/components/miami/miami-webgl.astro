@@ -77,7 +77,6 @@ import MiamiLoading from "./miami-loading.astro";
   import { Observer } from "gsap/Observer";
   import { miamiAssetLoader } from "@lib/miami/rive-assets";
   import { createMiamiLogger } from "@lib/miami/logger";
-import { renderEndpoint } from "astro/runtime/server/endpoint.js";
 
   gsap.registerPlugin(ScrollTrigger, Observer);
 
@@ -94,7 +93,7 @@ import { renderEndpoint } from "astro/runtime/server/endpoint.js";
   const loadingDiv = document.getElementById("loading");
 
   // Assets base path
-  const ASSETS_BASE_PATH = "/miami/miami_v8/assets/compressed";
+  const ASSETS_BASE_PATH = "/miami/miami_v9/assets/compressed";
   const assets: MiamiAssetsMap = new Map<
     string,
     (() => Promise<Uint8Array>) | Uint8Array
@@ -220,7 +219,7 @@ import { renderEndpoint } from "astro/runtime/server/endpoint.js";
     const renderer = rive.makeRenderer(canvas, true);
 
      const bytes = await (
-    await fetch(new Request("/miami/miami_v8/r.riv"))
+    await fetch(new Request("/miami/miami_v9/r.riv"))
   ).arrayBuffer();
   const file = (await rive.load(new Uint8Array(bytes))); //as File;
     const artboard = file.defaultArtboard();
@@ -638,7 +637,6 @@ import { renderEndpoint } from "astro/runtime/server/endpoint.js";
     // const [riveAnimation, riveCanvas] = await Promise.all([
     //   fetch("/miami/miami_v7/r.riv").then((res) => res.arrayBuffer()),
     //   RuntimeLoader.awaitInstance(),
-    //   audioManager.loadAudio("/miami/audio/audio_seq_started.mp3"),
     //   // Ensure that Seq1 assets are loaded before showing the animation
     //   Promise.allSettled(
     //     firstSeqAssets.map((asset) => {
@@ -673,13 +671,16 @@ import { renderEndpoint } from "astro/runtime/server/endpoint.js";
     async function loadAssets() {
     const [riveData] = await Promise.all([
       // fetch("/miami/miami_v4_embedded/r5.riv").then((res) => res.arrayBuffer()),
-      fetch("/miami/miami_v8/r.riv").then((res) => res.arrayBuffer()),
+      fetch("/miami/miami_v9/r.riv").then((res) => res.arrayBuffer()),
     ]);
 
     return {
       riveData: new Uint8Array(riveData),
     };
   }
+
+    audioManager.loadAudio("/miami/audio/audio_seq_started.mp3");
+
 
     const { riveData } = await loadAssets();
 
@@ -699,7 +700,7 @@ import { renderEndpoint } from "astro/runtime/server/endpoint.js";
             return true;
           }
           await fetch(
-            "/miami/miami_v7/assets/compressed/" +
+            "/miami/miami_v9/assets/compressed/" +
               asset.uniqueFilename.split(".")[0] +
               ".webp",
           ).then(async (response) => {
