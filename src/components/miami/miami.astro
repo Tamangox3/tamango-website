@@ -3,11 +3,11 @@ import MiamiLoading from "./miami-loading.astro";
 ---
 
 <div
-  class="fixed top-0 bottom-0 left-0 right-0 md:relative w-screen h-dvh flex flex-col items-center antialiased"
+  class="fixed top-0 bottom-0 left-0 right-0 md:relative w-screen h-dvh flex flex-col items-center antialiased bg-[#E2D8CE] overflow-hidden"
 >
   <img
     src="/miami/overlay_desktop.webp"
-    class="hidden md:block z-[2] absolute top-0 bottom-0 h-[103%] object-cover user-select-none pointer-events-none"
+    class="hidden md:block z-[2] absolute top-0 bottom-0 h-full transform-[scale(1.05)] object-cover user-select-none pointer-events-none"
   />
   <section class="w-full h-full flex flex-col items-center justify-center">
     <div
@@ -16,7 +16,7 @@ import MiamiLoading from "./miami-loading.astro";
       <!-- Loading section -->
       <div
         id="loading"
-        class="absolute inset-0 bg-black z-50 transition-opacity duration-300 ease-in-out"
+        class="absolute inset-0 bg-[#E2D8CE] z-50 transition-opacity duration-300 ease-in-out"
       >
         <MiamiLoading />
       </div>
@@ -615,11 +615,13 @@ import MiamiLoading from "./miami-loading.astro";
 
   // Load rive, audio and first sequence assets
   async function loadInitialData() {
-    const firstSeqAssets = RIVE_ASSETS.filter((asset) =>
-      asset.startsWith("SEQ1_") || asset.startsWith("SEQ2_") || 
-      asset.startsWith("SEQ7_") || asset.startsWith("SEQ8_") ||
-      asset.startsWith("SEQ9_") 
-
+    const firstSeqAssets = RIVE_ASSETS.filter(
+      (asset) =>
+        asset.startsWith("SEQ1_") ||
+        asset.startsWith("SEQ2_") ||
+        asset.startsWith("SEQ7_") ||
+        asset.startsWith("SEQ8_") ||
+        asset.startsWith("SEQ9_")
     );
     const [riveAnimation, riveCanvas] = await Promise.all([
       fetch("/miami/miami_v10/r.riv").then((res) => res.arrayBuffer()),
