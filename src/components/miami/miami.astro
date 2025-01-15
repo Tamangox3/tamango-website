@@ -108,8 +108,8 @@ import MiamiLoading from "./miami-loading.astro";
 
   const scrollVelocityEl = document.getElementById("scroll-velocity");
   const loadingDiv = document.getElementById("loading");
-  const pausePlayEl = document.getElementById("pause-play");
-  const volumeEl = document.getElementById("volume");
+  const pausePlayEl = document.getElementById("pause-play") as HTMLImageElement;
+  const volumeEl = document.getElementById("volume") as HTMLImageElement;
 
 
   pausePlayEl?.addEventListener("click", () => {
