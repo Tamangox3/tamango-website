@@ -615,11 +615,13 @@ import MiamiLoading from "./miami-loading.astro";
 
   // Load rive, audio and first sequence assets
   async function loadInitialData() {
-    const firstSeqAssets = RIVE_ASSETS.filter((asset) =>
-      asset.startsWith("SEQ1_") || asset.startsWith("SEQ2_") || 
-      asset.startsWith("SEQ7_") || asset.startsWith("SEQ8_") ||
-      asset.startsWith("SEQ9_") 
-
+    const firstSeqAssets = RIVE_ASSETS.filter(
+      (asset) =>
+        asset.startsWith("SEQ1_") ||
+        asset.startsWith("SEQ2_") ||
+        asset.startsWith("SEQ7_") ||
+        asset.startsWith("SEQ8_") ||
+        asset.startsWith("SEQ9_")
     );
     const [riveAnimation, riveCanvas] = await Promise.all([
       fetch("/miami/miami_v10/r.riv").then((res) => res.arrayBuffer()),
