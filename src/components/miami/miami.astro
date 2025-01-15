@@ -7,7 +7,7 @@ import MiamiLoading from "./miami-loading.astro";
 >
   <img
     src="/miami/overlay_desktop.webp"
-    class="hidden md:block z-[2] absolute top-0 bottom-0 h-full object-cover user-select-none pointer-events-none"
+    class="hidden md:block z-[2] absolute top-0 bottom-0 h-[103%] object-cover user-select-none pointer-events-none"
   />
   <section class="w-full h-full flex flex-col items-center justify-center">
     <div
@@ -281,7 +281,7 @@ import MiamiLoading from "./miami-loading.astro";
       loadingAnimationsEl.style.opacity = "1";
     }
 
-    return { artboard, stateMachine,activeAnimation };
+    return { artboard, stateMachine, activeAnimation };
   }
 
   function createDrawLoop(
@@ -507,63 +507,59 @@ import MiamiLoading from "./miami-loading.astro";
       //   },
       // });
 
-
-
       Observer.create({
-  target: element as HTMLElement,
-  type: "touch,wheel,pointer,scroll",
-  onPress: (self) => {
-    if (velocityTween) velocityTween.kill();
-    if (wheelTimeout) clearTimeout(wheelTimeout);
+        target: element as HTMLElement,
+        type: "touch,wheel,pointer,scroll",
+        onPress: (self) => {
+          if (velocityTween) velocityTween.kill();
+          if (wheelTimeout) clearTimeout(wheelTimeout);
 
-    startY = self.y ?? 0;
-    isDragging = true;
+          startY = self.y ?? 0;
+          isDragging = true;
+        },
+        onDrag: (self) => {
+          if (!isDragging) return;
 
-  },
-  onDrag: (self) => {
-    if (!isDragging) return;
+          const currentY = self.y ?? 0;
+          const deltaY = currentY - startY;
+          let newSpeed = deltaY / mobileRatio;
+          newSpeed = -newSpeed;
+          updateSpeed(newSpeed);
+          startY = currentY;
+        },
+        onRelease: () => {
+          if (isPlaying && isDragging) {
+            isDragging = false;
+            logger.log("Released, current speed:", speed);
+            animateToNormalSpeed();
+          }
+          // if (!isDragging) {
+          // Handle click logic here
+          //   logger.log("Clicked");
+          //   if (isPlaying) {
+          //     audioManager.pause();
+          //     isPlaying = false;
+          //   } else {
+          //     isPlaying = true;
+          //     animateToNormalSpeed();
+          //     audioManager.play();
+          //   }
+          // } else {
 
-    const currentY = self.y ?? 0;
-    const deltaY = currentY - startY;
-    let newSpeed = deltaY / mobileRatio;
-    newSpeed = -newSpeed;
-    updateSpeed(newSpeed);
-    startY = currentY;
-  },
-  onRelease: () => {
+          // }
+        },
+        onWheel: (self) => {
+          if (velocityTween) velocityTween.kill();
+          if (wheelTimeout) clearTimeout(wheelTimeout);
 
-    if (isPlaying && isDragging) {
-        isDragging = false;
-        logger.log("Released, current speed:", speed);
-        animateToNormalSpeed();
-      }
-    // if (!isDragging) {
-      // Handle click logic here
-    //   logger.log("Clicked");
-    //   if (isPlaying) {
-    //     audioManager.pause();
-    //     isPlaying = false;
-    //   } else {
-    //     isPlaying = true;
-    //     animateToNormalSpeed();
-    //     audioManager.play();
-    //   }
-    // } else {
+          const newSpeed = self.deltaY / desktopRatio;
+          updateSpeed(newSpeed);
 
-    // }
-  },
-  onWheel: (self) => {
-    if (velocityTween) velocityTween.kill();
-    if (wheelTimeout) clearTimeout(wheelTimeout);
-
-    const newSpeed = self.deltaY / desktopRatio;
-    updateSpeed(newSpeed);
-
-    wheelTimeout = window.setTimeout(() => {
-      animateToNormalSpeed();
-    }, 150);
-  },
-});
+          wheelTimeout = window.setTimeout(() => {
+            animateToNormalSpeed();
+          }, 150);
+        },
+      });
       function animateToNormalSpeed() {
         velocityTween = gsap.to(
           {
@@ -666,6 +662,7 @@ import MiamiLoading from "./miami-loading.astro";
 
   if (canvas) {
     setupBackgroundAssetsLoading();
+    await sleep(400); // Wait a bit so that the loading assets are loaded before the others
     const { riveAnimation, riveCanvas } = await loadInitialData();
 
     // Update first loading state
