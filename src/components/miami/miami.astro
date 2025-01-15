@@ -38,6 +38,10 @@ import MiamiLoading from "./miami-loading.astro";
       >
         <div id="frame-progress">0</div>
       </div>
+
+      <div class="flex absolute bottom-0 left-0">
+        <img  />
+      </div>
     </div>
   </section>
 </div>
@@ -385,7 +389,7 @@ import MiamiLoading from "./miami-loading.astro";
     // Clamp the absolute value but preserve sign
     const sign = Math.sign(newSpeed);
     const absSpeed = Math.abs(newSpeed);
-    const clampedAbsSpeed = Math.max(0.1, Math.min(absSpeed, 30));
+    const clampedAbsSpeed = Math.max(0.1, Math.min(absSpeed, 20));
     newSpeed = sign * clampedAbsSpeed;
 
     // Update global speed variables
