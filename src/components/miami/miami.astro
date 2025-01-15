@@ -39,9 +39,19 @@ import MiamiLoading from "./miami-loading.astro";
         <div id="frame-progress">0</div>
       </div>
 
-      <div class="flex absolute bottom-0 left-0">
-        <img  />
-      </div>
+      <img
+      id="pause-play"
+      class="flex absolute bottom-0 left-0 p-4 w-20 h-20"
+      src="/miami/controls/pause.webp"
+    />
+
+    <img
+      id="volume"
+      class="flex absolute bottom-0 right-0 p-4 w-20 h-20"
+      src="/miami/controls/volume-off.webp"
+
+      />
+
     </div>
   </section>
 </div>
@@ -77,6 +87,8 @@ import MiamiLoading from "./miami-loading.astro";
     | null
     | undefined;
 
+
+  
   if (canvas) {
     canvas.addEventListener("touchstart", (event) => {
       event.preventDefault();
@@ -96,6 +108,31 @@ import MiamiLoading from "./miami-loading.astro";
 
   const scrollVelocityEl = document.getElementById("scroll-velocity");
   const loadingDiv = document.getElementById("loading");
+  const pausePlayEl = document.getElementById("pause-play");
+  const volumeEl = document.getElementById("volume");
+
+
+  pausePlayEl?.addEventListener("click", () => {
+    if (isPlaying) {
+      audioManager.pause();
+      isPlaying = false;
+      pausePlayEl.src = "/miami/controls/play.webp";
+    } else {
+      audioManager.play();
+      isPlaying = true;
+      pausePlayEl.src = "/miami/controls/pause.webp";
+    }
+  });
+
+  volumeEl?.addEventListener("click", () => {
+    if (audioManager.getVolume() > 0) {
+      audioManager.setVolume(0);
+      volumeEl.src = "/miami/controls/volume-off.webp";
+    } else {
+      audioManager.setVolume(1);
+      volumeEl.src = "/miami/controls/volume-on.webp";
+    }
+  });
 
   // Assets base path
   const ASSETS_BASE_PATH = "/miami/miami_v10/assets/compressed";
@@ -389,7 +426,7 @@ import MiamiLoading from "./miami-loading.astro";
     // Clamp the absolute value but preserve sign
     const sign = Math.sign(newSpeed);
     const absSpeed = Math.abs(newSpeed);
-    const clampedAbsSpeed = Math.max(0.1, Math.min(absSpeed, 20));
+    const clampedAbsSpeed = Math.max(0.1, Math.min(absSpeed, 10));
     newSpeed = sign * clampedAbsSpeed;
 
     // Update global speed variables
@@ -439,6 +476,7 @@ import MiamiLoading from "./miami-loading.astro";
           stateMachine.input(0).asTrigger().fire();
           triggered = true;
           isPlaying = true;
+          audioManager.setVolume(0);
           audioManager.play(0);
           if (activeAnimation) {
             activeAnimation.time = 0;
