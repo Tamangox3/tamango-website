@@ -114,7 +114,7 @@ import MiamiLoading from "./miami-loading.astro";
 
   // animation context
   let activeAnimation: LinearAnimationInstance | null = null;
-  let idleAnimation: LinearAnimationInstance | null = null;
+  // let idleAnimation: LinearAnimationInstance | null = null;
 
   // global speed
   let speed: number = 1;
@@ -261,12 +261,12 @@ import MiamiLoading from "./miami-loading.astro";
       loadingStateMachineEl.style.opacity = "1";
     }
 
-    idleAnimation = new rive.LinearAnimationInstance(
-      artboard.animationByIndex(0),
-      artboard
-    );
+    // idleAnimation = new rive.LinearAnimationInstance(
+    //   artboard.animationByIndex(0),
+    //   artboard
+    // );
     activeAnimation = new rive.LinearAnimationInstance(
-      artboard.animationByIndex(1),
+      artboard.animationByIndex(0),
       artboard
     );
     logger.log("setupAnimations --> loaded animations");
@@ -277,7 +277,7 @@ import MiamiLoading from "./miami-loading.astro";
       loadingAnimationsEl.style.opacity = "1";
     }
 
-    return { artboard, stateMachine, idleAnimation };
+    return { artboard, stateMachine,activeAnimation };
   }
 
   function createDrawLoop(
@@ -381,7 +381,7 @@ import MiamiLoading from "./miami-loading.astro";
     // Clamp the absolute value but preserve sign
     const sign = Math.sign(newSpeed);
     const absSpeed = Math.abs(newSpeed);
-    const clampedAbsSpeed = Math.max(0.1, Math.min(absSpeed, 20));
+    const clampedAbsSpeed = Math.max(0.1, Math.min(absSpeed, 30));
     newSpeed = sign * clampedAbsSpeed;
 
     // Update global speed variables
@@ -473,108 +473,93 @@ import MiamiLoading from "./miami-loading.astro";
       const desktopRatio = 5;
       let wasPausedByPress = false;
 
-      let pressTimeout: number | null = null;
+      let pressTimeout: ReturnType<typeof setTimeout> | null = null;
 
       // desktop, pointer
 
+      // Observer.create({
+      //   target: element as HTMLElement,
+      //   type: "pointer",
+      //   onPress: (self) => {
+      //     if (velocityTween) velocityTween.kill();
+      //     if (wheelTimeout) clearTimeout(wheelTimeout);
+
+      //     startY = self.y ?? 0;
+      //     isDragging = true;
+
+      //     if (triggered) {
+      //       audioManager.pause();
+      //       isPlaying = false;
+      //     }
+      //   },
+      //   onRelease: (self) => {
+      //     if (triggered) {
+      //       if (isPlaying){
+      //         isPlaying = true;
+      //         audioManager.play();
+      //       }
+
+      //     }
+      //   },
+      // });
+
+
+
       Observer.create({
-        target: element as HTMLElement,
-        type: "pointer",
-        onPress: (self) => {
-          if (velocityTween) velocityTween.kill();
-          if (wheelTimeout) clearTimeout(wheelTimeout);
+  target: element as HTMLElement,
+  type: "touch,wheel,pointer,scroll",
+  onPress: (self) => {
+    if (velocityTween) velocityTween.kill();
+    if (wheelTimeout) clearTimeout(wheelTimeout);
 
-          startY = self.y ?? 0;
-          isDragging = true;
+    startY = self.y ?? 0;
+    isDragging = true;
 
-          if (triggered) {
-            audioManager.pause();
-            isPlaying = false;
-          }
-        },
-        onRelease: (self) => {
-          if (triggered) {
-            isPlaying = true;
-            audioManager.play();
-          }
-        },
-      });
+  },
+  onDrag: (self) => {
+    if (!isDragging) return;
 
-      Observer.create({
-        target: element as HTMLElement,
-        type: "touch,wheel,scroll",
-        onPress: (self) => {
-          if (velocityTween) velocityTween.kill();
-          if (wheelTimeout) clearTimeout(wheelTimeout);
+    const currentY = self.y ?? 0;
+    const deltaY = currentY - startY;
+    let newSpeed = deltaY / mobileRatio;
+    newSpeed = -newSpeed;
+    updateSpeed(newSpeed);
+    startY = currentY;
+  },
+  onRelease: () => {
 
-          startY = self.y ?? 0;
-          logger.log("Press started at:", startY);
+    if (isPlaying && isDragging) {
+        isDragging = false;
+        logger.log("Released, current speed:", speed);
+        animateToNormalSpeed();
+      }
+    // if (!isDragging) {
+      // Handle click logic here
+    //   logger.log("Clicked");
+    //   if (isPlaying) {
+    //     audioManager.pause();
+    //     isPlaying = false;
+    //   } else {
+    //     isPlaying = true;
+    //     animateToNormalSpeed();
+    //     audioManager.play();
+    //   }
+    // } else {
 
-          // Reset the flag
-          wasPausedByPress = false;
+    // }
+  },
+  onWheel: (self) => {
+    if (velocityTween) velocityTween.kill();
+    if (wheelTimeout) clearTimeout(wheelTimeout);
 
-          // Set a timeout to detect a press without dragging
-          pressTimeout = window.setTimeout(() => {
-            logger.log("User just pressed down");
-            audioManager.pause();
-            isPlaying = false;
-            wasPausedByPress = true;
-          }, 200);
-        },
+    const newSpeed = self.deltaY / desktopRatio;
+    updateSpeed(newSpeed);
 
-        onDrag: (self) => {
-          if (pressTimeout) {
-            clearTimeout(pressTimeout);
-            pressTimeout = null;
-          }
-
-          if (wasPausedByPress) {
-            logger.log(
-              "Skipping speed update because the animation was paused by press."
-            );
-            return;
-          }
-
-          if (!isDragging) {
-            isDragging = true;
-          }
-
-          logger.log("User is dragging");
-          const currentY = self.y ?? 0;
-          const deltaY = currentY - startY;
-          let newSpeed = deltaY / mobileRatio;
-          newSpeed = -newSpeed;
-          updateSpeed(newSpeed);
-          startY = currentY;
-        },
-        onRelease: () => {
-          if (pressTimeout) {
-            clearTimeout(pressTimeout);
-            pressTimeout = null;
-          }
-          if (triggered) {
-            if (isDragging) {
-              isDragging = false;
-            }
-            isPlaying = true;
-
-            audioManager.play();
-            animateToNormalSpeed();
-          }
-        },
-        onWheel: (self) => {
-          if (velocityTween) velocityTween.kill();
-          if (wheelTimeout) clearTimeout(wheelTimeout);
-
-          const newSpeed = self.deltaY / desktopRatio;
-          updateSpeed(newSpeed);
-
-          wheelTimeout = window.setTimeout(() => {
-            animateToNormalSpeed();
-          }, 150);
-        },
-      });
-
+    wheelTimeout = window.setTimeout(() => {
+      animateToNormalSpeed();
+    }, 150);
+  },
+});
       function animateToNormalSpeed() {
         velocityTween = gsap.to(
           {
