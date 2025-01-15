@@ -1,3 +1,12 @@
+<img
+  class="miami-loading-bg absolute hidden top-0 bottom-0 left-0 right-0 object-cover w-full h-full"
+  src="/miami/loading/bg-1.webp"
+/>
+<img
+  class="miami-loading-bg absolute hidden top-0 bottom-0 left-0 right-0 object-cover w-full h-full"
+  src="/miami/loading/bg-2.webp"
+/>
+
 <div
   id="miami-loading-container"
   class="absolute bg-cover top-0 bottom-0 left-0 right-0 flex flex-col justify-between"
@@ -19,18 +28,35 @@
       class="absolute top-0 bottom-0 m-auto right-[14%] h-[25%] spin spin--reverse"
     />
   </div>
-  <div class="mb-[80px] text-center">
-    <p id="caricamento" class="pulse w-full flex justify-center">
-      <img src="/miami/loading/caricamento.webp" class="w-[270px]" />
-    </p>
+  <div class="mb-[80px] text-center flex justify-center">
+    <img
+      id="caricamento"
+      src="/miami/loading/caricamento.webp"
+      class="w-[270px] pulse max-w-[90%] py-[12.8px]"
+    />
     <button
       id="vai-animazione"
-      class="focus:outline-none hidden m-auto rounded-md"
+      class="focus:outline-none hidden m-auto w-[270px] max-w-[90%] rounded-md"
     >
-      <img src="/miami/loading/btn_via.webp" class="w-[270px]" />
+      <img src="/miami/loading/btn_via.webp" />
     </button>
   </div>
 </div>
+
+<script>
+  const bgs = document.getElementsByClassName(
+    "miami-loading-bg"
+  ) as HTMLCollectionOf<HTMLImageElement>;
+  // use bgs at stop motion
+  let activeBg = 0;
+  while (true) {
+    bgs[activeBg].classList.remove("hidden");
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    bgs[activeBg].classList.add("hidden");
+    activeBg += 1;
+    activeBg %= bgs.length;
+  }
+</script>
 
 <style lang="scss">
   @keyframes pulse {
@@ -53,24 +79,6 @@
     }
   }
 
-  @keyframes bg-stop-motion {
-    0% {
-      background-image: url("/miami/loading/bg-1.webp");
-    }
-    49% {
-      background-image: url("/miami/loading/bg-1.webp");
-    }
-    50% {
-      background-image: url("/miami/loading/bg-2.webp");
-    }
-    99% {
-      background-image: url("/miami/loading/bg-2.webp");
-    }
-    100% {
-      background-image: url("/miami/loading/bg-1.webp");
-    }
-  }
-
   .pulse {
     animation: pulse 2s infinite;
   }
@@ -80,9 +88,5 @@
     &--reverse {
       animation-direction: reverse;
     }
-  }
-
-  #miami-loading-container {
-    animation: bg-stop-motion 0.5s linear infinite;
   }
 </style>
