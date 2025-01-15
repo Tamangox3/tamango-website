@@ -28,6 +28,13 @@ import MiamiLoading from "./miami-loading.astro";
       >
         <span>Scroll speed: <span id="scroll-velocity">0</span></span>
       </div>
+
+      <div
+        class="flex justify-start items-start absolute top-0 left-0 p-4 bg-black text-white"
+      >
+        <div id="frame-progress">0</div>
+      </div>
+
     </div>
   </section>
 </div>
@@ -60,6 +67,25 @@ import MiamiLoading from "./miami-loading.astro";
     | HTMLCanvasElement
     | null
     | undefined;
+
+    if (canvas){
+      canvas.addEventListener('touchstart', (event) => {
+    event.preventDefault();
+    // Handle touch start logic here
+  });
+
+  canvas.addEventListener('touchmove', (event) => {
+    event.preventDefault();
+    // Handle touch move logic here
+  });
+
+  canvas.addEventListener('touchend', (event) => {
+    event.preventDefault();
+    // Handle touch end logic here
+  });
+    }
+
+
   const scrollVelocityEl = document.getElementById("scroll-velocity");
   const loadingDiv = document.getElementById("loading");
 
@@ -275,14 +301,14 @@ import MiamiLoading from "./miami-loading.astro";
         artboard.advance(elapsedSeconds * speed);
         stateMachine.advance(elapsedSeconds * speed);
         activeAnimation?.advance(elapsedSeconds * speed);
-        if (requestNextSection > 0) {
-          requestNextSection--;
-          animationGoToMs(animationSectionsMs[1]);
-        }
-        if (requestPrevSection > 0) {
-          requestPrevSection--;
-          animationGoToMs(animationSectionsMs[0]);
-        }
+        // if (requestNextSection > 0) {
+        //   requestNextSection--;
+        //   animationGoToMs(animationSectionsMs[1]);
+        // }
+        // if (requestPrevSection > 0) {
+        //   requestPrevSection--;
+        //   animationGoToMs(animationSectionsMs[0]);
+        // }
       }
 
       renderer.save();
@@ -355,7 +381,7 @@ import MiamiLoading from "./miami-loading.astro";
     // Clamp the absolute value but preserve sign
     const sign = Math.sign(newSpeed);
     const absSpeed = Math.abs(newSpeed);
-    const clampedAbsSpeed = Math.max(0.1, Math.min(absSpeed, 30));
+    const clampedAbsSpeed = Math.max(0.1, Math.min(absSpeed, 20));
     newSpeed = sign * clampedAbsSpeed;
 
     // Update global speed variables
@@ -493,7 +519,7 @@ import MiamiLoading from "./miami-loading.astro";
             audioManager.pause();
             isPlaying = false;
             wasPausedByPress = true;
-          }, 100);
+          }, 200);
         },
 
         onDrag: (self) => {
@@ -530,10 +556,10 @@ import MiamiLoading from "./miami-loading.astro";
             if (isDragging) {
               isDragging = false;
             }
+            isPlaying = true;
 
             audioManager.play();
             animateToNormalSpeed();
-            isPlaying = true;
           }
         },
         onWheel: (self) => {
@@ -658,7 +684,7 @@ import MiamiLoading from "./miami-loading.astro";
 
     await init(riveAnimation, riveCanvas);
 
-    // if playing, check for drifts every 4 seconds
+    // if playing, check for drifts every 3 seconds
     setInterval(() => {
       if (isPlaying) {
         logger.log("Checking for drifts");
@@ -669,13 +695,13 @@ import MiamiLoading from "./miami-loading.astro";
         if (drift > 0.1) {
           // Threshold of 100ms drift
           logger.log(`Drift detected: ${drift.toFixed(3)}s`);
-          // Adjust animation time to match audio
+          // Adjust audio to match animation
           if (activeAnimation) {
-            activeAnimation.time = audioTime;
+             audioManager.play(activeAnimation.time);
           }
         }
       }
-    }, 4000);
+    }, 3000);
   }
 </script>
 
@@ -683,8 +709,11 @@ import MiamiLoading from "./miami-loading.astro";
   html,
   body {
     overscroll-behavior: none; /* Prevents scroll chaining and overscrolling */
+    
   }
   #animation-canvas {
+    user-select: none;
+    touch-action: none;
     position: fixed;
     top: 0;
     left: 0;

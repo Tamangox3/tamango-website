@@ -3,6 +3,7 @@ import { isFunction } from "@lib/utils";
 import type { FileAsset } from "@rive-app/webgl2-advanced";
 
 export const RIVE_ASSETS = [
+
   "SEQ10 - BAMBINO1-3156154.webp",
   "SEQ10 - BAMBINO2-3156159.webp",
   "SEQ10 - BAMBINO3-3156160.webp",
@@ -355,6 +356,7 @@ export const RIVE_ASSETS = [
   "SEQ9_96-3153735.webp",
   "SEQ9_97-3153736.webp"
 ] as const;
+
 
 export type MiamiAssetsMap = Map<string, (() => Promise<Uint8Array>) | Uint8Array>;
 
