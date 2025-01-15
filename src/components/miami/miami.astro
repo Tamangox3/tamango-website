@@ -7,12 +7,12 @@ import MiamiLoading from "./miami-loading.astro";
 >
   <section class="w-full h-full flex flex-col items-center justify-center">
     <div
-      class="relative h-dvh md:aspect-[9/16] md:rounded-[42px] md:h-[90svh] md:drop-shadow-xl md:overflow-hidden"
+      class="relative h-dvh w-full md:w-auto md:aspect-[9/16] md:rounded-[42px] md:h-[90svh] md:drop-shadow-xl md:overflow-hidden"
     >
       <!-- Loading section -->
       <div
         id="loading"
-        class="fixed inset-0 bg-black z-50 transition-opacity duration-300 ease-in-out"
+        class="absolute inset-0 bg-black z-50 transition-opacity duration-300 ease-in-out"
       >
         <MiamiLoading />
       </div>
@@ -34,7 +34,6 @@ import MiamiLoading from "./miami-loading.astro";
       >
         <div id="frame-progress">0</div>
       </div>
-
     </div>
   </section>
 </div>
@@ -47,6 +46,8 @@ import MiamiLoading from "./miami-loading.astro";
     type File as RiveFileType,
     type LinearAnimationInstance,
     type StateMachineInstance,
+    type WrappedRenderer,
+    type Artboard,
   } from "@rive-app/webgl2-advanced";
   import RiveWebGL from "@rive-app/webgl2-advanced";
   import { loadRiveAsset, RIVE_ASSETS } from "@lib/miami/rive-assets";
@@ -68,23 +69,22 @@ import MiamiLoading from "./miami-loading.astro";
     | null
     | undefined;
 
-    if (canvas){
-      canvas.addEventListener('touchstart', (event) => {
-    event.preventDefault();
-    // Handle touch start logic here
-  });
+  if (canvas) {
+    canvas.addEventListener("touchstart", (event) => {
+      event.preventDefault();
+      // Handle touch start logic here
+    });
 
-  canvas.addEventListener('touchmove', (event) => {
-    event.preventDefault();
-    // Handle touch move logic here
-  });
+    canvas.addEventListener("touchmove", (event) => {
+      event.preventDefault();
+      // Handle touch move logic here
+    });
 
-  canvas.addEventListener('touchend', (event) => {
-    event.preventDefault();
-    // Handle touch end logic here
-  });
-    }
-
+    canvas.addEventListener("touchend", (event) => {
+      event.preventDefault();
+      // Handle touch end logic here
+    });
+  }
 
   const scrollVelocityEl = document.getElementById("scroll-velocity");
   const loadingDiv = document.getElementById("loading");
@@ -282,8 +282,8 @@ import MiamiLoading from "./miami-loading.astro";
 
   function createDrawLoop(
     rive: RiveCanvasType,
-    renderer: any,
-    artboard: any,
+    renderer: WrappedRenderer,
+    artboard: Artboard,
     stateMachine: any,
     canvas: HTMLCanvasElement
   ) {
@@ -313,7 +313,7 @@ import MiamiLoading from "./miami-loading.astro";
 
       renderer.save();
       renderer.align(
-        rive.Fit.cover,
+        window.innerWidth > 768 ? rive.Fit.fill : rive.Fit.cover,
         rive.Alignment.center,
         {
           minX: 0,
@@ -697,7 +697,7 @@ import MiamiLoading from "./miami-loading.astro";
           logger.log(`Drift detected: ${drift.toFixed(3)}s`);
           // Adjust audio to match animation
           if (activeAnimation) {
-             audioManager.play(activeAnimation.time);
+            audioManager.play(activeAnimation.time);
           }
         }
       }
@@ -709,12 +709,11 @@ import MiamiLoading from "./miami-loading.astro";
   html,
   body {
     overscroll-behavior: none; /* Prevents scroll chaining and overscrolling */
-    
   }
   #animation-canvas {
     user-select: none;
     touch-action: none;
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     bottom: 0;
