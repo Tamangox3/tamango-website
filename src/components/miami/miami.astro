@@ -494,6 +494,7 @@ import MiamiLoading from "./miami-loading.astro";
         }
 
 
+        if (corvoImage){
         // Step 1: L'immagine sale fino a -900%
         corvoImage.style.setProperty(
           "transform",
@@ -516,8 +517,10 @@ import MiamiLoading from "./miami-loading.astro";
           "translateY(-200%)"
         );
         
+        
 
         resolve();
+        }
       });
     });
   }
