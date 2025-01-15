@@ -286,7 +286,15 @@ createDistortionCurve(amount: number) {
   }
 
   setVolume(volume: number): void {
+
+    
+
     this.gainNode.gain.value = volume;
+
+
+    if (volume > 0 && this.audioContext.state === 'suspended') {
+      this.audioContext.resume();
+    }
   }
 
   getDistortion(): number {
