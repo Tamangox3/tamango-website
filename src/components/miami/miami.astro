@@ -73,8 +73,8 @@ import MiamiLoading from "./miami-loading.astro";
 
       <img
         id="volume"
-        class="flex absolute bottom-0 right-0 p-4 w-20 h-20 cursor-pointer"
-        src="/miami/controls/volume-off.webp"
+        class="flex absolute bottom-0 right-0 p-4 w-20 h-20 mr-2 cursor-pointer"
+        src="/miami/controls/volume-on.webp"
       />
     </div>
   </section>
@@ -469,6 +469,7 @@ import MiamiLoading from "./miami-loading.astro";
   }
 
   function updateSpeed(newSpeed: number) {
+    if (!isPlaying) return;
     // Clamp the absolute value but preserve sign
     const sign = Math.sign(newSpeed);
     const absSpeed = Math.abs(newSpeed);
@@ -522,11 +523,7 @@ import MiamiLoading from "./miami-loading.astro";
           stateMachine.input(0).asTrigger().fire();
           triggered = true;
           isPlaying = true;
-          audioManager.setVolume(0);
           audioManager.play(0);
-          if (activeAnimation) {
-            activeAnimation.time = 0;
-          }
         }
 
         if (corvoImage) {
