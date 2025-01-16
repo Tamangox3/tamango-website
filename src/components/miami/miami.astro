@@ -144,7 +144,7 @@ import MiamiLoading from "./miami-loading.astro";
   const finalButtonsWrapper = document.getElementById(
     "final-buttons-wrapper"
   ) as HTMLDivElement | null;
-  const FINAL_BUTTONS_THRESHOLD = 98; // 3 minutes and 30 seconds
+  const FINAL_BUTTONS_THRESHOLD = 3 * 60 + 30; // 3 minutes and 30 seconds
 
   pausePlayEl?.addEventListener("click", () => {
     if (isPlaying) {
