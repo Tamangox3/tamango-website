@@ -161,9 +161,18 @@ import MiamiLoading from "./miami-loading.astro";
   volumeEl?.addEventListener("click", () => {
     if (audioManager.getVolume() > 0) {
       audioManager.setVolume(0);
+      if (!(volumeEl.classList.contains("scale-[0.8]") && volumeEl.classList.contains("mr-[12px]"))) {
+        volumeEl.classList.add("scale-[0.8]");
+        volumeEl.classList.add("mr-[12px]")
+      }
       volumeEl.src = "/miami/controls/volume-off.webp";
+
     } else {
       audioManager.setVolume(1);
+      if (volumeEl.classList.contains("scale-[0.8]") && volumeEl.classList.contains("mr-[12px]")) {
+        volumeEl.classList.remove("scale-[0.8]");
+        volumeEl.classList.remove("mr-[12px]")
+      }
       volumeEl.src = "/miami/controls/volume-on.webp";
     }
   });
