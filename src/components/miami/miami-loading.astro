@@ -32,12 +32,12 @@
       class="absolute top-0 bottom-0 m-auto right-[14%] h-[25%] spin spin--reverse"
     />
   </div>
-  <div class="mb-[80px] text-center flex justify-center">
+  <div class="mb-[48px] flex flex-col justify-center">
     <img
       id="caricamento"
       fetchpriority="high"
       src="/miami/loading/caricamento.webp"
-      class="w-[270px] pulse max-w-[90%] py-[12.8px]"
+      class="w-[270px] pulse max-w-[90%] py-[12.8px] m-auto"
     />
     <button
       id="vai-animazione"
@@ -45,6 +45,10 @@
     >
       <img src="/miami/loading/btn_via.webp" />
     </button>
+
+    <span class="text-[#D11C2B] m-auto mt-[24px] font-bold"
+      >(togli il silenzioso)</span
+    >
   </div>
 </div>
 
@@ -53,9 +57,10 @@
     const bgs = document.getElementsByClassName("miami-loading-bg");
     // use bgs at stop motion
     let activeBg = 0;
-    while (true) {
+    while (bgs[activeBg]) {
       bgs[activeBg].classList.remove("hidden");
       await new Promise((resolve) => setTimeout(resolve, 200));
+      if (!bgs[activeBg]) break;
       bgs[activeBg].classList.add("hidden");
       activeBg += 1;
       activeBg %= bgs.length;

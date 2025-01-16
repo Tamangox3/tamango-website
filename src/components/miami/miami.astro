@@ -1,4 +1,5 @@
 ---
+import MiamiCredits from "./miami-credits.astro";
 import MiamiLoading from "./miami-loading.astro";
 ---
 
@@ -28,9 +29,27 @@ import MiamiLoading from "./miami-loading.astro";
         <MiamiLoading />
       </div>
 
+      <!-- Credits -->
+      <MiamiCredits />
+
       <!-- Canvas -->
       <div id="animation-canvas">
         <canvas data-trigger data-animation-canvas></canvas>
+      </div>
+
+      <!-- Credits control -->
+      <div
+        id="final-buttons-wrapper"
+        class="hidden absolute bottom-0 right-0 left-0 p-4 justify-center items-center flex-col gap-6 max-w-[320px] mb-[50px] mx-auto pointer-events-none"
+      >
+        <a
+          href="https://www.youtube.com/channel/UCrqm-PYcS4Dljca5O_IKpIQ"
+          target="_blank"
+          class="pointer-events-auto"><img src="/miami/youtube-btn.webp" /></a
+        >
+        <button id="miami-credits-open" class="pointer-events-auto">
+          <img src="/miami/credits-btn.webp" class="ml-4" /></button
+        >
       </div>
 
       <!-- Debug stuff -->
@@ -48,13 +67,13 @@ import MiamiLoading from "./miami-loading.astro";
 
       <img
         id="pause-play"
-        class="flex absolute bottom-0 left-0 p-4 w-20 h-20"
+        class="flex absolute bottom-0 left-0 p-4 w-20 h-20 cursor-pointer"
         src="/miami/controls/pause.webp"
       />
 
       <img
         id="volume"
-        class="flex absolute bottom-0 right-0 p-4 w-20 h-20"
+        class="flex absolute bottom-0 right-0 p-4 w-20 h-20 cursor-pointer"
         src="/miami/controls/volume-off.webp"
       />
     </div>
@@ -113,6 +132,19 @@ import MiamiLoading from "./miami-loading.astro";
   const pausePlayEl = document.getElementById("pause-play") as HTMLImageElement;
   const volumeEl = document.getElementById("volume") as HTMLImageElement;
   const corvoImage = document.getElementById("miami-loading-corvo");
+  const closeCreditsBtn = document.getElementById(
+    "miami-credits-close"
+  ) as HTMLButtonElement | null;
+  const creditsContainer = document.getElementById(
+    "miami-credits-container"
+  ) as HTMLDivElement | null;
+  const openCreditsBtn = document.getElementById(
+    "miami-credits-open"
+  ) as HTMLButtonElement | null;
+  const finalButtonsWrapper = document.getElementById(
+    "final-buttons-wrapper"
+  ) as HTMLDivElement | null;
+  const FINAL_BUTTONS_THRESHOLD = 98; // 3 minutes and 30 seconds
 
   pausePlayEl?.addEventListener("click", () => {
     if (isPlaying) {
@@ -191,6 +223,21 @@ import MiamiLoading from "./miami-loading.astro";
       }
     }
   });
+
+  function openCredits() {
+    if (creditsContainer) {
+      creditsContainer.classList.remove("closed");
+    }
+  }
+
+  function closeCredits() {
+    if (creditsContainer) {
+      creditsContainer.classList.add("closed");
+    }
+  }
+
+  closeCreditsBtn?.addEventListener("click", closeCredits);
+  openCreditsBtn?.addEventListener("click", openCredits);
 
   function updateProgressDisplays(audioPosition: number, activeAnimation: any) {
     // Update audio progress
@@ -353,6 +400,26 @@ import MiamiLoading from "./miami-loading.astro";
 
       if (activeAnimation) {
         updateProgressDisplays(currentAudioPosition, activeAnimation);
+        if (
+          finalButtonsWrapper &&
+          activeAnimation.time >= FINAL_BUTTONS_THRESHOLD &&
+          finalButtonsWrapper.style.display !== "flex"
+        ) {
+          finalButtonsWrapper.style.opacity = "0";
+          finalButtonsWrapper.style.display = "flex";
+          setTimeout(() => {
+            finalButtonsWrapper.style.opacity = "1";
+          }, 100);
+        } else if (
+          finalButtonsWrapper &&
+          activeAnimation.time < FINAL_BUTTONS_THRESHOLD &&
+          finalButtonsWrapper.style.display !== "none"
+        ) {
+          finalButtonsWrapper.style.opacity = "0";
+          setTimeout(() => {
+            finalButtonsWrapper.style.display = "none";
+          }, 400);
+        }
       }
 
       rive.requestAnimationFrame(draw);
@@ -688,5 +755,10 @@ import MiamiLoading from "./miami-loading.astro";
     z-index: 90; /* Assicurati che sia sopra */
     transform: scale(1.2) translateY(20%); /* Stato iniziale */
     transition: transform 0.7s ease-out; /* Transizione fluida */
+  }
+
+  #final-buttons-wrapper {
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
   }
 </style>

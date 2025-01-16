@@ -1,0 +1,40 @@
+<div
+  id="miami-credits-container"
+  class="closed absolute z-[3] top-0 bottom-0 left-0 right-0 flex flex-col justify-between bg-cover bg-center"
+  style="background-image: url('/miami/credits/bg.webp')"
+>
+  <button
+    id="miami-credits-close"
+    class="absolute top-2 right-2 p-2 m-2 md:right-5 md:top-8"
+  >
+    <img
+      src="/miami/credits/x.webp"
+      class="w-[32px] h-[32px]"
+      aria-label="close"
+      draggable="false"
+    />
+  </button>
+  <div id="credits" class="py-[64px] overflow-y-auto px-2">
+    <img src="/miami/credits/credits.webp" class="w-full" draggable="false" />
+  </div>
+</div>
+
+<style lang="scss">
+  #credits,
+  #miami-credits-close {
+    transition: opacity 0.4s ease-out;
+    transition-delay: 0.6s;
+  }
+  #miami-credits-container {
+    transition: transform 0.6s ease-out;
+    &.closed {
+      transform: translatex(-100%);
+      #credits {
+        opacity: 0;
+      }
+      #miami-credits-close {
+        opacity: 0;
+      }
+    }
+  }
+</style>
