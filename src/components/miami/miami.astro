@@ -436,7 +436,7 @@ import MiamiLoading from "./miami-loading.astro";
     // Clamp the absolute value but preserve sign
     const sign = Math.sign(newSpeed);
     const absSpeed = Math.abs(newSpeed);
-    const clampedAbsSpeed = Math.max(0.1, Math.min(absSpeed, 10));
+    const clampedAbsSpeed = Math.max(0.1, Math.min(absSpeed, 30));
     newSpeed = sign * clampedAbsSpeed;
 
     // Update global speed variables
