@@ -13,14 +13,12 @@ import MiamiLoading from "./miami-loading.astro";
     <div
       class="relative h-dvh w-full md:w-auto md:aspect-[9/16] md:h-[90svh] md:drop-shadow-xl md:overflow-hidden"
     >
-
       <!-- Corvo transition on loading -->
       <img
         id="miami-loading-corvo"
         class="absolute top-0 bottom-0 left-0 right-0 object-cover w-full h-full"
         src="/miami/loading/corvo_transition.webp"
       />
-
 
       <!-- Loading section -->
       <div
@@ -49,18 +47,16 @@ import MiamiLoading from "./miami-loading.astro";
       </div>
 
       <img
-      id="pause-play"
-      class="flex absolute bottom-0 left-0 p-4 w-20 h-20"
-      src="/miami/controls/pause.webp"
-    />
-
-    <img
-      id="volume"
-      class="flex absolute bottom-0 right-0 p-4 w-20 h-20"
-      src="/miami/controls/volume-off.webp"
-
+        id="pause-play"
+        class="flex absolute bottom-0 left-0 p-4 w-20 h-20"
+        src="/miami/controls/pause.webp"
       />
 
+      <img
+        id="volume"
+        class="flex absolute bottom-0 right-0 p-4 w-20 h-20"
+        src="/miami/controls/volume-off.webp"
+      />
     </div>
   </section>
 </div>
@@ -96,8 +92,6 @@ import MiamiLoading from "./miami-loading.astro";
     | null
     | undefined;
 
-
-  
   if (canvas) {
     canvas.addEventListener("touchstart", (event) => {
       event.preventDefault();
@@ -116,11 +110,9 @@ import MiamiLoading from "./miami-loading.astro";
   }
 
   const scrollVelocityEl = document.getElementById("scroll-velocity");
-  const loadingDiv = document.getElementById("loading");
   const pausePlayEl = document.getElementById("pause-play") as HTMLImageElement;
   const volumeEl = document.getElementById("volume") as HTMLImageElement;
   const corvoImage = document.getElementById("miami-loading-corvo");
-
 
   pausePlayEl?.addEventListener("click", () => {
     if (isPlaying) {
@@ -151,25 +143,10 @@ import MiamiLoading from "./miami-loading.astro";
     (() => Promise<Uint8Array>) | Uint8Array
   >();
 
-  // audio manager
   const audioManager = new AudioManager();
   let triggered = false;
   let isPlaying = false;
-  let requestPrevSection = 0;
-  let requestNextSection = 0;
-  const animationSectionsMs = [0, 8000, 20000, 35000, 60000];
-
-  document.getElementById("prev-section-btn")?.addEventListener("click", () => {
-    requestPrevSection++;
-  });
-
-  document.getElementById("next-section-btn")?.addEventListener("click", () => {
-    requestNextSection++;
-  });
-
-  // animation context
   let activeAnimation: LinearAnimationInstance | null = null;
-  // let idleAnimation: LinearAnimationInstance | null = null;
 
   // global speed
   let speed: number = 1;
@@ -356,14 +333,6 @@ import MiamiLoading from "./miami-loading.astro";
         artboard.advance(elapsedSeconds * speed);
         stateMachine.advance(elapsedSeconds * speed);
         activeAnimation?.advance(elapsedSeconds * speed);
-        // if (requestNextSection > 0) {
-        //   requestNextSection--;
-        //   animationGoToMs(animationSectionsMs[1]);
-        // }
-        // if (requestPrevSection > 0) {
-        //   requestPrevSection--;
-        //   animationGoToMs(animationSectionsMs[0]);
-        // }
       }
 
       renderer.save();
@@ -493,33 +462,27 @@ import MiamiLoading from "./miami-loading.astro";
           }
         }
 
+        if (corvoImage) {
+          // Step 1: L'immagine sale fino a -900%
+          corvoImage.style.setProperty(
+            "transform",
+            "scale(1.5) translateY(-80%)"
+          );
 
-        if (corvoImage){
-        // Step 1: L'immagine sale fino a -900%
-        corvoImage.style.setProperty(
-          "transform",
-          "scale(1.5) translateY(-80%)"
-        );
+          await sleep(650); // Tempo della prima animazione
 
-        await sleep(650); // Tempo della prima animazione
+          // Step 2: Rimuovi il contenitore del loading
+          loading.remove();
 
-        // Step 2: Rimuovi il contenitore del loading
-        loading.remove();
+          // Step 3: Corvo vola via
+          corvoImage.style.setProperty(
+            "transition",
+            "transform .2s ease-in-out"
+          );
 
-        // Step 3: Corvo vola via
-        corvoImage.style.setProperty(
-          "transition",
-          "transform .2s ease-in-out"
-        );
-        
-        corvoImage.style.setProperty(
-          "transform",
-          "translateY(-200%)"
-        );
-        
-        
+          corvoImage.style.setProperty("transform", "translateY(-200%)");
 
-        resolve();
+          resolve();
         }
       });
     });
@@ -541,37 +504,6 @@ import MiamiLoading from "./miami-loading.astro";
       let wheelTimeout: number | null = null; // For debouncing wheel events
       const mobileRatio = 1;
       const desktopRatio = 5;
-      let wasPausedByPress = false;
-
-      let pressTimeout: ReturnType<typeof setTimeout> | null = null;
-
-      // desktop, pointer
-
-      // Observer.create({
-      //   target: element as HTMLElement,
-      //   type: "pointer",
-      //   onPress: (self) => {
-      //     if (velocityTween) velocityTween.kill();
-      //     if (wheelTimeout) clearTimeout(wheelTimeout);
-
-      //     startY = self.y ?? 0;
-      //     isDragging = true;
-
-      //     if (triggered) {
-      //       audioManager.pause();
-      //       isPlaying = false;
-      //     }
-      //   },
-      //   onRelease: (self) => {
-      //     if (triggered) {
-      //       if (isPlaying){
-      //         isPlaying = true;
-      //         audioManager.play();
-      //       }
-
-      //     }
-      //   },
-      // });
 
       Observer.create({
         target: element as HTMLElement,
@@ -599,20 +531,6 @@ import MiamiLoading from "./miami-loading.astro";
             logger.log("Released, current speed:", speed);
             animateToNormalSpeed();
           }
-          // if (!isDragging) {
-          // Handle click logic here
-          //   logger.log("Clicked");
-          //   if (isPlaying) {
-          //     audioManager.pause();
-          //     isPlaying = false;
-          //   } else {
-          //     isPlaying = true;
-          //     animateToNormalSpeed();
-          //     audioManager.play();
-          //   }
-          // } else {
-
-          // }
         },
         onWheel: (self) => {
           if (velocityTween) velocityTween.kill();
@@ -662,31 +580,14 @@ import MiamiLoading from "./miami-loading.astro";
     });
   }
 
-  /**
-   * Go to a specific time in the animation.
-   * Tweak the speed to do so.
-   *
-   * @param ms Time in milliseconds of the animation
-   * @param inMs Duration in milliseconds of transition
-   */
-  function animationGoToMs(ms: number, inMs: number = 2000) {
-    if (!activeAnimation) return;
-    logger.log("animationGoToMs", ms, inMs);
-    const currentProgress = activeAnimation.time;
-    const msDiff = ms - currentProgress;
-    const newSpeed = msDiff / inMs;
-
-    // TODO: Set speed to reach the target time for inMs and then reset to 1
-  }
-
   // Load rive, audio and first sequence assets
   async function loadInitialData() {
-    const firstSeqAssets = RIVE_ASSETS
-    // .filter(
-    //   (asset) =>
-    //     asset.startsWith("SEQ1_") ||
-    //     asset.startsWith("SEQ2_") 
-    // );
+    const assetsToPreload = RIVE_ASSETS.filter(
+      (asset) =>
+        asset.startsWith("SEQ1_") ||
+        asset.startsWith("SEQ2_") ||
+        asset.startsWith("SEQ3_")
+    );
     const [riveAnimation, riveCanvas] = await Promise.all([
       fetch("/miami/miami_v10/r.riv").then((res) => res.arrayBuffer()),
       RiveWebGL({
@@ -696,7 +597,7 @@ import MiamiLoading from "./miami-loading.astro";
       audioManager.loadAudio("/miami/audio/audio_seq_started.aac"),
       // Ensure that Seq1 assets are loaded before showing the animation
       Promise.allSettled(
-        firstSeqAssets.map((asset) => {
+        assetsToPreload.map((asset) => {
           const filename = asset.split(".")[0];
           if (!assets.has(filename)) {
             logger.log(`Asset ${filename} not found`);
@@ -717,7 +618,6 @@ import MiamiLoading from "./miami-loading.astro";
     };
   }
 
-  // Start background loading of assets
   function setupBackgroundAssetsLoading() {
     RIVE_ASSETS.forEach((asset) => {
       const filename = asset.split(".")[0];
@@ -729,7 +629,7 @@ import MiamiLoading from "./miami-loading.astro";
   if (canvas) {
     setupBackgroundAssetsLoading();
     await sleep(400); // Wait a bit so that the loading assets are loaded before the others
-    const { riveAnimation, riveCanvas } = await loadInitialData();
+    const { riveAnimation, riveCanvas } = await loadInitialData(); // start loading assets
 
     // Update first loading state
     const loadingRiveEl = document.getElementById("loading-rive");
@@ -787,6 +687,6 @@ import MiamiLoading from "./miami-loading.astro";
     height: auto;
     z-index: 90; /* Assicurati che sia sopra */
     transform: scale(1.2) translateY(20%); /* Stato iniziale */
-    transition: transform .7s ease-out; /* Transizione fluida */
+    transition: transform 0.7s ease-out; /* Transizione fluida */
   }
 </style>
