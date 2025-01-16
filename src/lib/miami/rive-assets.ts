@@ -306,15 +306,6 @@ export const RIVE_ASSETS = [
   "SEQ7-7-3209560.webp",
   "SEQ7-8-3209561.webp",
   "SEQ7-9-3209564.webp",
-  "SEQ8-ALBERO1-3176087.webp",
-  "SEQ8-ALBERO2-3176086.webp",
-  "SEQ8-ALBERO3-3176085.webp",
-  "SEQ8-BOCCA-3176084.webp",
-  "SEQ8-BOCCA2-3176083.webp",
-  "SEQ8-BOCCA3-3176080.webp",
-  "SEQ8-OCCHIO-3176082.webp",
-  "SEQ8-OCCHIO2-3176081.webp",
-  "SEQ8-ORECCHIO-3176079.webp",
   "SEQ8_1-3209599.webp",
   "SEQ8_2-3209608.webp",
   "SEQ8_3-3209610.webp",
@@ -323,6 +314,15 @@ export const RIVE_ASSETS = [
   "SEQ8_6-3209619.webp",
   "SEQ8_7-3209624.webp",
   "SEQ8_8-3209631.webp",
+  "SEQ8_V2_01-3210092.webp",
+  "SEQ8_V2_02-3210091.webp",
+  "SEQ8_V2_03-3210093.webp",
+  "SEQ8_V2_04-3210090.webp",
+  "SEQ8_V2_05-3210094.webp",
+  "SEQ8_V2_06-3210095.webp",
+  "SEQ8_V2_07-3210096.webp",
+  "SEQ8_V2_08-3210097.webp",
+  "SEQ8_V2_09-3210098.webp",
   "SEQ9_V2_1-3209935.webp",
   "SEQ9_V2_10-3209936.webp",
   "SEQ9_V2_108-3209969.webp",
@@ -362,7 +362,6 @@ export const RIVE_ASSETS = [
   "SEQ9_V2_96-3209967.webp",
   "SEQ9_V2_97-3209968.webp"
 ] as const;
-
 
 
 
