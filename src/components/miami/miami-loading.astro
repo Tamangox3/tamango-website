@@ -43,19 +43,19 @@
   </div>
 </div>
 
-<script>
-  const bgs = document.getElementsByClassName(
-    "miami-loading-bg"
-  ) as HTMLCollectionOf<HTMLImageElement>;
-  // use bgs at stop motion
-  let activeBg = 0;
-  while (true) {
-    bgs[activeBg].classList.remove("hidden");
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    bgs[activeBg].classList.add("hidden");
-    activeBg += 1;
-    activeBg %= bgs.length;
-  }
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const bgs = document.getElementsByClassName("miami-loading-bg");
+    // use bgs at stop motion
+    let activeBg = 0;
+    while (true) {
+      bgs[activeBg].classList.remove("hidden");
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      bgs[activeBg].classList.add("hidden");
+      activeBg += 1;
+      activeBg %= bgs.length;
+    }
+  });
 </script>
 
 <style lang="scss">
