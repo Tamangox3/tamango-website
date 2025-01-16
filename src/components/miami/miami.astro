@@ -594,7 +594,7 @@ import MiamiLoading from "./miami-loading.astro";
         locateFile: (_) =>
           `https://unpkg.com/@rive-app/webgl2-advanced@2.25.4/rive.wasm`,
       }),
-      audioManager.loadAudio("/miami/audio/audio_seq_started.aac"),
+      audioManager.loadAudio("/miami/audio/audio_seq_started.mp3"),
       // Ensure that Seq1 assets are loaded before showing the animation
       Promise.allSettled(
         assetsToPreload.map((asset) => {
