@@ -40,7 +40,7 @@ import MiamiLoading from "./miami-loading.astro";
       <!-- Credits control -->
       <div
         id="final-buttons-wrapper"
-        class="hidden absolute bottom-0 right-0 left-0 p-4 justify-center items-center flex-col gap-6 max-w-[320px] mb-[50px] mx-auto pointer-events-none"
+        class="hidden absolute bottom-0 mb-[32px] right-0 left-0 p-4 justify-center items-center flex-col gap-6 max-w-[320px] md:mb-[50px] mx-auto pointer-events-none"
       >
         <a
           href="https://www.youtube.com/channel/UCrqm-PYcS4Dljca5O_IKpIQ"
@@ -368,6 +368,12 @@ import MiamiLoading from "./miami-loading.astro";
   ) {
     function draw(time: number) {
       if (!lastTime) lastTime = time;
+
+      if (creditsContainer && !creditsContainer.classList.contains("closed")) {
+        // Do not render when credits are open
+        rive.requestAnimationFrame(draw);
+        return;
+      }
 
       const currentAudioPosition = audioManager.getCurrentTime();
 
