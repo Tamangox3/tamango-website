@@ -538,7 +538,11 @@ import MiamiLoading from "./miami-loading.astro";
           stateMachine.input(0).asTrigger().fire();
           triggered = true;
           isPlaying = true;
+          if (activeAnimation) {
+            activeAnimation.time = 0;
+          }
           audioManager.play(0);
+
         }
 
         if (corvoImage) {
