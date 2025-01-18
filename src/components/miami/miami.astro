@@ -85,27 +85,25 @@ import MiamiLoading from './miami-loading.astro';
 	import SparvieroAnimation from '@lib/miami/rive-animation';
 
 	const corvoImage = document.getElementById('miami-loading-corvo');
-
-	const animation = new SparvieroAnimation();
-	await animation.prepare(); // from here, animation is ready to start
-
+	const canvas = document.querySelector(
+		'canvas[data-animation-canvas]',
+	) as HTMLCanvasElement | null;
 	const loading = document.getElementById('loading');
-	if (!loading) {
-		throw new Error('Loading div not found');
-	}
 
-	document.getElementById('caricamento')?.remove();
+	if (canvas && corvoImage && loading) {
+		const animation = new SparvieroAnimation();
+		await animation.prepare(); // from here, animation is ready to start
 
-	const btn = document.getElementById('vai-animazione') as HTMLButtonElement | null;
-	if (!btn) {
-		throw new Error('Button not found');
-	}
-	btn.style.display = 'block';
-	btn.addEventListener('click', async () => {
-		// Hide loading div by using transform one step at a time
-		animation.start();
+		document.getElementById('caricamento')?.remove();
 
-		if (corvoImage) {
+		const btn = document.getElementById('vai-animazione') as HTMLButtonElement | null;
+		if (!btn) {
+			throw new Error('Button not found');
+		}
+		btn.style.display = 'block';
+		btn.addEventListener('click', async () => {
+			animation.start();
+			// Hide loading div by using transform one step at a time
 			corvoImage.style.setProperty('transform', 'scale(1.5) translateY(0)');
 			await sleep(650);
 			loading.remove();
@@ -113,8 +111,8 @@ import MiamiLoading from './miami-loading.astro';
 			corvoImage.style.setProperty('transform', 'translateY(-200vh)');
 			await sleep(200);
 			corvoImage.remove();
-		}
-	});
+		});
+	}
 </script>
 
 <style lang="scss">
