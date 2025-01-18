@@ -102,7 +102,34 @@ export default class SparvieroAnimation {
 		volumeEl.addEventListener('click', () => this.toggleVolume());
 		closeCreditsBtn.addEventListener('click', () => this.closeCredits());
 		openCreditsBtn.addEventListener('click', () => this.openCredits());
-		pausePlayEl.addEventListener('click', () => (this.isPlaying ? this.pause() : this.play()));
+		pausePlayEl.addEventListener('click', () => {
+			if (!this.ready) return;
+			this.isPlaying ? this.pause() : this.play();
+		});
+
+		window.addEventListener('blur', () => {
+			if (this.ready && this.isPlaying) {
+				this.pause();
+			}
+		});
+
+		window.addEventListener('focus', () => {
+			if (this.triggered && this.ready && !this.isPlaying) {
+				this.play();
+			}
+		});
+
+		// pause audio + animation on visibility change
+		document.addEventListener('visibilitychange', () => {
+			if (!this.ready) return;
+			if (document.hidden) {
+				this.pause();
+			} else {
+				if (this.triggered) {
+					this.play();
+				}
+			}
+		});
 	}
 
 	/**
