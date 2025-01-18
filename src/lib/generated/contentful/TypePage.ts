@@ -24,7 +24,7 @@ export interface TypePageFields {
      * @name Layout
      * @localized false
      */
-    layout: EntryFieldTypes.Symbol<"Miami" | "Pan" | "Standard">;
+    layout: EntryFieldTypes.Symbol<"Miami" | "Miami-video" | "Pan" | "Standard">;
     /**
      * Field type definition for field 'ogImage' (Immagine SEO)
      * @name Immagine SEO
@@ -60,7 +60,7 @@ export interface TypePageFields {
      * @name Contenuto
      * @localized false
      */
-    content: EntryFieldTypes.RichText;
+    content?: EntryFieldTypes.RichText;
 }
 
 /**
@@ -69,7 +69,7 @@ export interface TypePageFields {
  * @type {TypePageSkeleton}
  * @author 7oIhVVln1MoQRobu38qPiN
  * @since 2024-02-06T22:25:59.097Z
- * @version 13
+ * @version 17
  */
 export type TypePageSkeleton = EntrySkeletonType<TypePageFields, "page">;
 /**
@@ -78,7 +78,7 @@ export type TypePageSkeleton = EntrySkeletonType<TypePageFields, "page">;
  * @type {TypePage}
  * @author 7oIhVVln1MoQRobu38qPiN
  * @since 2024-02-06T22:25:59.097Z
- * @version 13
+ * @version 17
  */
 export type TypePage<Modifiers extends ChainModifiers, Locales extends LocaleCode = LocaleCode> = Entry<TypePageSkeleton, Modifiers, Locales>;
 

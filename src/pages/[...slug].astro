@@ -3,6 +3,7 @@ import contentful from '@lib/contentful';
 import { type TypePageSkeleton } from '@lib/generated/contentful/index';
 import type { Entry } from '@lib/types';
 import Miami from 'src/layouts/Miami.astro';
+import MiamiVideo from 'src/layouts/MiamiVideo.astro';
 import Pan from 'src/layouts/Pan.astro';
 import StandardLayout from 'src/layouts/StandardLayout.astro';
 
@@ -30,6 +31,8 @@ const getLayout = (page: Entry<TypePageSkeleton>) => {
 			return Pan;
 		case 'Miami':
 			return Miami;
+		case 'Miami-video':
+			return MiamiVideo;
 		default:
 			return StandardLayout;
 	}

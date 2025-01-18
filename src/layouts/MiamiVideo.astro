@@ -1,0 +1,16 @@
+---
+import type { TypePageSkeleton } from '@lib/generated/contentful';
+import type { Entry } from '@lib/types';
+import Base from './Base.astro';
+import MiamiVideoComponent from '@components/miami/miami-video.astro';
+
+interface Props extends Entry<TypePageSkeleton> {}
+
+const page = Astro.props;
+
+const props = { ...page, introAnimation: false };
+---
+
+<Base {...props}>
+	<MiamiVideoComponent />
+</Base>
