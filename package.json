@@ -11,14 +11,14 @@
 		"astro": "astro"
 	},
 	"dependencies": {
-		"@astrojs/check": "^0.9.4",
-		"@astrojs/sitemap": "^3.2.1",
-		"@astrojs/tailwind": "^5.1.2",
-		"@contentful/rich-text-html-renderer": "^16.6.10",
-		"@rive-app/webgl2": "2.25.4",
-		"@rive-app/webgl2-advanced": "2.25.4",
 		"astro": "^4.16.7",
 		"astro-robots-txt": "^1.0.0",
+		"@astrojs/check": "^0.9.4",
+		"@astrojs/sitemap": "^3.2.1",
+		"@astrojs/tailwind": "^5.1.4",
+		"@contentful/rich-text-html-renderer": "^17.0.0",
+		"@rive-app/webgl2": "2.25.4",
+		"@rive-app/webgl2-advanced": "2.25.4",
 		"contentful": "^11.1.4",
 		"hls.js": "^1.5.19",
 		"gsap": "^3.12.5",
@@ -26,7 +26,7 @@
 		"lottie-web": "^5.12.2",
 		"tailwind-merge": "^2.5.5",
 		"tailwindcss": "^3.4.14",
-		"typescript": "^5.6.3"
+		"typescript": "^5.7.3"
 	},
 	"devDependencies": {
 		"@tailwindcss/typography": "^0.5.15",

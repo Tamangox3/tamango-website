@@ -39,10 +39,8 @@ export default class SparvieroAnimation {
 	private gsapSpeed = 1;
 	private gsapVolume = 1;
 	private renderProgress = true;
-	private audioShiftCheck: ReturnType<typeof setInterval> | null = null;
 	private ready = false;
 	private speedTween: gsap.core.Tween | null = null;
-	private volumeTween: gsap.core.Tween | null = null;
 	private wheelTimeout: ReturnType<typeof setTimeout> | null = null;
 	private canvas: HTMLCanvasElement;
 	private creditsContainer: HTMLElement;
@@ -52,8 +50,6 @@ export default class SparvieroAnimation {
 	private errorValueEl: HTMLElement;
 	private scrollVelocityEl: HTMLElement;
 	private volumeEl: HTMLImageElement;
-	private closeCreditsBtn: HTMLElement;
-	private openCreditsBtn: HTMLElement;
 	private pausePlayEl: HTMLImageElement;
 
 	constructor() {
@@ -95,8 +91,6 @@ export default class SparvieroAnimation {
 		this.errorValueEl = errorValueEl;
 		this.scrollVelocityEl = scrollVelocityEl;
 		this.volumeEl = volumeEl;
-		this.closeCreditsBtn = closeCreditsBtn;
-		this.openCreditsBtn = openCreditsBtn;
 		this.pausePlayEl = pausePlayEl as HTMLImageElement;
 
 		volumeEl.addEventListener('click', () => this.toggleVolume());
@@ -254,7 +248,7 @@ export default class SparvieroAnimation {
 			}),
 			this.audioManager.loadAudio('/miami/audio/audio_seq_started.mp3'),
 			Promise.allSettled(
-				assetsToPreload.map((asset) => {
+				assetsToPreload.map(async (asset) => {
 					const filename = asset.split('.')[0];
 					if (!this.assets.has(filename)) {
 						this.logger.log(`Asset ${filename} not found`);
@@ -329,7 +323,7 @@ export default class SparvieroAnimation {
 	}
 
 	private setupAudioShiftCheck() {
-		this.audioShiftCheck = setInterval(() => {
+		setInterval(() => {
 			if (this.isPlaying) {
 				this.logger.log('Checking for drifts');
 				const animationTime = this.activeAnimation?.time || 0;
@@ -428,7 +422,7 @@ export default class SparvieroAnimation {
 			},
 		);
 
-		this.volumeTween = gsap.fromTo(
+		gsap.fromTo(
 			this,
 			{
 				gsapVolume: 0.3,
