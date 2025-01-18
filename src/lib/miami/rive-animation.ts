@@ -124,6 +124,11 @@ export default class SparvieroAnimation {
 				}
 			}
 		});
+
+		setTimeout(() => {
+			// Set transition duration after initial load
+			if (creditsContainer) creditsContainer.style.transitionDuration = '0.6s';
+		}, 2000);
 	}
 
 	/**
