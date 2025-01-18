@@ -1,781 +1,154 @@
 ---
-import MiamiCredits from "./miami-credits.astro";
-import MiamiLoading from "./miami-loading.astro";
+import MiamiCredits from './miami-credits.astro';
+import MiamiLoading from './miami-loading.astro';
 ---
 
 <div
-  class="fixed top-0 bottom-0 left-0 right-0 md:relative w-screen h-dvh flex flex-col items-center antialiased bg-[#E2D8CE] overflow-hidden"
+	class="fixed bottom-0 left-0 right-0 top-0 flex h-dvh w-screen flex-col items-center overflow-hidden bg-[#E2D8CE] antialiased md:relative"
 >
-  <img
-    src="/miami/overlay_desktop.webp"
-    class="hidden md:block z-[2] absolute top-0 bottom-0 h-[104.5%] object-cover user-select-none pointer-events-none"
-  />
-  <section class="w-full h-full flex flex-col items-center justify-center">
-    <div
-      class="relative h-dvh w-full md:w-auto md:aspect-[9/16] md:h-[90svh] md:drop-shadow-xl md:overflow-hidden"
-    >
-      <!-- Corvo transition on loading -->
-      <img
-        id="miami-loading-corvo"
-        class="absolute top-0 bottom-0 left-0 right-0 object-cover w-full h-full"
-        src="/miami/loading/corvo_transition.webp"
-      />
+	<img
+		src="/miami/overlay_desktop.webp"
+		class="user-select-none pointer-events-none absolute bottom-0 top-0 z-[2] hidden h-[104.5%] object-cover md:block"
+	/>
+	<section class="flex h-full w-full flex-col items-center justify-center">
+		<div
+			class="relative h-dvh w-full md:aspect-[9/16] md:h-[90svh] md:w-auto md:overflow-hidden md:drop-shadow-xl"
+		>
+			<!-- Corvo transition on loading -->
+			<img
+				id="miami-loading-corvo"
+				class="absolute bottom-0 left-0 right-0 top-0 h-full w-full object-cover"
+				src="/miami/loading/corvo_transition.webp"
+			/>
 
-      <!-- Loading section -->
-      <div
-        id="loading"
-        class="absolute inset-0 bg-[#E2D8CE] z-50 transition-opacity duration-300 ease-in-out"
-      >
-        <MiamiLoading />
-      </div>
+			<!-- Loading section -->
+			<div
+				id="loading"
+				class="absolute inset-0 z-50 bg-[#E2D8CE] transition-opacity duration-300 ease-in-out"
+			>
+				<MiamiLoading />
+			</div>
 
-      <!-- Credits -->
-      <MiamiCredits />
+			<!-- Credits -->
+			<MiamiCredits />
 
-      <!-- Canvas -->
-      <div id="animation-canvas">
-        <canvas data-trigger data-animation-canvas></canvas>
-      </div>
+			<!-- Canvas -->
+			<div id="animation-canvas">
+				<canvas data-trigger data-animation-canvas></canvas>
+			</div>
 
-      <!-- Credits control -->
-      <div
-        id="final-buttons-wrapper"
-        class="hidden absolute bottom-0 mb-[32px] right-0 left-0 p-4 justify-center items-center flex-col gap-6 max-w-[320px] md:mb-[50px] mx-auto pointer-events-none"
-      >
-        <a
-          href="https://www.youtube.com/channel/UCrqm-PYcS4Dljca5O_IKpIQ"
-          target="_blank"
-          class="pointer-events-auto"><img src="/miami/youtube-btn.webp" /></a
-        >
-        <button id="miami-credits-open" class="pointer-events-auto">
-          <img src="/miami/credits-btn.webp" class="ml-4" /></button
-        >
-      </div>
+			<!-- Credits control -->
+			<div
+				id="final-buttons-wrapper"
+				class="pointer-events-none absolute bottom-0 left-0 right-0 mx-auto mb-[32px] hidden max-w-[320px] flex-col items-center justify-center gap-6 p-4 md:mb-[50px]"
+			>
+				<a
+					href="https://www.youtube.com/channel/UCrqm-PYcS4Dljca5O_IKpIQ"
+					target="_blank"
+					class="pointer-events-auto"><img src="/miami/youtube-btn.webp" /></a
+				>
+				<button id="miami-credits-open" class="pointer-events-auto">
+					<img src="/miami/credits-btn.webp" class="ml-4" /></button
+				>
+			</div>
 
-      <!-- Debug stuff -->
-      <div
-        class="flex flex-row items-center justify-center absolute bottom-0 right-0 left-0 p-4"
-      >
-        <span>Scroll speed: <span id="scroll-velocity">0</span></span>
-      </div>
+			<!-- Debug stuff -->
+			<div
+				class="absolute bottom-2 left-0 right-0 flex flex-row items-center justify-center gap-x-[4px] p-4"
+			>
+				<span id="scroll-speed">1.00</span>
+				<span>|</span>
+				<span id="frame-progress">0</span>
+				<span>|</span>
+				<span id="audio-progress">0</span>
+				<span>|</span>
+				<span id="error-value">0.00</span>
+			</div>
 
-      <div
-        class="flex justify-start items-start absolute top-0 left-0 p-4 bg-black text-white"
-      >
-        <div id="frame-progress">0</div>
-      </div>
+			<img
+				id="pause-play"
+				class="absolute bottom-0 left-0 flex h-20 w-20 cursor-pointer p-4"
+				src="/miami/controls/pause.webp"
+			/>
 
-      <img
-        id="pause-play"
-        class="flex absolute bottom-0 left-0 p-4 w-20 h-20 cursor-pointer"
-        src="/miami/controls/pause.webp"
-      />
-
-      <img
-        id="volume"
-        class="flex absolute bottom-0 right-0 p-4 w-20 h-20 mr-2 cursor-pointer"
-        src="/miami/controls/volume-on.webp"
-      />
-    </div>
-  </section>
+			<img
+				id="volume"
+				class="absolute bottom-0 right-0 mr-2 flex h-20 w-20 cursor-pointer p-4"
+				src="/miami/controls/volume-on.webp"
+			/>
+		</div>
+	</section>
 </div>
 
 <script>
-  import type { MiamiAssetsMap } from "@lib/miami/rive-assets";
-  import { AudioManager } from "@lib/miami/audio";
-  import {
-    type RiveCanvas as RiveCanvasType,
-    type File as RiveFileType,
-    type LinearAnimationInstance,
-    type StateMachineInstance,
-    type WrappedRenderer,
-    type Artboard,
-  } from "@rive-app/webgl2-advanced";
-  import RiveWebGL from "@rive-app/webgl2-advanced";
-  import { loadRiveAsset, RIVE_ASSETS } from "@lib/miami/rive-assets";
-  import { gsap } from "gsap";
-  import { ScrollTrigger } from "gsap/ScrollTrigger";
-  import { Observer } from "gsap/Observer";
-  import { miamiAssetLoader } from "@lib/miami/rive-assets";
-  import { createMiamiLogger } from "@lib/miami/logger";
-
-  gsap.registerPlugin(ScrollTrigger, Observer);
-
-  // utils
-  const isDev = import.meta.env.MODE === "development";
-  const logger = createMiamiLogger("Main");
-
-  // html elements
-  const canvas = document.querySelector("[data-animation-canvas]") as
-    | HTMLCanvasElement
-    | null
-    | undefined;
-
-  if (canvas) {
-    canvas.addEventListener("touchstart", (event) => {
-      event.preventDefault();
-      // Handle touch start logic here
-    });
-
-    canvas.addEventListener("touchmove", (event) => {
-      event.preventDefault();
-      // Handle touch move logic here
-    });
-
-    canvas.addEventListener("touchend", (event) => {
-      event.preventDefault();
-      // Handle touch end logic here
-    });
-  }
-
-  const scrollVelocityEl = document.getElementById("scroll-velocity");
-  const pausePlayEl = document.getElementById("pause-play") as HTMLImageElement;
-  const volumeEl = document.getElementById("volume") as HTMLImageElement;
-  const corvoImage = document.getElementById("miami-loading-corvo");
-  const closeCreditsBtn = document.getElementById(
-    "miami-credits-close"
-  ) as HTMLButtonElement | null;
-  const creditsContainer = document.getElementById(
-    "miami-credits-container"
-  ) as HTMLDivElement | null;
-  const openCreditsBtn = document.getElementById(
-    "miami-credits-open"
-  ) as HTMLButtonElement | null;
-  const finalButtonsWrapper = document.getElementById(
-    "final-buttons-wrapper"
-  ) as HTMLDivElement | null;
-  const FINAL_BUTTONS_THRESHOLD = 3 * 60 + 30; // 3 minutes and 30 seconds
-
-  pausePlayEl?.addEventListener("click", () => {
-    if (isPlaying) {
-      audioManager.pause();
-      isPlaying = false;
-      pausePlayEl.src = "/miami/controls/play.webp";
-    } else {
-      audioManager.play();
-      isPlaying = true;
-      pausePlayEl.src = "/miami/controls/pause.webp";
-    }
-  });
-
-  volumeEl?.addEventListener("click", () => {
-    if (audioManager.getVolume() > 0) {
-      audioManager.setVolume(0);
-      if (!(volumeEl.classList.contains("scale-[0.8]") && volumeEl.classList.contains("mr-[12px]"))) {
-        volumeEl.classList.add("scale-[0.8]");
-        volumeEl.classList.add("mr-[12px]")
-      }
-      volumeEl.src = "/miami/controls/volume-off.webp";
-
-    } else {
-      audioManager.setVolume(1);
-      if (volumeEl.classList.contains("scale-[0.8]") && volumeEl.classList.contains("mr-[12px]")) {
-        volumeEl.classList.remove("scale-[0.8]");
-        volumeEl.classList.remove("mr-[12px]")
-      }
-      volumeEl.src = "/miami/controls/volume-on.webp";
-    }
-  });
-
-  // Assets base path
-  const ASSETS_BASE_PATH = "/miami/miami_v10/assets/compressed";
-  const assets: MiamiAssetsMap = new Map<
-    string,
-    (() => Promise<Uint8Array>) | Uint8Array
-  >();
-
-  const audioManager = new AudioManager();
-  let triggered = false;
-  let isPlaying = false;
-  let activeAnimation: LinearAnimationInstance | null = null;
-
-  // global speed
-  let speed: number = 1;
-  let lastTime: number;
-
-  // prevent default touch move (for mobile, scroll won't refresh page)
-  document.addEventListener(
-    "touchmove",
-    (e) => {
-      e.preventDefault();
-    },
-    { passive: false }
-  );
-
-  // ---------------------------- //
-
-  // pause audio + animation on blur
-  window.addEventListener("blur", () => {
-    console.log("blur event");
-    audioManager.pause();
-    isPlaying = false;
-  });
-
-  window.addEventListener("focus", () => {
-    console.log("focus event");
-    if (triggered) {
-      audioManager.play(audioManager.getBufferOffset());
-      isPlaying = true;
-    }
-  });
-
-  // pause audio + animation on visibility change
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
-      console.log("visibility change event");
-      audioManager.pause();
-      isPlaying = false;
-    } else {
-      if (triggered) {
-        audioManager.play(audioManager.getBufferOffset());
-        isPlaying = true;
-      }
-    }
-  });
-
-  function openCredits() {
-    if (creditsContainer) {
-      creditsContainer.classList.remove("closed");
-    }
-  }
-
-  function closeCredits() {
-    if (creditsContainer) {
-      creditsContainer.classList.add("closed");
-    }
-  }
-
-  closeCreditsBtn?.addEventListener("click", closeCredits);
-  openCreditsBtn?.addEventListener("click", openCredits);
-
-  function updateProgressDisplays(audioPosition: number, activeAnimation: any) {
-    // Update audio progress
-    const audioProgressEl = document.getElementById("audio-progress");
-
-    if (audioProgressEl) {
-      audioProgressEl.textContent = audioPosition.toFixed(2);
-    }
-
-    // Update animation progress
-    const frameProgressEl = document.getElementById("frame-progress");
-    if (frameProgressEl) {
-      frameProgressEl.textContent = activeAnimation.time.toFixed(2);
-    }
-  }
-
-  // =============== Animation Setup Functions ===============
-  function setupCanvas() {
-    if (!canvas) throw new Error("Canvas not found");
-
-    function computeSize() {
-      if (!canvas) return;
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-
-    window.onresize = computeSize;
-    computeSize();
-  }
-
-  async function setupRive(
-    canvas: HTMLCanvasElement,
-    riveCanvas: RiveCanvasType,
-    riveAnimation: Uint8Array
-  ) {
-    const loadingRiveInstanceEl = document.getElementById(
-      "loading-rive-instance"
-    );
-    if (loadingRiveInstanceEl) {
-      loadingRiveInstanceEl.style.opacity = "1";
-    }
-
-    const loadingFileEl = document.getElementById("loading-file");
-    if (loadingFileEl) {
-      loadingFileEl.style.opacity = "1";
-    }
-
-    const file = (await riveCanvas.load(
-      riveAnimation,
-      new riveCanvas.CustomFileAssetLoader({
-        loadContents: miamiAssetLoader(assets, logger),
-      })
-    )) as RiveFileType;
-
-    logger.log("SetupRive --> loaded file");
-    const renderer = riveCanvas.makeRenderer(canvas);
-    logger.log("SetupRive --> File rendered");
-
-    // Update loading state for renderer
-    const loadingRendererEl = document.getElementById("loading-renderer");
-    if (loadingRendererEl) {
-      loadingRendererEl.style.opacity = "1";
-    }
-
-    if (isDev) riveCanvas.enableFPSCounter();
-
-    return { riveCanvas, file, renderer };
-  }
-
-  async function sleep(ms: number) {
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, ms);
-    });
-  }
-
-  function setupAnimations(rive: RiveCanvasType, file: RiveFileType) {
-    const artboard = file.artboardByName(file.defaultArtboard().name);
-    logger.log("setupAnimations --> loaded artboard");
-    logger.log("Default artboard: ", file.defaultArtboard().name);
-
-    // Update loading state for artboard
-    const loadingArtboardEl = document.getElementById("loading-artboard");
-    if (loadingArtboardEl) {
-      loadingArtboardEl.style.opacity = "1";
-    }
-
-    const stateMachine = new rive.StateMachineInstance(
-      artboard.stateMachineByIndex(0),
-      artboard
-    );
-    logger.log("setupAnimations --> loaded stateMachine");
-
-    // Update loading state for state machine
-    const loadingStateMachineEl = document.getElementById(
-      "loading-state-machine"
-    );
-    if (loadingStateMachineEl) {
-      loadingStateMachineEl.style.opacity = "1";
-    }
-
-    // idleAnimation = new rive.LinearAnimationInstance(
-    //   artboard.animationByIndex(0),
-    //   artboard
-    // );
-    activeAnimation = new rive.LinearAnimationInstance(
-      artboard.animationByIndex(0),
-      artboard
-    );
-    logger.log("setupAnimations --> loaded animations");
-
-    // Update loading state for animations
-    const loadingAnimationsEl = document.getElementById("loading-animations");
-    if (loadingAnimationsEl) {
-      loadingAnimationsEl.style.opacity = "1";
-    }
-
-    return { artboard, stateMachine, activeAnimation };
-  }
-
-  function createDrawLoop(
-    rive: RiveCanvasType,
-    renderer: WrappedRenderer,
-    artboard: Artboard,
-    stateMachine: any,
-    canvas: HTMLCanvasElement
-  ) {
-    function draw(time: number) {
-      if (!lastTime) lastTime = time;
-
-      if (creditsContainer && !creditsContainer.classList.contains("closed")) {
-        // Do not render when credits are open
-        rive.requestAnimationFrame(draw);
-        return;
-      }
-
-      const currentAudioPosition = audioManager.getCurrentTime();
-
-      renderer.clear();
-
-      const elapsedSeconds = (time - lastTime) / 1000;
-      lastTime = time;
-
-      if (isPlaying || !triggered) {
-        artboard.advance(elapsedSeconds * speed);
-        stateMachine.advance(elapsedSeconds * speed);
-        activeAnimation?.advance(elapsedSeconds * speed);
-      }
-
-      renderer.save();
-      renderer.align(
-        window.innerWidth > 768 ? rive.Fit.fill : rive.Fit.cover,
-        rive.Alignment.center,
-        {
-          minX: 0,
-          minY: 0,
-          maxX: canvas.width,
-          maxY: canvas.height,
-        },
-        artboard.bounds
-      );
-      artboard.draw(renderer);
-      renderer.restore();
-      renderer.flush();
-
-      if (activeAnimation) {
-        updateProgressDisplays(currentAudioPosition, activeAnimation);
-        if (
-          finalButtonsWrapper &&
-          activeAnimation.time >= FINAL_BUTTONS_THRESHOLD &&
-          finalButtonsWrapper.style.display !== "flex"
-        ) {
-          finalButtonsWrapper.style.opacity = "0";
-          finalButtonsWrapper.style.display = "flex";
-          setTimeout(() => {
-            finalButtonsWrapper.style.opacity = "1";
-          }, 100);
-        } else if (
-          finalButtonsWrapper &&
-          activeAnimation.time < FINAL_BUTTONS_THRESHOLD &&
-          finalButtonsWrapper.style.display !== "none"
-        ) {
-          finalButtonsWrapper.style.opacity = "0";
-          setTimeout(() => {
-            finalButtonsWrapper.style.display = "none";
-          }, 400);
-        }
-      }
-
-      rive.requestAnimationFrame(draw);
-    }
-
-    return draw;
-  }
-
-  async function init(riveAnimation: Uint8Array, riveCanvas: RiveCanvasType) {
-    setupCanvas();
-
-    if (!canvas) throw new Error("Canvas not found");
-
-    const { file, renderer } = await setupRive(
-      canvas,
-      riveCanvas,
-      riveAnimation
-    );
-    const { artboard, stateMachine } = setupAnimations(riveCanvas, file);
-
-    logger.log("init --> before createDrawLoop");
-    // Update loading state for draw loop creation
-    const loadingDrawEl = document.getElementById("loading-draw");
-    if (loadingDrawEl) {
-      loadingDrawEl.style.opacity = "1";
-    }
-
-    const drawLoop = createDrawLoop(
-      riveCanvas,
-      renderer,
-      artboard,
-      stateMachine,
-      canvas
-    );
-    riveCanvas.requestAnimationFrame(drawLoop);
-
-    logger.log("init --> after createDrawLoop");
-    // Update loading state for first frame request
-    const loadingFrameEl = document.getElementById("loading-frame");
-    if (loadingFrameEl) {
-      loadingFrameEl.style.opacity = "1";
-    }
-
-    loadingDone(stateMachine);
-
-    return riveCanvas;
-  }
-
-  function updateSpeed(newSpeed: number) {
-    if (!isPlaying) return;
-    // Clamp the absolute value but preserve sign
-    const sign = Math.sign(newSpeed);
-    const absSpeed = Math.abs(newSpeed);
-    const clampedAbsSpeed = Math.max(0.1, Math.min(absSpeed, 30));
-    newSpeed = sign * clampedAbsSpeed;
-
-    // Update global speed variables
-    speed = newSpeed;
-
-    // Update slider and label
-    // const slider = document.getElementById("progress-bar") as HTMLInputElement;
-    // if (slider) slider.value = newSpeed.toString();
-    const label = document.querySelector(`label[for="progress-bar"]`);
-    if (label) label.textContent = `${newSpeed.toFixed(2)}x`;
-
-    // Update velocity display
-    if (scrollVelocityEl) {
-      scrollVelocityEl.textContent = newSpeed.toFixed(2);
-    }
-
-    // Update audio playback
-    audioManager.setPlaybackRate(newSpeed);
-  }
-
-  async function loadingDone(stateMachine: StateMachineInstance) {
-    const loading = document.getElementById("loading");
-    if (!loading) {
-      logger.error("Loading div not found");
-      return;
-    }
-    document.getElementById("caricamento")?.remove();
-    const btn = document.getElementById(
-      "vai-animazione"
-    ) as HTMLButtonElement | null;
-    if (!btn) {
-      logger.error("Button not found");
-      return;
-    }
-    btn.style.display = "block";
-    return new Promise<void>((resolve) => {
-      btn.addEventListener("click", async () => {
-        // Hide loading div by using transform one step at a time
-        logger.log(
-          "status: {triggered: " +
-            triggered +
-            ", isPlaying: " +
-            audioManager.getIsPlaying() +
-            "}"
-        );
-        if (!triggered) {
-          stateMachine.input(0).asTrigger().fire();
-          triggered = true;
-          isPlaying = true;
-          if (activeAnimation) {
-            activeAnimation.time = 0;
-          }
-          audioManager.play(0);
-
-        }
-
-        if (corvoImage) {
-          // Step 1: L'immagine sale fino a -900%
-          corvoImage.style.setProperty(
-            "transform",
-            "scale(1.5) translateY(-80%)"
-          );
-
-          await sleep(650); // Tempo della prima animazione
-
-          // Step 2: Rimuovi il contenitore del loading
-          loading.remove();
-
-          // Step 3: Corvo vola via
-          corvoImage.style.setProperty(
-            "transition",
-            "transform .2s ease-in-out"
-          );
-
-          corvoImage.style.setProperty("transform", "translateY(-200%)");
-
-          resolve();
-        }
-      });
-    });
-  }
-
-  // need two approaches, one for mobile and one for desktop
-  // for mobile higher sensitivity (divide by 15)
-  // for desktop lower sensitivity (divide by 5)
-
-  // desktop: wheel debounce (150ms)
-  // mobile: release is immediate, use tween to animate back to normal speed
-  if (canvas) {
-    gsap.utils.toArray(canvas).forEach((element) => {
-      let startY: number;
-      let isDragging = false;
-      let velocityTween: any;
-      let volumeTween: any;
-      let distortionTween: any;
-      let wheelTimeout: number | null = null; // For debouncing wheel events
-      const mobileRatio = 1;
-      const desktopRatio = 5;
-
-      Observer.create({
-        target: element as HTMLElement,
-        type: "touch,wheel,pointer,scroll",
-        onPress: (self) => {
-          if (velocityTween) velocityTween.kill();
-          if (wheelTimeout) clearTimeout(wheelTimeout);
-
-          startY = self.y ?? 0;
-          isDragging = true;
-        },
-        onDrag: (self) => {
-          if (!isDragging) return;
-
-          const currentY = self.y ?? 0;
-          const deltaY = currentY - startY;
-          let newSpeed = deltaY / mobileRatio;
-          newSpeed = -newSpeed;
-          updateSpeed(newSpeed);
-          startY = currentY;
-        },
-        onRelease: () => {
-          if (isPlaying && isDragging) {
-            isDragging = false;
-            logger.log("Released, current speed:", speed);
-            animateToNormalSpeed();
-          }
-        },
-        onWheel: (self) => {
-          if (velocityTween) velocityTween.kill();
-          if (wheelTimeout) clearTimeout(wheelTimeout);
-
-          const newSpeed = self.deltaY / desktopRatio;
-          updateSpeed(newSpeed);
-
-          wheelTimeout = window.setTimeout(() => {
-            animateToNormalSpeed();
-          }, 150);
-        },
-      });
-      function animateToNormalSpeed() {
-        velocityTween = gsap.to(
-          {
-            speed: speed,
-          },
-          {
-            speed: 1,
-            duration: 1.3,
-            ease: "power1.out",
-            onUpdate: function () {
-              const newSpeed = this.targets()[0].speed;
-              updateSpeed(newSpeed);
-              // updateAudioVolume(newSpeed);
-            },
-          }
-        );
-
-        volumeTween = gsap.fromTo(
-          audioManager,
-          {
-            volume: 0.3,
-          },
-          {
-            volume: 1,
-            duration: 1.3,
-            ease: "power1.out",
-            onUpdate: function () {
-              if (volumeEl.src.includes("off")) return; // Do not update volume if it's off
-              const newVolume = this.targets()[0].volume;
-              audioManager.setVolume(newVolume);
-            },
-          }
-        );
-      }
-    });
-  }
-
-  // Load rive, audio and first sequence assets
-  async function loadInitialData() {
-    const assetsToPreload = RIVE_ASSETS.filter(
-      (asset) =>
-        asset.startsWith("SEQ1_") ||
-        asset.startsWith("SEQ2_") ||
-        asset.startsWith("SEQ3_")
-    );
-    const [riveAnimation, riveCanvas] = await Promise.all([
-      fetch("/miami/miami_v10/r.riv").then((res) => res.arrayBuffer()),
-      RiveWebGL({
-        locateFile: (_) =>
-          `https://unpkg.com/@rive-app/webgl2-advanced@2.25.4/rive.wasm`,
-      }),
-      audioManager.loadAudio("/miami/audio/audio_seq_started.mp3"),
-      // Ensure that Seq1 assets are loaded before showing the animation
-      Promise.allSettled(
-        assetsToPreload.map((asset) => {
-          const filename = asset.split(".")[0];
-          if (!assets.has(filename)) {
-            logger.log(`Asset ${filename} not found`);
-            return Promise.resolve();
-          }
-          return (assets.get(filename) as () => Promise<Uint8Array>)().then(
-            (data) => {
-              assets.set(filename, data);
-            }
-          );
-        })
-      ),
-    ]);
-
-    return {
-      riveAnimation: new Uint8Array(riveAnimation),
-      riveCanvas,
-    };
-  }
-
-  function setupBackgroundAssetsLoading() {
-    RIVE_ASSETS.forEach((asset) => {
-      const filename = asset.split(".")[0];
-      // Store a lazy function that initializes the loading when called
-      assets.set(filename, () => loadRiveAsset(ASSETS_BASE_PATH, asset));
-    });
-  }
-
-  if (canvas) {
-    setupBackgroundAssetsLoading();
-    await sleep(400); // Wait a bit so that the loading assets are loaded before the others
-    const { riveAnimation, riveCanvas } = await loadInitialData(); // start loading assets
-
-    // Update first loading state
-    const loadingRiveEl = document.getElementById("loading-rive");
-    if (loadingRiveEl) {
-      loadingRiveEl.style.opacity = "1";
-    }
-
-    await init(riveAnimation, riveCanvas);
-
-    // if playing, check for drifts every 3 seconds
-    setInterval(() => {
-      if (isPlaying) {
-        logger.log("Checking for drifts");
-        const animationTime = activeAnimation?.time || 0;
-        const audioTime = audioManager.getCurrentTime();
-        const drift = Math.abs(animationTime - audioTime);
-
-        if (drift > 0.1) {
-          // Threshold of 100ms drift
-          logger.log(`Drift detected: ${drift.toFixed(3)}s`);
-          // Adjust audio to match animation
-          if (activeAnimation) {
-            audioManager.play(activeAnimation.time);
-          }
-        }
-      }
-    }, 3000);
-  }
+	import { sleep } from '@lib/utils';
+	import SparvieroAnimation from '@lib/miami/rive-animation';
+
+	const corvoImage = document.getElementById('miami-loading-corvo');
+
+	const animation = new SparvieroAnimation();
+	await animation.prepare(); // from here, animation is ready to start
+
+	const loading = document.getElementById('loading');
+	if (!loading) {
+		throw new Error('Loading div not found');
+	}
+
+	document.getElementById('caricamento')?.remove();
+
+	const btn = document.getElementById('vai-animazione') as HTMLButtonElement | null;
+	if (!btn) {
+		throw new Error('Button not found');
+	}
+	btn.style.display = 'block';
+	btn.addEventListener('click', async () => {
+		// Hide loading div by using transform one step at a time
+		animation.start();
+
+		if (corvoImage) {
+			corvoImage.style.setProperty('transform', 'scale(1.5) translateY(0)');
+			await sleep(650);
+			loading.remove();
+			corvoImage.style.setProperty('transition', 'transform .2s ease-in-out');
+			corvoImage.style.setProperty('transform', 'translateY(-200vh)');
+			await sleep(200);
+			corvoImage.remove();
+		}
+	});
 </script>
 
 <style lang="scss">
-  html,
-  body {
-    overscroll-behavior: none; /* Prevents scroll chaining and overscrolling */
-  }
-  #animation-canvas {
-    user-select: none;
-    touch-action: none;
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    & canvas {
-      width: 100%;
-      height: 100%;
-    }
-  }
+	html,
+	body {
+		overscroll-behavior: none;
+	}
+	#animation-canvas {
+		user-select: none;
+		touch-action: none;
+		position: absolute;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		right: 0;
+		& canvas {
+			width: 100%;
+			height: 100%;
+		}
+	}
 
-  #miami-loading-corvo {
-    position: absolute;
-    top: 100%; /* Posiziona l'immagine fuori dallo schermo in basso */
-    left: 0;
-    width: 100%; /* Adatta alla larghezza */
-    height: auto;
-    z-index: 90; /* Assicurati che sia sopra */
-    transform: scale(1.2) translateY(20%); /* Stato iniziale */
-    transition: transform 0.7s ease-out; /* Transizione fluida */
-  }
+	#miami-loading-corvo {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: auto;
+		z-index: 90;
+		transform: scale(1.2) translateY(100vh);
+		transition: transform 0.7s ease-out;
+	}
 
-  #final-buttons-wrapper {
-    opacity: 0;
-    transition: opacity 0.4s ease-in-out;
-  }
+	#final-buttons-wrapper {
+		opacity: 0;
+		transition: opacity 0.4s ease-in-out;
+	}
 </style>

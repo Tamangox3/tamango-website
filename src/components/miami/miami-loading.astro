@@ -1,102 +1,100 @@
 <img
-  class="miami-loading-bg absolute hidden top-0 bottom-0 left-0 right-0 object-cover w-full h-full"
-  src="/miami/loading/bg-1.webp"
-  fetchpriority="high"
+	class="miami-loading-bg absolute bottom-0 left-0 right-0 top-0 hidden h-full w-full object-cover"
+	src="/miami/loading/bg-1.webp"
+	fetchpriority="high"
 />
 <img
-  class="miami-loading-bg absolute hidden top-0 bottom-0 left-0 right-0 object-cover w-full h-full"
-  src="/miami/loading/bg-2.webp"
+	class="miami-loading-bg absolute bottom-0 left-0 right-0 top-0 hidden h-full w-full object-cover"
+	src="/miami/loading/bg-2.webp"
 />
 
 <div
-  id="miami-loading-container"
-  class="absolute bg-cover top-0 bottom-0 left-0 right-0 flex flex-col justify-between"
+	id="miami-loading-container"
+	class="absolute bottom-0 left-0 right-0 top-0 flex flex-col justify-between bg-cover"
 >
-  <div class="mt-[64px]"></div>
-  <div class="mx-auto w-10/12 mb-[80px] max-w-[800px] relative">
-    <img
-      src="/miami/loading/lettere.webp"
-      fetchpriority="high"
-      alt="Chi ha paura dello sparviero?"
-    />
-    <img
-      src="/miami/loading/stella-sx.webp"
-      fetchpriority="high"
-      alt="stella"
-      class="absolute top-0 bottom-0 m-auto spin h-[27%] left-[14%]"
-    />
-    <img
-      src="/miami/loading/stella-dx.webp"
-      fetchpriority="high"
-      alt="stella"
-      class="absolute top-0 bottom-0 m-auto right-[14%] h-[25%] spin spin--reverse"
-    />
-  </div>
-  <div class="mb-[48px] flex flex-col justify-center">
-    <img
-      id="caricamento"
-      fetchpriority="high"
-      src="/miami/loading/caricamento.webp"
-      class="w-[270px] pulse max-w-[90%] py-[12.8px] m-auto"
-    />
-    <button
-      id="vai-animazione"
-      class="focus:outline-none hidden m-auto w-[270px] max-w-[90%] rounded-md"
-    >
-      <img src="/miami/loading/btn_via.webp" />
-    </button>
+	<div class="mt-[64px]"></div>
+	<div class="relative mx-auto mb-[80px] w-10/12 max-w-[800px]">
+		<img
+			src="/miami/loading/lettere.webp"
+			fetchpriority="high"
+			alt="Chi ha paura dello sparviero?"
+		/>
+		<img
+			src="/miami/loading/stella-sx.webp"
+			fetchpriority="high"
+			alt="stella"
+			class="spin absolute bottom-0 left-[14%] top-0 m-auto h-[27%]"
+		/>
+		<img
+			src="/miami/loading/stella-dx.webp"
+			fetchpriority="high"
+			alt="stella"
+			class="spin spin--reverse absolute bottom-0 right-[14%] top-0 m-auto h-[25%]"
+		/>
+	</div>
+	<div class="mb-[48px] flex flex-col justify-center">
+		<img
+			id="caricamento"
+			fetchpriority="high"
+			src="/miami/loading/caricamento.webp"
+			class="pulse m-auto w-[270px] max-w-[90%] py-[12.8px]"
+		/>
+		<button
+			id="vai-animazione"
+			class="m-auto hidden w-[270px] max-w-[90%] rounded-md focus:outline-none"
+		>
+			<img src="/miami/loading/btn_via.webp" />
+		</button>
 
-    <span class="text-[#D11C2B] m-auto mt-[24px] font-bold"
-      >(togli il silenzioso)</span
-    >
-  </div>
+		<span class="m-auto mt-[24px] font-bold text-[#D11C2B]">(togli il silenzioso)</span>
+	</div>
 </div>
 
 <script is:inline>
-  document.addEventListener("DOMContentLoaded", async () => {
-    const bgs = document.getElementsByClassName("miami-loading-bg");
-    // use bgs at stop motion
-    let activeBg = 0;
-    while (bgs[activeBg]) {
-      bgs[activeBg].classList.remove("hidden");
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      if (!bgs[activeBg]) break;
-      bgs[activeBg].classList.add("hidden");
-      activeBg += 1;
-      activeBg %= bgs.length;
-    }
-  });
+	document.addEventListener('DOMContentLoaded', async () => {
+		const bgs = document.getElementsByClassName('miami-loading-bg');
+		// use bgs at stop motion
+		let activeBg = 0;
+		while (bgs[activeBg]) {
+			bgs[activeBg].classList.remove('hidden');
+			await new Promise((resolve) => setTimeout(resolve, 200));
+			if (!bgs[activeBg]) break;
+			bgs[activeBg].classList.add('hidden');
+			activeBg += 1;
+			activeBg %= bgs.length;
+		}
+	});
 </script>
 
 <style lang="scss">
-  @keyframes pulse {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0;
-    }
-  }
+	@keyframes pulse {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0;
+		}
+	}
 
-  @keyframes spin-with-pause {
-    0%,
-    50% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
+	@keyframes spin-with-pause {
+		0%,
+		50% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
+	}
 
-  .pulse {
-    animation: pulse 2s infinite;
-  }
+	.pulse {
+		animation: pulse 2s infinite;
+	}
 
-  .spin {
-    animation: spin-with-pause 2s ease-in-out infinite;
-    &--reverse {
-      animation-direction: reverse;
-    }
-  }
+	.spin {
+		animation: spin-with-pause 2s ease-in-out infinite;
+		&--reverse {
+			animation-direction: reverse;
+		}
+	}
 </style>

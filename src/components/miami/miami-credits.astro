@@ -1,48 +1,41 @@
 <div
-  id="miami-credits-container"
-  class="closed absolute z-[3] top-0 bottom-0 left-0 right-0 flex flex-col justify-between bg-cover bg-center"
-  style="background-image: url('/miami/credits/bg.webp')"
+	id="miami-credits-container"
+	class="closed absolute bottom-0 left-0 right-0 top-0 z-[3] flex flex-col justify-between bg-cover bg-center"
+	style="background-image: url('/miami/credits/bg.webp')"
 >
-  <button
-    id="miami-credits-close"
-    class="absolute top-2 z-[4] right-2 p-2 m-2 md:right-5 md:top-8"
-  >
-    <img
-      src="/miami/credits/x.webp"
-      class="w-[32px] h-[32px]"
-      aria-label="close"
-      draggable="false"
-    />
-  </button>
-  <div id="credits" class="py-[64px] overflow-y-scroll px-2">
-    <img
-      src="/miami/credits/credits.webp"
-      class="w-full z-[4]"
-      draggable="false"
-    />
-  </div>
+	<button id="miami-credits-close" class="absolute right-2 top-2 z-[4] m-2 p-2 md:right-5 md:top-8">
+		<img
+			src="/miami/credits/x.webp"
+			class="h-[32px] w-[32px]"
+			aria-label="close"
+			draggable="false"
+		/>
+	</button>
+	<div id="credits" class="overflow-y-scroll px-2 py-[64px]">
+		<img src="/miami/credits/credits.webp" class="z-[4] w-full" draggable="false" />
+	</div>
 </div>
 
 <style lang="scss">
-  #credits,
-  #miami-credits-close {
-    transition: opacity 0.4s ease-out;
-    transition-delay: 0.6s;
-  }
-  #credits {
-    -webkit-overflow-scrolling: touch;
-  }
-  #miami-credits-container {
-    transition: transform 0.6s ease-out;
-    transform: translate3d(0, 0, 0); // forces hardware acceleration
-    &.closed {
-      transform: translateX(-100%);
-      #credits {
-        opacity: 0;
-      }
-      #miami-credits-close {
-        opacity: 0;
-      }
-    }
-  }
+	#credits,
+	#miami-credits-close {
+		transition: opacity 0.4s ease-out;
+		transition-delay: 0.6s;
+	}
+	#credits {
+		-webkit-overflow-scrolling: touch;
+	}
+	#miami-credits-container {
+		transition: transform 0.6s ease-out;
+		transform: translate3d(0, 0, 0); // forces hardware acceleration
+		&.closed {
+			transform: translateX(-100%);
+			#credits {
+				opacity: 0;
+			}
+			#miami-credits-close {
+				opacity: 0;
+			}
+		}
+	}
 </style>
