@@ -104,6 +104,7 @@ import MiamiLoading from './miami-loading.astro';
 		btn.addEventListener('click', async () => {
 			animation.start();
 			// Hide loading div by using transform one step at a time
+			corvoImage.style.setProperty('transition', 'transform 0.7s ease-out');
 			corvoImage.style.setProperty('transform', 'scale(1.5) translateY(0)');
 			await sleep(650);
 			loading.remove();
@@ -142,7 +143,6 @@ import MiamiLoading from './miami-loading.astro';
 		height: auto;
 		z-index: 90;
 		transform: scale(1.2) translateY(100vh);
-		transition: transform 0.7s ease-out;
 	}
 
 	#final-buttons-wrapper {
