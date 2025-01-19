@@ -424,7 +424,7 @@ export default class SparvieroAnimation {
 			},
 			{
 				gsapSpeed: 1,
-				duration: 1.3,
+				duration: 0.6,
 				ease: 'power1.out',
 				onUpdate: () => this.updateSpeed(this.gsapSpeed),
 			},
@@ -437,7 +437,7 @@ export default class SparvieroAnimation {
 			},
 			{
 				gsapVolume: 1,
-				duration: 1.3,
+				duration: 0.6,
 				ease: 'power1.out',
 				onUpdate: () => {
 					// Do not update volume if it's off
