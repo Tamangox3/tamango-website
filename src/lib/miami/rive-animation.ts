@@ -93,6 +93,9 @@ export default class SparvieroAnimation {
 		this.volumeEl = volumeEl;
 		this.pausePlayEl = pausePlayEl as HTMLImageElement;
 
+		this.volumeEl.style.transition = 'opacity 0.3s ease-in-out';
+		this.pausePlayEl.style.transition = 'opacity 0.3s ease-in-out';
+
 		volumeEl.addEventListener('click', () => this.toggleVolume());
 		closeCreditsBtn.addEventListener('click', () => this.closeCredits());
 		openCreditsBtn.addEventListener('click', () => this.openCredits());
@@ -315,17 +318,29 @@ export default class SparvieroAnimation {
 		) {
 			this.finalButtonsWrapper.style.opacity = '0';
 			this.finalButtonsWrapper.style.display = 'flex';
+
+			this.volumeEl.style.opacity = '0';
+			this.pausePlayEl.style.opacity = '0';
+
 			setTimeout(() => {
 				this.finalButtonsWrapper.style.opacity = '1';
+				this.volumeEl.style.display = 'none';
+				this.pausePlayEl.style.display = 'none';
 			}, 100);
 		} else if (
 			this.finalButtonsWrapper &&
 			this.activeAnimation.time < FINAL_BUTTONS_THRESHOLD &&
 			this.finalButtonsWrapper.style.display !== 'none'
 		) {
+
+			this.volumeEl.style.display = 'block';
+			this.pausePlayEl.style.display = 'block';
+
 			this.finalButtonsWrapper.style.opacity = '0';
 			setTimeout(() => {
 				this.finalButtonsWrapper.style.display = 'none';
+				this.volumeEl.style.opacity = '1';
+				this.pausePlayEl.style.opacity = '1';
 			}, 400);
 		}
 	}
