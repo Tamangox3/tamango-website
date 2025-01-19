@@ -46,8 +46,11 @@
 		>
 			<img src="/miami/loading/btn_via.webp" />
 		</button>
-		<a href="/sparviero-video" class="m-auto mt-[16px] font-bold text-[#D11C2B] underline"
-			>Se hai problemi di visualizzazione, clicca qui</a
+		<a
+			href="/sparviero-video"
+			id="link-video"
+			class="m-auto mt-[16px] hidden text-center font-bold text-[#D11C2B] underline"
+			>clicca qui se hai problemi di visualizzazione</a
 		>
 	</div>
 </div>
@@ -55,6 +58,11 @@
 <script is:inline>
 	document.addEventListener('DOMContentLoaded', async () => {
 		const bgs = document.getElementsByClassName('miami-loading-bg');
+		if (localStorage.getItem('sparviero_seen')) {
+			document.getElementById('link-video').classList.remove('hidden');
+		} else {
+			localStorage.setItem('sparviero_seen', 'true');
+		}
 		// use bgs at stop motion
 		let activeBg = 0;
 		while (bgs[activeBg]) {
