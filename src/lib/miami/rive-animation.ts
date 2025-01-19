@@ -20,7 +20,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger, Observer);
 
 const isDev = import.meta.env.MODE === 'development';
-const ASSETS_BASE_PATH = '/miami/miami_v10/assets/compressed';
+const ASSETS_BASE_PATH = '/miami/miami_v10/assets/resized';
 const FINAL_BUTTONS_THRESHOLD = 3 * 60 + 25; // 3 minutes and 30 seconds
 
 export default class SparvieroAnimation {
@@ -127,7 +127,7 @@ export default class SparvieroAnimation {
 
 		setTimeout(() => {
 			// Set transition duration after initial load
-			if (creditsContainer) creditsContainer.style.transitionDuration = '0.6s';
+			if (creditsContainer) creditsContainer.style.transitionDuration = '0.4s';
 		}, 2000);
 	}
 
@@ -145,8 +145,8 @@ export default class SparvieroAnimation {
 				loadContents: miamiAssetLoader(this.assets, this.logger),
 			}),
 		);
-		this.renderer = riveCanvas.makeRenderer(this.canvas);
-		this.artboard = file.artboardByName(file.defaultArtboard().name);
+		this.renderer = riveCanvas.makeRenderer(this.canvas, true);
+		this.artboard = file.defaultArtboard();
 		this.stateMachine = new riveCanvas.StateMachineInstance(
 			this.artboard.stateMachineByIndex(0),
 			this.artboard,
@@ -174,6 +174,8 @@ export default class SparvieroAnimation {
 
 		this.riveCanvas.requestAnimationFrame(this.drawLoop);
 
+		this.riveCanvas.AABB;
+
 		this.ready = true;
 	}
 
@@ -184,6 +186,7 @@ export default class SparvieroAnimation {
 		if (!this.ready || !this.riveCanvas || !this.stateMachine || !this.activeAnimation) {
 			throw new Error('Animation not ready');
 		}
+		if (this.triggered || this.isPlaying) return;
 		this.stateMachine.input(0).asTrigger().fire();
 		this.triggered = true;
 		this.isPlaying = true;
