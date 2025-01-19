@@ -1,8 +1,8 @@
 ---
-import type { TypePageSkeleton } from "@lib/generated/contentful";
-import type { Entry } from "@lib/types";
-import Base from "./Base.astro";
-import RichText from "@components/RichText.astro";
+import type { TypePageSkeleton } from '@lib/generated/contentful';
+import type { Entry } from '@lib/types';
+import Base from './Base.astro';
+import RichText from '@components/RichText.astro';
 
 interface Props extends Entry<TypePageSkeleton> {}
 
@@ -10,18 +10,16 @@ const page = Astro.props;
 ---
 
 <Base {...page}>
-  <div class="fade-in-bottom">
-    <img
-      src="/logo.svg"
-      alt="logo"
-      class="w-full max-w-[220px] md:max-w-[300px] mx-auto pt-12 pb-12"
-      width="280"
-      height="123"
-    />
-  </div>
-  <div
-    class="max-w-[400px] overflow-hidden text-center mx-auto px-4 fade-in-bottom"
-  >
-    <RichText content={page.fields.content} />
-  </div>
+	<div class="fade-in-bottom">
+		<img
+			src="/logo.svg"
+			alt="logo"
+			class="mx-auto w-full max-w-[220px] pb-12 pt-12 md:max-w-[300px]"
+			width="280"
+			height="123"
+		/>
+	</div>
+	<div class="fade-in-bottom mx-auto max-w-[400px] overflow-hidden px-4 text-center">
+		<RichText content={page.fields.content} />
+	</div>
 </Base>

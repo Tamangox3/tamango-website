@@ -1,0 +1,141 @@
+---
+import MiamiCredits from './miami-credits.astro';
+---
+
+<div
+	class="fixed bottom-0 left-0 right-0 top-0 flex h-dvh w-screen flex-col items-center overflow-hidden bg-[#E2D8CE] antialiased md:relative"
+>
+	<img
+		src="/miami/overlay_desktop.webp"
+		class="user-select-none pointer-events-none absolute bottom-0 top-0 z-[2] hidden h-[104.5%] object-cover md:block"
+	/>
+	<section class="flex h-full w-full flex-col items-center justify-center">
+		<div
+			class="relative h-dvh w-full md:aspect-[9/16] md:h-[90svh] md:w-auto md:overflow-hidden md:drop-shadow-xl"
+		>
+			<!-- Credits -->
+			<MiamiCredits />
+
+			<!-- Canvas -->
+			<div id="video-container">
+				<video id="video" controls playsinline></video>
+			</div>
+
+			<!-- Credits control -->
+			<div
+				id="final-buttons-wrapper"
+				class="pointer-events-none absolute bottom-0 left-0 right-0 mx-auto mb-[32px] hidden max-w-[320px] flex-col items-center justify-center gap-4 p-4 md:mb-[32px]"
+			>
+				<a
+					href="https://www.youtube.com/channel/UCrqm-PYcS4Dljca5O_IKpIQ"
+					target="_blank"
+					class="pointer-events-auto"><img src="/miami/youtube-btn.webp" /></a
+				>
+				<button id="miami-credits-open" class="pointer-events-auto">
+					<img src="/miami/credits-btn.webp" class="ml-4" /></button
+				>
+			</div>
+		</div>
+	</section>
+</div>
+
+<script>
+	import Hls from 'hls.js';
+
+	const VIDEO_ROOT = 'https://miami-bucket.tamango.co/full/playlist.m3u8';
+	const videoTag = document.getElementById('video') as HTMLVideoElement | null;
+	const FINAL_BUTTONS_THRESHOLD = 3 * 60 + 25; // 3 minutes and 25 seconds
+	const MAX_VIDEO_LENGTH = 3 * 60 + 27; // 3 minutes and 30 seconds
+	const finalButtonsWrapper = document.getElementById('final-buttons-wrapper');
+	const closeCreditsBtn = document.getElementById('miami-credits-close');
+	const openCreditsBtn = document.getElementById('miami-credits-open');
+	const creditsContainer = document.getElementById('miami-credits-container');
+
+	if (videoTag && finalButtonsWrapper) {
+		// Programmatically set max video length
+		videoTag.addEventListener('loadedmetadata', function () {
+			videoTag.setAttribute('max', (videoTag.duration - 10).toString());
+		});
+
+		if (Hls.isSupported()) {
+			var hls = new Hls();
+			hls.loadSource(VIDEO_ROOT);
+			hls.attachMedia(videoTag);
+			hls.on(Hls.Events.MANIFEST_PARSED, () => {
+				videoTag.play();
+			});
+		} else if (videoTag.canPlayType('application/vnd.apple.mpegurl')) {
+			videoTag.src = VIDEO_ROOT;
+			videoTag.addEventListener('canplay', function () {
+				videoTag.play();
+			});
+		}
+
+		// Show final buttons
+		videoTag.addEventListener('timeupdate', function () {
+			if (
+				finalButtonsWrapper &&
+				videoTag.currentTime >= FINAL_BUTTONS_THRESHOLD &&
+				finalButtonsWrapper.style.display !== 'flex'
+			) {
+				finalButtonsWrapper.style.opacity = '0';
+				finalButtonsWrapper.style.display = 'flex';
+				setTimeout(() => {
+					finalButtonsWrapper.style.opacity = '1';
+				}, 100);
+			} else if (
+				finalButtonsWrapper &&
+				videoTag.currentTime < FINAL_BUTTONS_THRESHOLD &&
+				finalButtonsWrapper.style.display !== 'none'
+			) {
+				finalButtonsWrapper.style.opacity = '0';
+				setTimeout(() => {
+					finalButtonsWrapper.style.display = 'none';
+				}, 400);
+			}
+
+			if (videoTag.currentTime >= MAX_VIDEO_LENGTH) {
+				videoTag.pause();
+				videoTag.currentTime = MAX_VIDEO_LENGTH;
+			}
+		});
+
+		closeCreditsBtn?.addEventListener('click', () => {
+			creditsContainer?.classList.add('closed');
+		});
+		openCreditsBtn?.addEventListener('click', () => {
+			creditsContainer?.classList.remove('closed');
+		});
+
+		setTimeout(() => {
+			// Set transition duration after initial load
+			if (creditsContainer) creditsContainer.style.transitionDuration = '0.4s';
+		}, 2000);
+	}
+</script>
+
+<style lang="scss">
+	html,
+	body {
+		overscroll-behavior: none;
+	}
+	#video-container {
+		user-select: none;
+		touch-action: none;
+		position: absolute;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		right: 0;
+		& video {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+	}
+
+	#final-buttons-wrapper {
+		opacity: 0;
+		transition: opacity 0.4s ease-in-out;
+	}
+</style>

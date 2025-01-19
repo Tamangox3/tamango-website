@@ -1,0 +1,152 @@
+---
+import MiamiCredits from './miami-credits.astro';
+import MiamiLoading from './miami-loading.astro';
+---
+
+<div
+	class="fixed bottom-0 left-0 right-0 top-0 flex h-dvh w-screen flex-col items-center overflow-hidden bg-[#E2D8CE] antialiased md:relative"
+>
+	<img
+		src="/miami/overlay_desktop.webp"
+		class="user-select-none pointer-events-none absolute bottom-0 top-0 z-[2] hidden h-[104.5%] object-cover md:block"
+	/>
+	<section class="flex h-full w-full flex-col items-center justify-center">
+		<div
+			class="relative h-dvh w-full md:aspect-[9/16] md:h-[90svh] md:w-auto md:overflow-hidden md:drop-shadow-xl"
+		>
+			<!-- Corvo transition on loading -->
+			<img
+				id="miami-loading-corvo"
+				class="absolute bottom-0 left-0 right-0 top-0 h-full w-full object-cover"
+				src="/miami/loading/corvo_transition.webp"
+			/>
+
+			<!-- Loading section -->
+			<div
+				id="loading"
+				class="absolute inset-0 z-50 bg-[#E2D8CE] transition-opacity duration-300 ease-in-out"
+			>
+				<MiamiLoading />
+			</div>
+
+			<!-- Credits -->
+			<MiamiCredits />
+
+			<!-- Canvas -->
+			<div id="animation-canvas">
+				<canvas data-trigger data-animation-canvas></canvas>
+			</div>
+
+			<!-- Credits control -->
+			<div
+				id="final-buttons-wrapper"
+				class="pointer-events-none absolute bottom-0 left-0 right-0 mx-auto mb-[32px] hidden max-w-[320px] flex-col items-center justify-center gap-6 p-4 md:mb-[50px]"
+			>
+				<a
+					href="https://www.youtube.com/channel/UCrqm-PYcS4Dljca5O_IKpIQ"
+					target="_blank"
+					class="pointer-events-auto"><img src="/miami/youtube-btn.webp" /></a
+				>
+				<button id="miami-credits-open" class="pointer-events-auto">
+					<img src="/miami/credits-btn.webp" class="ml-4" /></button
+				>
+			</div>
+
+			<!-- Debug stuff -->
+			<div
+				class="absolute bottom-2 left-0 right-0 flex flex-row items-center justify-center gap-x-[4px] p-4"
+			>
+				<span id="scroll-speed">1.00</span>
+				<span>|</span>
+				<span id="frame-progress">0</span>
+				<span>|</span>
+				<span id="audio-progress">0</span>
+				<span>|</span>
+				<span id="error-value">0.00</span>
+			</div>
+
+			<img
+				id="pause-play"
+				class="absolute bottom-0 left-0 flex h-20 w-20 cursor-pointer p-4"
+				src="/miami/controls/pause.webp"
+			/>
+
+			<img
+				id="volume"
+				class="absolute bottom-0 right-0 mr-2 flex h-20 w-20 cursor-pointer p-4"
+				src="/miami/controls/volume-on.webp"
+			/>
+		</div>
+	</section>
+</div>
+
+<script>
+	import { sleep } from '@lib/utils';
+	import SparvieroAnimation from '@lib/miami/rive-animation';
+
+	const corvoImage = document.getElementById('miami-loading-corvo');
+	const canvas = document.querySelector(
+		'canvas[data-animation-canvas]',
+	) as HTMLCanvasElement | null;
+	const loading = document.getElementById('loading');
+
+	if (canvas && corvoImage && loading) {
+		const animation = new SparvieroAnimation();
+		await animation.prepare(); // from here, animation is ready to start
+
+		document.getElementById('caricamento')?.remove();
+
+		const btn = document.getElementById('vai-animazione') as HTMLButtonElement | null;
+		if (!btn) {
+			throw new Error('Button not found');
+		}
+		btn.style.display = 'block';
+		btn.addEventListener('click', async () => {
+			animation.start();
+			// Hide loading div by using transform one step at a time
+			corvoImage.style.setProperty('transition', 'transform 0.7s ease-out');
+			corvoImage.style.setProperty('transform', 'scale(1.5) translateY(0)');
+			await sleep(650);
+			loading.remove();
+			corvoImage.style.setProperty('transition', 'transform .2s ease-in-out');
+			corvoImage.style.setProperty('transform', 'translateY(-200vh)');
+			await sleep(200);
+			corvoImage.remove();
+		});
+	}
+</script>
+
+<style lang="scss">
+	html,
+	body {
+		overscroll-behavior: none;
+	}
+	#animation-canvas {
+		user-select: none;
+		touch-action: none;
+		position: absolute;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		right: 0;
+		& canvas {
+			width: 100%;
+			height: 100%;
+		}
+	}
+
+	#miami-loading-corvo {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: auto;
+		z-index: 90;
+		transform: scale(1.2) translateY(100vh);
+	}
+
+	#final-buttons-wrapper {
+		opacity: 0;
+		transition: opacity 0.4s ease-in-out;
+	}
+</style>

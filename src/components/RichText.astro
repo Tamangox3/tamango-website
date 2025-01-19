@@ -1,65 +1,64 @@
 ---
-import { BLOCKS, INLINES } from "@contentful/rich-text-types";
-import {
-  documentToHtmlString,
-  type Options,
-} from "@contentful/rich-text-html-renderer";
-import { type Document } from "@contentful/rich-text-types";
-import { isTypeImageLinkComponent } from "@lib/generated/contentful";
-import { type ChainModifier } from "@lib/types";
-import type { TypeImageLinkComponent } from "@lib/generated/contentful";
+import { BLOCKS, INLINES } from '@contentful/rich-text-types';
+import { documentToHtmlString, type Options } from '@contentful/rich-text-html-renderer';
+import { type Document } from '@contentful/rich-text-types';
+import { isTypeImageLinkComponent } from '@lib/generated/contentful';
+import { type ChainModifier } from '@lib/types';
+import type { TypeImageLinkComponent } from '@lib/generated/contentful';
 
 interface Props {
-  content: Document;
+	content: Document;
 }
 
-const renderImageLinkComponent = (target: TypeImageLinkComponent<ChainModifier, string>): string => {
-  return `<a href="${target.fields.url}" class="block w-full my-8" target="_blank">
+const renderImageLinkComponent = (
+	target: TypeImageLinkComponent<ChainModifier, string>,
+): string => {
+	return `<a href="${target.fields.url}" class="block w-full my-8" target="_blank">
     <img src="${target.fields.image?.fields.file?.url}" alt="${target.fields.image?.fields.title}" class="w-full" />
   </a>
   `;
-}
+};
 
 const options: Partial<Options> = {
-  renderMark: {},
-  renderNode: {
-    [BLOCKS.EMBEDDED_ASSET]: ({
-      data: {
-        target: {
-          fields: { title, file },
-        },
-      },
-    }) => {
-      const videoContentTypeRegex = /video\/.*/;
-      if (videoContentTypeRegex.test(file.contentType)) {
-        return `<video nocontrols loop autoplay muted class="mx-auto rounded-[12px]">
+	renderMark: {},
+	renderNode: {
+		[BLOCKS.EMBEDDED_ASSET]: ({
+			data: {
+				target: {
+					fields: { title, file },
+				},
+			},
+		}) => {
+			const videoContentTypeRegex = /video\/.*/;
+			if (videoContentTypeRegex.test(file.contentType)) {
+				return `<video nocontrols loop autoplay muted class="mx-auto rounded-[12px]">
           <source src="${file?.url}" type="${file?.contentType}">
           Your browser does not support the video tag.
         </video>`;
-      } else {
-        return `<picture>
+			} else {
+				return `<picture>
         <source srcset="${file?.url}?fm=webp&q=80&w=1200&h=600 1x, ${file?.url}?fm=webp&q=80&w=2400&h=1200 2x" type="image/webp">
         <source srcset="${file?.url}?fm=jpg&bg=rgb:2E2E2E&q=80&w=1200&h=600 1x, ${file?.url}?fm=jpg&bg=rgb:2E2E2E&q=80&w=2400&h=1200 2x" type="image/jpeg">
         <img src="${file?.url}?fm=jpg&bg=rgb:2E2E2E&q=80&w=1200&h=600" alt="${title}" loading="lazy" class="mx-auto rounded-[12px] ">
       </picture>`;
-      }
-    },
-    [INLINES.HYPERLINK]: ({ data: { uri }, content }, next) => {
-      return `<a class="" href="${uri}">${next(content)}</a>`;
-    },
-    [BLOCKS.EMBEDDED_ENTRY]: ({ data: { target } }) => {
-      if (isTypeImageLinkComponent<ChainModifier, string>(target)) {
-        return renderImageLinkComponent(target);
-      }
-      return "";
-    },
-  },
+			}
+		},
+		[INLINES.HYPERLINK]: ({ data: { uri }, content }, next) => {
+			return `<a class="" href="${uri}">${next(content)}</a>`;
+		},
+		[BLOCKS.EMBEDDED_ENTRY]: ({ data: { target } }) => {
+			if (isTypeImageLinkComponent<ChainModifier, string>(target)) {
+				return renderImageLinkComponent(target);
+			}
+			return '';
+		},
+	},
 };
 
 const { content } = Astro.props;
 ---
 
 <div
-  class="w-full rich-text mx-auto fadeInBottom"
-  set:html={documentToHtmlString(content, options)}
+	class="rich-text fadeInBottom mx-auto w-full"
+	set:html={documentToHtmlString(content, options)}
 />

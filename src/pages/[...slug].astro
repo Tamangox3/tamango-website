@@ -1,35 +1,41 @@
 ---
-import contentful from "@lib/contentful";
-import { type TypePageSkeleton } from "@lib/generated/contentful/index";
-import type { Entry } from "@lib/types";
-import Pan from "src/layouts/Pan.astro";
-import StandardLayout from "src/layouts/StandardLayout.astro";
+import contentful from '@lib/contentful';
+import { type TypePageSkeleton } from '@lib/generated/contentful/index';
+import type { Entry } from '@lib/types';
+import Miami from 'src/layouts/Miami.astro';
+import MiamiVideo from 'src/layouts/MiamiVideo.astro';
+import Pan from 'src/layouts/Pan.astro';
+import StandardLayout from 'src/layouts/StandardLayout.astro';
 
 export async function getStaticPaths() {
-  const pages = await contentful.getEntries<TypePageSkeleton>({
-    content_type: "page",
-    include: 10, // max include depth
-  });
+	const pages = await contentful.getEntries<TypePageSkeleton>({
+		content_type: 'page',
+		include: 10, // max include depth
+	});
 
-  return pages.items.map((page) => {
-    return {
-      params: { slug: page.fields.slug == "/" ? undefined : page.fields.slug },
-      props: {
-        page: page,
-      },
-    };
-  });
+	return pages.items.map((page) => {
+		return {
+			params: { slug: page.fields.slug == '/' ? undefined : page.fields.slug },
+			props: {
+				page,
+			},
+		};
+	});
 }
 
 const getLayout = (page: Entry<TypePageSkeleton>) => {
-  switch (page.fields.layout) {
-    case "Standard":
-      return StandardLayout;
-    case "Pan":
-      return Pan;
-    default:
-      return StandardLayout;
-  }
+	switch (page.fields.layout) {
+		case 'Standard':
+			return StandardLayout;
+		case 'Pan':
+			return Pan;
+		case 'Miami':
+			return Miami;
+		case 'Miami-video':
+			return MiamiVideo;
+		default:
+			return StandardLayout;
+	}
 };
 
 const { page } = Astro.props;

@@ -1,0 +1,15 @@
+@mixin small-scrollbar {
+	&::-webkit-scrollbar {
+		width: 6px;
+		height: 6px;
+	}
+	&::-webkit-scrollbar-thumb {
+		background-color: white;
+		border-radius: 2px;
+		cursor: pointer;
+		margin-right: 2px;
+	}
+	&::-webkit-scrollbar-track {
+		padding: 10px;
+	}
+}

@@ -24,7 +24,7 @@ export interface TypePageFields {
      * @name Layout
      * @localized false
      */
-    layout: EntryFieldTypes.Symbol<"Pan" | "Standard">;
+    layout: EntryFieldTypes.Symbol<"Miami" | "Miami-video" | "Pan" | "Standard">;
     /**
      * Field type definition for field 'ogImage' (Immagine SEO)
      * @name Immagine SEO
@@ -69,7 +69,7 @@ export interface TypePageFields {
  * @type {TypePageSkeleton}
  * @author 7oIhVVln1MoQRobu38qPiN
  * @since 2024-02-06T22:25:59.097Z
- * @version 9
+ * @version 19
  */
 export type TypePageSkeleton = EntrySkeletonType<TypePageFields, "page">;
 /**
@@ -78,9 +78,9 @@ export type TypePageSkeleton = EntrySkeletonType<TypePageFields, "page">;
  * @type {TypePage}
  * @author 7oIhVVln1MoQRobu38qPiN
  * @since 2024-02-06T22:25:59.097Z
- * @version 9
+ * @version 19
  */
-export type TypePage<Modifiers extends ChainModifiers, Locales extends LocaleCode> = Entry<TypePageSkeleton, Modifiers, Locales>;
+export type TypePage<Modifiers extends ChainModifiers, Locales extends LocaleCode = LocaleCode> = Entry<TypePageSkeleton, Modifiers, Locales>;
 
 export function isTypePage<Modifiers extends ChainModifiers, Locales extends LocaleCode>(entry: Entry<EntrySkeletonType, Modifiers, Locales>): entry is TypePage<Modifiers, Locales> {
     return entry.sys.contentType.sys.id === 'page'
