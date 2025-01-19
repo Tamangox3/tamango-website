@@ -12,8 +12,7 @@
 	id="miami-loading-container"
 	class="absolute bottom-0 left-0 right-0 top-0 flex flex-col justify-between bg-cover"
 >
-	<div class="mt-[64px]"></div>
-	<div class="relative mx-auto mb-[80px] w-10/12 max-w-[800px]">
+	<div class="align-top relative pt-16 mx-auto w-10/12 max-w-[400px]">
 		<img
 			src="/miami/loading/lettere.webp"
 			fetchpriority="high"
@@ -23,36 +22,48 @@
 			src="/miami/loading/stella-sx.webp"
 			fetchpriority="high"
 			alt="stella"
-			class="spin absolute bottom-0 left-[14%] top-0 m-auto h-[27%]"
+			class="spin absolute bottom-0 left-[18%] top-16 m-auto h-[18%]"
 		/>
 		<img
 			src="/miami/loading/stella-dx.webp"
 			fetchpriority="high"
 			alt="stella"
-			class="spin spin--reverse absolute bottom-0 right-[14%] top-0 m-auto h-[25%]"
+			class="spin spin--reverse absolute bottom-0 right-[18%] top-16 m-auto h-[16%]"
 		/>
 	</div>
-	<div class="mb-[48px] flex flex-col justify-center">
-		<span id="silenzioso" class="m-auto mb-[16px] font-bold text-[#D11C2B]">(togli il silenzioso)</span>
+	<div class="h-screen flex flex-col justify-center items-center relative">
+		<!-- Contenuto principale centrato -->
 		<img
 			id="caricamento"
 			fetchpriority="high"
 			src="/miami/loading/caricamento.webp"
-			class="pulse m-auto w-[270px] max-w-[90%] py-[12.8px]"
+			class="pulse w-[240px] max-w-[90%] py-[12.8px]"
 		/>
 		<button
 			id="vai-animazione"
-			class="m-auto hidden w-[270px] max-w-[90%] rounded-md focus:outline-none"
+			class="hidden w-[400px] max-w-[90%] rounded-md focus:outline-none rotate-animation"
 		>
 			<img src="/miami/loading/btn_via.webp" />
 		</button>
-		<a
-			href="/sparviero-video"
-			id="link-video"
-			class="m-auto mt-[16px] hidden text-center font-bold text-[#D11C2B] underline"
-			>clicca qui se hai problemi di visualizzazione</a
-		>
+	
+		<!-- Primo footer -->
+		<div class="bg-[#B3232F] text-white py-4 w-full fixed bottom-0 flex flex-col items-center">
+			<p class="mb-1 text-center">Se hai problemi di visualizzazione</p>
+			<a
+				href="/sparviero-video" target="_blank"
+				id="link-video"
+				class="bg-white text-[#D11C2B] py-1.5 px-4 rounded-[8px] font-bold text-center"
+			>
+				passa alla versione video
+			</a>
+		</div>
+	
+		<!-- Secondo footer -->
+		<div id="silenzioso" class="bg-[#B3232F] text-white py-3 w-full fixed bottom-0">
+			<p class="text-white font-bold text-center">Ricorda di togliere il silenzioso</p>
+		</div>
 	</div>
+	
 </div>
 
 <script is:inline>
@@ -115,5 +126,30 @@
 		&--reverse {
 			animation-direction: reverse;
 		}
+	}
+
+	@keyframes rotate-pulse {
+		0%, 45% {
+			transform: rotate(0deg);
+		}
+		50% {
+			transform: rotate(-2deg);
+		}
+		53% {
+			transform: rotate(2deg);
+		}
+		55% {
+			transform: rotate(-2deg);
+		}
+		57% {
+			transform: rotate(2deg);
+		}
+		60%, 100% {
+			transform: rotate(0deg);
+		}
+	}
+
+	.rotate-animation {
+		animation: rotate-pulse 3s ease-in-out infinite; /* Aumenta la durata */
 	}
 </style>
