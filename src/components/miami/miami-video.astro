@@ -1,17 +1,15 @@
 ---
 import MiamiCredits from './miami-credits.astro';
+import MiamiDesktopBg from './miami-desktop-bg.astro';
 ---
 
 <div
 	class="fixed bottom-0 left-0 right-0 top-0 flex h-dvh w-screen flex-col items-center overflow-hidden bg-[#E2D8CE] antialiased md:relative"
 >
-	<img
-		src="/miami/overlay_desktop.webp"
-		class="user-select-none pointer-events-none absolute bottom-0 top-0 z-[2] hidden h-[104.5%] object-cover md:block"
-	/>
+	<MiamiDesktopBg />
 	<section class="flex h-full w-full flex-col items-center justify-center">
 		<div
-			class="relative h-dvh w-full md:aspect-[9/16] md:h-[90svh] md:w-auto md:overflow-hidden md:drop-shadow-xl"
+			class="relative z-[2] h-dvh w-full md:aspect-[9/16] md:h-[90svh] md:w-auto md:overflow-hidden md:rounded-[42px] md:drop-shadow-xl"
 		>
 			<!-- Credits -->
 			<MiamiCredits />
