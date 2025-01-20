@@ -24,9 +24,9 @@ const ASSETS_BASE_PATH = '/miami/miami_v10/assets/resized';
 const FINAL_BUTTONS_THRESHOLD = 3 * 60 + 25; // 3 minutes and 30 seconds
 
 interface LoadingProgress {
-    current: number;
-    total: number;
-    percentage: number;
+	current: number;
+	total: number;
+	percentage: number;
 }
 
 export default class SparvieroAnimation {
@@ -143,7 +143,7 @@ export default class SparvieroAnimation {
 	private emitLoadingProgress(progress: LoadingProgress) {
 		const event = new CustomEvent('miami-loading-progress', {
 			detail: progress,
-			bubbles: true
+			bubbles: true,
 		});
 		document.dispatchEvent(event);
 	}
@@ -193,7 +193,6 @@ export default class SparvieroAnimation {
 
 		this.riveCanvas.AABB;
 
-
 		this.emitLoadingProgress({
 			current: 1,
 			total: 1,
@@ -201,8 +200,6 @@ export default class SparvieroAnimation {
 		});
 
 		this.ready = true;
-
-		
 	}
 
 	/**
@@ -276,9 +273,7 @@ export default class SparvieroAnimation {
 				asset.startsWith('SEQ1_') || asset.startsWith('SEQ2_') || asset.startsWith('SEQ3_'),
 		);
 
-		
-
-		const totalAssetsPreload = 2 + assetsToPreload.length;  // .riv + .mp3 + assets
+		const totalAssetsPreload = 3 + assetsToPreload.length; // .riv + .mp3 + assets + wasm
 		let loadedAssets = 0;
 
 		const updateProgress = () => {
@@ -292,11 +287,15 @@ export default class SparvieroAnimation {
 		};
 
 		const [riveAnimation, riveCanvas] = await Promise.all([
-			fetch('/miami/miami_v10/r.riv').then((res) =>  {
+			fetch('/miami/miami_v10/r.riv').then((res) => {
 				updateProgress();
-				return res.arrayBuffer()}),
+				return res.arrayBuffer();
+			}),
 			RiveWebGL({
 				locateFile: (_) => `https://unpkg.com/@rive-app/webgl2-advanced@2.25.4/rive.wasm`,
+			}).then((module) => {
+				updateProgress();
+				return module;
 			}),
 			this.audioManager.loadAudio('/miami/audio/audio_seq_started.mp3').then(() => {
 				updateProgress();
