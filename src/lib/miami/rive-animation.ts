@@ -332,7 +332,6 @@ export default class SparvieroAnimation {
 			this.activeAnimation.time < FINAL_BUTTONS_THRESHOLD &&
 			this.finalButtonsWrapper.style.display !== 'none'
 		) {
-
 			this.volumeEl.style.display = 'block';
 			this.pausePlayEl.style.display = 'block';
 

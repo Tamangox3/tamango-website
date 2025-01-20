@@ -8,7 +8,7 @@
 	id="miami-loading-container"
 	class="absolute bottom-0 left-0 right-0 top-0 flex flex-col justify-between bg-cover"
 >
-	<div class="align-top relative pt-16 mx-auto w-10/12 max-w-[400px]">
+	<div class="relative mx-auto w-10/12 max-w-[400px] pt-16 align-top">
 		<img
 			src="/miami/loading/lettere.webp"
 			fetchpriority="high"
@@ -27,8 +27,8 @@
 			class="spin spin--reverse absolute bottom-0 right-[18%] top-16 m-auto h-[16%]"
 		/>
 	</div>
-	
-	<div class="h-screen flex flex-col justify-center items-center relative">
+
+	<div class="relative flex h-screen flex-col items-center justify-center">
 		<!-- Contenuto principale centrato -->
 		<img
 			id="caricamento"
@@ -38,25 +38,24 @@
 		/>
 		<button
 			id="vai-animazione"
-			class="hidden w-[400px] max-w-[80%] mb-12 rounded-md focus:outline-none rotate-animation"
+			class="rotate-animation mb-12 hidden w-[400px] max-w-[80%] rounded-md focus:outline-none"
 		>
 			<img src="/miami/loading/btn_via.webp" />
 		</button>
 
 		<!-- Primo footer -->
-		<div id="link-video" class="hidden z-999 bg-[#B3232F] text-white py-4 w-full fixed bottom-0 flex flex-col items-center">
-			<p class="mb-1">Se hai problemi di visualizzazione
-				<a
-				href="/sparviero-video" target="_blank"
-				class="font-bold text-center underline"
-			>
-				clicca qui
-			</a>
+		<div
+			id="link-video"
+			class="z-999 fixed bottom-0 flex hidden w-full flex-col items-center bg-[#B3232F] py-4 text-white"
+		>
+			<p class="mb-1">
+				Se hai problemi di visualizzazione
+				<a href="/sparviero-video" target="_blank" class="text-center font-bold underline">
+					clicca qui
+				</a>
 			</p>
 		</div>
-
 	</div>
-	
 </div>
 
 <script is:inline>
@@ -80,7 +79,6 @@
 		}
 	}
 
-
 	@keyframes spin-with-pause {
 		0%,
 		50% {
@@ -103,7 +101,8 @@
 	}
 
 	@keyframes rotate-pulse {
-		0%, 45% {
+		0%,
+		45% {
 			transform: rotate(0deg);
 		}
 		50% {
@@ -118,7 +117,8 @@
 		57% {
 			transform: rotate(2deg);
 		}
-		60%, 100% {
+		60%,
+		100% {
 			transform: rotate(0deg);
 		}
 	}
