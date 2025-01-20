@@ -193,7 +193,16 @@ export default class SparvieroAnimation {
 
 		this.riveCanvas.AABB;
 
+
+		this.emitLoadingProgress({
+			current: 1,
+			total: 1,
+			percentage: 100,
+		});
+
 		this.ready = true;
+
+		
 	}
 
 	/**
@@ -277,7 +286,7 @@ export default class SparvieroAnimation {
 			const progress: LoadingProgress = {
 				current: loadedAssets,
 				total: totalAssetsPreload,
-				percentage: Math.round((loadedAssets / totalAssetsPreload) * 100)
+				percentage: Math.round((loadedAssets / totalAssetsPreload) * 10000) / 100,
 			};
 			this.emitLoadingProgress(progress);
 		};

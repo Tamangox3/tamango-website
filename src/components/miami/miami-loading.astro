@@ -88,11 +88,10 @@
 
 		document.addEventListener('miami-loading-progress', (event) => {
 			const { percentage } = event.detail;
-			if (percentage >= 99) {
+			if (percentage==100) {
 				document.getElementById('progress-bar-container').classList.add('hidden');
 				return;
 			}
-
 			if (progressFill) progressFill.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;
 		});
 	});
