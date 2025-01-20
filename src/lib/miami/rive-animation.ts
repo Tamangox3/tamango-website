@@ -23,6 +23,12 @@ const isDev = import.meta.env.MODE === 'development';
 const ASSETS_BASE_PATH = '/miami/miami_v10/assets/resized';
 const FINAL_BUTTONS_THRESHOLD = 3 * 60 + 25; // 3 minutes and 30 seconds
 
+interface LoadingProgress {
+	current: number;
+	total: number;
+	percentage: number;
+}
+
 export default class SparvieroAnimation {
 	private logger = createMiamiLogger(SparvieroAnimation.name);
 	private assets: SparvieroAssetsMap = new Map<string, (() => Promise<Uint8Array>) | Uint8Array>();
@@ -105,7 +111,7 @@ export default class SparvieroAnimation {
 		});
 
 		window.addEventListener('blur', () => {
-			if (this.ready && this.isPlaying) {
+			if (this.triggered && this.ready && this.isPlaying) {
 				this.pause();
 			}
 		});
@@ -118,7 +124,7 @@ export default class SparvieroAnimation {
 
 		// pause audio + animation on visibility change
 		document.addEventListener('visibilitychange', () => {
-			if (!this.ready) return;
+			if (!this.triggered || !this.ready) return;
 			if (document.hidden) {
 				this.pause();
 			} else {
@@ -132,6 +138,14 @@ export default class SparvieroAnimation {
 			// Set transition duration after initial load
 			if (creditsContainer) creditsContainer.style.transitionDuration = '0.4s';
 		}, 2000);
+	}
+
+	private emitLoadingProgress(progress: LoadingProgress) {
+		const event = new CustomEvent('miami-loading-progress', {
+			detail: progress,
+			bubbles: true,
+		});
+		document.dispatchEvent(event);
 	}
 
 	/**
@@ -158,7 +172,7 @@ export default class SparvieroAnimation {
 			this.artboard.animationByIndex(0),
 			this.artboard,
 		);
-		if (isDev) riveCanvas.enableFPSCounter();
+		//if (isDev) riveCanvas.enableFPSCounter();
 
 		this.setupAudioShiftCheck();
 
@@ -178,6 +192,12 @@ export default class SparvieroAnimation {
 		this.riveCanvas.requestAnimationFrame(this.drawLoop);
 
 		this.riveCanvas.AABB;
+
+		this.emitLoadingProgress({
+			current: 1,
+			total: 1,
+			percentage: 100,
+		});
 
 		this.ready = true;
 	}
@@ -252,20 +272,44 @@ export default class SparvieroAnimation {
 			(asset) =>
 				asset.startsWith('SEQ1_') || asset.startsWith('SEQ2_') || asset.startsWith('SEQ3_'),
 		);
+
+		const totalAssetsPreload = 3 + assetsToPreload.length; // .riv + .mp3 + assets + wasm
+		let loadedAssets = 0;
+
+		const updateProgress = () => {
+			loadedAssets++;
+			const progress: LoadingProgress = {
+				current: loadedAssets,
+				total: totalAssetsPreload,
+				percentage: Math.round((loadedAssets / totalAssetsPreload) * 10000) / 100,
+			};
+			this.emitLoadingProgress(progress);
+		};
+
 		const [riveAnimation, riveCanvas] = await Promise.all([
-			fetch('/miami/miami_v10/r.riv').then((res) => res.arrayBuffer()),
+			fetch('/miami/miami_v10/r.riv').then((res) => {
+				updateProgress();
+				return res.arrayBuffer();
+			}),
 			RiveWebGL({
 				locateFile: (_) => `https://unpkg.com/@rive-app/webgl2-advanced@2.25.4/rive.wasm`,
+			}).then((module) => {
+				updateProgress();
+				return module;
 			}),
-			this.audioManager.loadAudio('/miami/audio/audio_seq_started.mp3'),
+			this.audioManager.loadAudio('/miami/audio/audio_seq_started.mp3').then(() => {
+				updateProgress();
+			}),
 			Promise.allSettled(
 				assetsToPreload.map(async (asset) => {
 					const filename = asset.split('.')[0];
 					if (!this.assets.has(filename)) {
 						this.logger.log(`Asset ${filename} not found`);
+						updateProgress();
 						return Promise.resolve();
 					}
 					return (this.assets.get(filename) as () => Promise<Uint8Array>)().then((data) => {
+						updateProgress();
 						this.assets.set(filename, data);
 					});
 				}),
@@ -332,7 +376,6 @@ export default class SparvieroAnimation {
 			this.activeAnimation.time < FINAL_BUTTONS_THRESHOLD &&
 			this.finalButtonsWrapper.style.display !== 'none'
 		) {
-
 			this.volumeEl.style.display = 'block';
 			this.pausePlayEl.style.display = 'block';
 
@@ -498,6 +541,7 @@ export default class SparvieroAnimation {
 	}
 
 	private pause() {
+		this.updateSpeed(1);
 		this.audioManager.pause();
 		this.isPlaying = false;
 		this.pausePlayEl.src = '/miami/controls/play.webp';

@@ -1,18 +1,27 @@
 ---
 import MiamiCredits from './miami-credits.astro';
+import MiamiDesktopBg from './miami-desktop-bg.astro';
 import MiamiLoading from './miami-loading.astro';
 ---
 
 <div
-	class="fixed bottom-0 left-0 right-0 top-0 flex h-dvh w-screen flex-col items-center overflow-hidden bg-[#E2D8CE] antialiased md:relative"
+	class="fixed bottom-0 left-0 right-0 top-0 flex h-dvh w-screen flex-col items-center overflow-hidden bg-[#EEEAE6] antialiased md:relative"
 >
-	<img
-		src="/miami/overlay_desktop.webp"
-		class="user-select-none pointer-events-none absolute bottom-0 top-0 z-[2] hidden h-[104.5%] object-cover md:block"
-	/>
+	<MiamiDesktopBg />
 	<section class="flex h-full w-full flex-col items-center justify-center">
+		<!-- Messaggio di avviso (inizialmente nascosto) -->
 		<div
-			class="relative h-dvh w-full md:aspect-[9/16] md:h-[90svh] md:w-auto md:overflow-hidden md:drop-shadow-xl"
+			id="alert-container"
+			class="text-whit fixed top-0 z-50 flex hidden w-full flex-col items-center bg-[#B3232F] px-6 py-4 md:hidden"
+		>
+			<p class="bold mb-2 text-center">Ricorda di togliere il silenzioso!</p>
+			<button id="close-alert" class="rounded-md bg-white px-4 py-1 font-bold text-[#B3232F]">
+				Capito
+			</button>
+		</div>
+
+		<div
+			class="relative z-[2] h-dvh w-full md:aspect-[9/16] md:h-[90svh] md:w-auto md:overflow-hidden md:rounded-[42px] md:drop-shadow-xl"
 		>
 			<!-- Corvo transition on loading -->
 			<img
@@ -40,7 +49,7 @@ import MiamiLoading from './miami-loading.astro';
 			<!-- Credits control -->
 			<div
 				id="final-buttons-wrapper"
-				class="pointer-events-none absolute bottom-0 left-0 right-0 mx-auto mb-[32px] hidden max-w-[320px] flex-col items-center justify-center gap-6 p-4 md:mb-[50px]"
+				class="pointer-events-none absolute bottom-0 left-0 right-0 mx-auto mb-[10px] hidden max-w-[320px] flex-col items-center justify-center gap-4 p-4 md:mb-[50px]"
 			>
 				<a
 					href="https://www.youtube.com/channel/UCrqm-PYcS4Dljca5O_IKpIQ"
@@ -54,7 +63,7 @@ import MiamiLoading from './miami-loading.astro';
 
 			<!-- Debug stuff -->
 			<div
-				class="absolute bottom-2 left-0 right-0 flex flex-row items-center justify-center gap-x-[4px] p-4"
+				class="absolute bottom-2 left-0 right-0 hidden flex-row items-center justify-center gap-x-[4px] p-4"
 			>
 				<span id="scroll-speed">1.00</span>
 				<span>|</span>
@@ -90,6 +99,15 @@ import MiamiLoading from './miami-loading.astro';
 	) as HTMLCanvasElement | null;
 	const loading = document.getElementById('loading');
 
+	//volume alert management
+	const volumeIcon = document.getElementById('volume');
+	const alertContainer = document.getElementById('alert-container');
+	const closeAlertButton = document.getElementById('close-alert');
+
+	// Contatore dei clic
+	let clickCount = 0;
+	let clickTimeout: number | undefined; // Specifica il tipo
+
 	if (canvas && corvoImage && loading) {
 		const animation = new SparvieroAnimation();
 		await animation.prepare(); // from here, animation is ready to start
@@ -112,6 +130,30 @@ import MiamiLoading from './miami-loading.astro';
 			corvoImage.style.setProperty('transform', 'translateY(-200vh)');
 			await sleep(200);
 			corvoImage.remove();
+		});
+	}
+
+	//rage click on volume
+	if (volumeIcon && closeAlertButton && alertContainer) {
+		volumeIcon.addEventListener('click', () => {
+			clickCount++;
+
+			// Se i clic avvengono rapidamente (entro 1.5 secondi)
+			if (clickTimeout !== undefined) clearTimeout(clickTimeout);
+
+			clickTimeout = setTimeout(() => {
+				clickCount = 0; // Resetta il contatore se non ci sono altri clic
+			}, 1500) as unknown as number;
+
+			// Mostra l'alert dopo 2 clic consecutivi
+			if (clickCount >= 3) {
+				alertContainer.classList.remove('hidden');
+			}
+		});
+
+		// Nasconde l'alert quando si preme il pulsante "Ok"
+		closeAlertButton.addEventListener('click', () => {
+			alertContainer.classList.add('hidden');
 		});
 	}
 </script>
