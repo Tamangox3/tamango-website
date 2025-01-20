@@ -1,5 +1,5 @@
 <img
-	class="miami-loading-bg absolute bottom-0 left-0 right-0 top-0 hidden h-full w-full object-cover"
+	class="miami-loading-bg absolute bottom-0 left-0 right-0 top-0 h-full w-full object-cover"
 	src="/miami/loading/bg-1.webp"
 	fetchpriority="high"
 />
@@ -27,29 +27,27 @@
 			class="spin spin--reverse absolute bottom-0 right-[18%] top-16 m-auto h-[16%]"
 		/>
 	</div>
+	
 	<div class="h-screen flex flex-col justify-center items-center relative">
 		<!-- Contenuto principale centrato -->
 		<img
 			id="caricamento"
 			fetchpriority="high"
 			src="/miami/loading/caricamento.webp"
-			class="pulse w-[240px] max-w-[90%] py-[12.8px]"
+			class="pulse w-[200px] max-w-[70%] py-[12.8px]"
 		/>
 		<button
 			id="vai-animazione"
-			class="hidden w-[400px] max-w-[90%] rounded-md focus:outline-none rotate-animation"
+			class="hidden w-[400px] max-w-[80%] mb-12 rounded-md focus:outline-none rotate-animation"
 		>
 			<img src="/miami/loading/btn_via.webp" />
 		</button>
 
-		<p id="silenzioso" class="text-[#D11C2B] font-bold text-center mt-7">Togli il silenzioso per ascoltare l'audio</p>
-
 		<!-- Primo footer -->
-		<div id="container-link-video z-20" class="bg-[#B3232F] text-white py-4 w-full fixed bottom-0 flex flex-col items-center">
+		<div id="link-video" class="hidden z-999 bg-[#B3232F] text-white py-4 w-full fixed bottom-0 flex flex-col items-center">
 			<p class="mb-1">Se hai problemi di visualizzazione
 				<a
 				href="/sparviero-video" target="_blank"
-				id="link-video"
 				class="font-bold text-center underline"
 			>
 				clicca qui
@@ -62,31 +60,11 @@
 </div>
 
 <script is:inline>
-
-
-	if (/iPad|iPhone|iPod/.test(navigator.userAgent) == false) {
-		const silenziosoEl = document.getElementById('silenzioso');
-		silenziosoEl.style.display = 'none';
-	} 
-
-
-
 	document.addEventListener('DOMContentLoaded', async () => {
-		const bgs = document.getElementsByClassName('miami-loading-bg');
 		if (localStorage.getItem('sparviero_seen')) {
 			document.getElementById('link-video').classList.remove('hidden');
 		} else {
 			localStorage.setItem('sparviero_seen', 'true');
-		}
-		// use bgs at stop motion
-		let activeBg = 0;
-		while (bgs[activeBg]) {
-			bgs[activeBg].classList.remove('hidden');
-			await new Promise((resolve) => setTimeout(resolve, 200));
-			if (!bgs[activeBg]) break;
-			bgs[activeBg].classList.add('hidden');
-			activeBg += 1;
-			activeBg %= bgs.length;
 		}
 	});
 </script>
