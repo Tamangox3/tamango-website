@@ -1,20 +1,18 @@
 ---
 import MiamiCredits from './miami-credits.astro';
+import MiamiDesktopBg from './miami-desktop-bg.astro';
 import MiamiLoading from './miami-loading.astro';
 ---
 
 <div
-	class="fixed bottom-0 left-0 right-0 top-0 flex h-dvh w-screen flex-col items-center overflow-hidden bg-[#E2D8CE] antialiased md:relative"
+	class="fixed bottom-0 left-0 right-0 top-0 flex h-dvh w-screen flex-col items-center overflow-hidden bg-[#EEEAE6] antialiased md:relative"
 >
-	<img
-		src="/miami/overlay_desktop.webp"
-		class="user-select-none pointer-events-none absolute bottom-0 top-0 z-[2] hidden h-[104.5%] object-cover md:block"
-	/>
+	<MiamiDesktopBg />
 	<section class="flex h-full w-full flex-col items-center justify-center">
 		<!-- Messaggio di avviso (inizialmente nascosto) -->
 		<div
 			id="alert-container"
-			class="fixed top-0 z-50 flex hidden w-full flex-col items-center bg-[#B3232F] px-6 py-4 text-white"
+			class="text-whit fixed top-0 z-50 flex hidden w-full flex-col items-center bg-[#B3232F] px-6 py-4 md:hidden"
 		>
 			<p class="bold mb-2 text-center">Ricorda di togliere il silenzioso!</p>
 			<button id="close-alert" class="rounded-md bg-white px-4 py-1 font-bold text-[#B3232F]">
@@ -23,7 +21,7 @@ import MiamiLoading from './miami-loading.astro';
 		</div>
 
 		<div
-			class="relative h-dvh w-full md:aspect-[9/16] md:h-[90svh] md:w-auto md:overflow-hidden md:drop-shadow-xl"
+			class="relative z-[2] h-dvh w-full md:aspect-[9/16] md:h-[90svh] md:w-auto md:overflow-hidden md:rounded-[42px] md:drop-shadow-xl"
 		>
 			<!-- Corvo transition on loading -->
 			<img
@@ -65,7 +63,7 @@ import MiamiLoading from './miami-loading.astro';
 
 			<!-- Debug stuff -->
 			<div
-				class="absolute bottom-2 left-0 right-0 flex hidden flex-row items-center justify-center gap-x-[4px] p-4"
+				class="absolute bottom-2 left-0 right-0 hidden flex-row items-center justify-center gap-x-[4px] p-4"
 			>
 				<span id="scroll-speed">1.00</span>
 				<span>|</span>

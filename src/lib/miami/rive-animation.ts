@@ -497,6 +497,7 @@ export default class SparvieroAnimation {
 	}
 
 	private pause() {
+		this.updateSpeed(1);
 		this.audioManager.pause();
 		this.isPlaying = false;
 		this.pausePlayEl.src = '/miami/controls/play.webp';
