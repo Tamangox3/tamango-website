@@ -37,18 +37,18 @@
 			class="pulse w-[300px] max-w-[70%] py-[7px]"
 		/>
 
-		<div id="progress-bar-container" class="grid w-[320px] max-w-[80%] ml-[15px]">
-			<img 
+		<div id="progress-bar-container" class="ml-[15px] grid w-[320px] max-w-[80%]">
+			<img
 				id="progress-blank"
 				fetchpriority="high"
 				src="/miami/loading/progress-blank.webp"
-				class="w-full col-start-1 row-start-1"
+				class="col-start-1 row-start-1 w-full"
 			/>
-			<img 
+			<img
 				id="progress-red"
 				fetchpriority="high"
 				src="/miami/loading/progress-red.webp"
-				class="w-full col-start-1 row-start-1 z-10"
+				class="z-10 col-start-1 row-start-1 w-full"
 				style="clip-path: inset(0 100% 0 0)"
 			/>
 		</div>
@@ -76,9 +76,8 @@
 </div>
 
 <script is:inline>
-
 	const progressFill = document.getElementById('progress-red');
-	
+
 	document.addEventListener('DOMContentLoaded', async () => {
 		if (localStorage.getItem('sparviero_seen')) {
 			document.getElementById('link-video').classList.remove('hidden');
@@ -88,31 +87,14 @@
 		// use bgs at stop motion
 
 		document.addEventListener('miami-loading-progress', (event) => {
-            const { percentage } = event.detail;
-			if (percentage >= 99){
+			const { percentage } = event.detail;
+			if (percentage >= 99) {
 				document.getElementById('progress-bar-container').classList.add('hidden');
 				return;
 			}
 
 			if (progressFill) progressFill.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;
-			
-        });
-
-		
-		let activeBg = 0;
-		while (bgs[activeBg]) {
-			bgs[activeBg].classList.remove('hidden');
-			await new Promise((resolve) => setTimeout(resolve, 200));
-			if (!bgs[activeBg]) break;
-			bgs[activeBg].classList.add('hidden');
-			activeBg += 1;
-			activeBg %= bgs.length;
-		}
-
-
-
-
-
+		});
 	});
 </script>
 
