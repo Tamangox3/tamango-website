@@ -105,7 +105,7 @@ export default class SparvieroAnimation {
 		});
 
 		window.addEventListener('blur', () => {
-			if (this.ready && this.isPlaying) {
+			if (this.triggered && this.ready && this.isPlaying) {
 				this.pause();
 			}
 		});
@@ -118,7 +118,7 @@ export default class SparvieroAnimation {
 
 		// pause audio + animation on visibility change
 		document.addEventListener('visibilitychange', () => {
-			if (!this.ready) return;
+			if (!this.triggered || !this.ready) return;
 			if (document.hidden) {
 				this.pause();
 			} else {
