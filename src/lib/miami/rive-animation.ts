@@ -158,7 +158,7 @@ export default class SparvieroAnimation {
 			this.artboard.animationByIndex(0),
 			this.artboard,
 		);
-		if (isDev) riveCanvas.enableFPSCounter();
+		//if (isDev) riveCanvas.enableFPSCounter();
 
 		this.setupAudioShiftCheck();
 

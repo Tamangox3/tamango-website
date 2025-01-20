@@ -11,6 +11,22 @@ import MiamiLoading from './miami-loading.astro';
 		class="user-select-none pointer-events-none absolute bottom-0 top-0 z-[2] hidden h-[104.5%] object-cover md:block"
 	/>
 	<section class="flex h-full w-full flex-col items-center justify-center">
+      <!-- Messaggio di avviso (inizialmente nascosto) -->
+      <div
+      id="alert-container"
+      class="hidden z-50 bg-[#B3232F] text-white py-4 px-6 w-full fixed top-0 flex flex-col items-center"
+  >
+      <p class="mb-2 text-center bold">
+          Ricorda di togliere il silenzioso!
+      </p>
+      <button
+          id="close-alert"
+          class="bg-white text-[#B3232F] py-1 px-4 rounded-md font-bold"
+      >
+          Capito
+      </button>
+  </div>
+
 		<div
 			class="relative h-dvh w-full md:aspect-[9/16] md:h-[90svh] md:w-auto md:overflow-hidden md:drop-shadow-xl"
 		>
@@ -54,7 +70,7 @@ import MiamiLoading from './miami-loading.astro';
 
 			<!-- Debug stuff -->
 			<div
-				class="absolute bottom-2 left-0 right-0 flex flex-row items-center justify-center gap-x-[4px] p-4"
+				class="hidden absolute bottom-2 left-0 right-0 flex flex-row items-center justify-center gap-x-[4px] p-4"
 			>
 				<span id="scroll-speed">1.00</span>
 				<span>|</span>
@@ -90,6 +106,15 @@ import MiamiLoading from './miami-loading.astro';
 	) as HTMLCanvasElement | null;
 	const loading = document.getElementById('loading');
 
+  //volume alert management
+  const volumeIcon = document.getElementById("volume");
+  const alertContainer = document.getElementById("alert-container");
+  const closeAlertButton = document.getElementById("close-alert");
+
+  // Contatore dei clic
+  let clickCount = 0;
+  let clickTimeout;
+
 	if (canvas && corvoImage && loading) {
 		const animation = new SparvieroAnimation();
 		await animation.prepare(); // from here, animation is ready to start
@@ -114,6 +139,31 @@ import MiamiLoading from './miami-loading.astro';
 			corvoImage.remove();
 		});
 	}
+
+  //rage click on volume
+  if(volumeIcon && closeAlertButton && alertContainer){
+    volumeIcon.addEventListener("click", () => {
+        clickCount++;
+
+        // Se i clic avvengono rapidamente (entro 1.5 secondi)
+        if (clickTimeout) clearTimeout(clickTimeout);
+
+        clickTimeout = setTimeout(() => {
+            clickCount = 0; // Resetta il contatore se non ci sono altri clic
+        }, 1500);
+
+        // Mostra l'alert dopo 2 clic consecutivi
+        if (clickCount >= 4) {
+            alertContainer.classList.remove("hidden");
+        }
+    });
+
+    // Nasconde l'alert quando si preme il pulsante "Ok"
+    closeAlertButton.addEventListener("click", () => {
+        alertContainer.classList.add("hidden");
+    });
+  }
+
 </script>
 
 <style lang="scss">
