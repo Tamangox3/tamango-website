@@ -113,7 +113,7 @@ import MiamiLoading from './miami-loading.astro';
 
   // Contatore dei clic
   let clickCount = 0;
-  let clickTimeout;
+  let clickTimeout: number | undefined; // Specifica il tipo
 
 	if (canvas && corvoImage && loading) {
 		const animation = new SparvieroAnimation();
@@ -146,11 +146,12 @@ import MiamiLoading from './miami-loading.astro';
         clickCount++;
 
         // Se i clic avvengono rapidamente (entro 1.5 secondi)
-        if (clickTimeout) clearTimeout(clickTimeout);
+        if (clickTimeout !== undefined) clearTimeout(clickTimeout);
 
         clickTimeout = setTimeout(() => {
             clickCount = 0; // Resetta il contatore se non ci sono altri clic
-        }, 1500);
+        }, 1500) as unknown as number;
+
 
         // Mostra l'alert dopo 2 clic consecutivi
         if (clickCount >= 4) {
