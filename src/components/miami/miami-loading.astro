@@ -63,7 +63,7 @@
 		<!-- Primo footer -->
 		<div
 			id="link-video"
-			class="z-999 absolute bottom-0 flex hidden w-full flex-col items-center bg-[#B3232F] py-4 text-white"
+			class="z-999 absolute bottom-0 flex hidden w-full flex-col items-center bg-[#B3232F] py-3 text-white"
 		>
 			<p class="mb-1">
 				Se hai problemi di visualizzazione
@@ -79,12 +79,21 @@
 	const progressFill = document.getElementById('progress-red');
 
 	document.addEventListener('DOMContentLoaded', async () => {
-		if (localStorage.getItem('sparviero_seen')) {
+		// Recupera il valore da localStorage e lo converte in un numero
+		let sparvieroSeenCount = parseInt(localStorage.getItem('sparviero_seen')) || 0;
+
+		// Incrementa il contatore
+		sparvieroSeenCount += 1;
+
+		// Salva il nuovo valore in localStorage
+		localStorage.setItem('sparviero_seen', sparvieroSeenCount);
+
+		// Mostra il link solo se il contatore è almeno 2
+		if (sparvieroSeenCount >= 3) {
 			document.getElementById('link-video').classList.remove('hidden');
-		} else {
-			localStorage.setItem('sparviero_seen', 'true');
 		}
-		// use bgs at stop motion
+
+
 
 		document.addEventListener('miami-loading-progress', (event) => {
 			const { percentage } = event.detail;
