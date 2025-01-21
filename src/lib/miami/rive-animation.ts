@@ -433,6 +433,8 @@ export default class SparvieroAnimation {
 			let isDragging = false;
 			const mobileRatio = 1;
 			const desktopRatio = 5;
+			const miamiScrolla = document.getElementById('miami-scrolla');
+
 
 			Observer.create({
 				target: element as HTMLElement,
@@ -453,6 +455,10 @@ export default class SparvieroAnimation {
 					newSpeed = -newSpeed;
 					this.updateSpeed(newSpeed);
 					startY = currentY;
+
+					if (miamiScrolla && !miamiScrolla.classList.contains('hidden')) {
+						miamiScrolla.classList.add('hidden');
+					}
 				},
 				onRelease: () => {
 					if (this.isPlaying && isDragging) {
