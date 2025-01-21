@@ -23,6 +23,15 @@ import MiamiLoading from './miami-loading.astro';
 		<div
 			class="relative z-[2] h-dvh w-full md:aspect-[9/16] md:h-[90svh] md:w-auto md:overflow-hidden md:rounded-[42px] md:drop-shadow-xl"
 		>
+
+			<img
+				id="miami-scrolla"
+				src="/miami/controls/scrolla.webp"
+				alt="Scrolla"
+				class="absolute bottom-[80px] left-1/2 transform -translate-x-1/2 m-auto w-[200px] opacity-0 z-[999] hidden pointer-events-none"
+			/>
+
+
 			<!-- Corvo transition on loading -->
 			<img
 				id="miami-loading-corvo"
@@ -104,6 +113,9 @@ import MiamiLoading from './miami-loading.astro';
 	const alertContainer = document.getElementById('alert-container');
 	const closeAlertButton = document.getElementById('close-alert');
 
+	const scrollaImage = document.getElementById('miami-scrolla');
+
+
 	// Contatore dei clic
 	let clickCount = 0;
 	let clickTimeout: number | undefined; // Specifica il tipo
@@ -130,6 +142,17 @@ import MiamiLoading from './miami-loading.astro';
 			corvoImage.style.setProperty('transform', 'translateY(-200vh)');
 			await sleep(300);
 			corvoImage.remove();
+
+			// GESTIONE AVVISO SCROLLA ALL'INIZIO
+			if(scrollaImage){
+				await sleep(6000);
+				scrollaImage.classList.remove('hidden'); // Assicurati che l'immagine sia visibile inizialmente
+				
+				await sleep(6000);
+				
+				// Rimuovi il contenitore dopo 3 secondi (durata animazione)
+				scrollaImage.style.display = 'none'; // Nasconde il contenitore
+			}
 		});
 	}
 
@@ -190,5 +213,20 @@ import MiamiLoading from './miami-loading.astro';
 	#final-buttons-wrapper {
 		opacity: 0;
 		transition: opacity 0.4s ease-in-out;
+	}
+
+
+	@keyframes fadeInOut {
+	0%, 100% {
+		opacity: 0;
+	}
+	30%, 60% {
+		opacity: 1;
+	}
+	}
+
+	#miami-scrolla {
+		animation: fadeInOut 2s ease-in-out infinite; /* 3 secondi di animazione */
+
 	}
 </style>
