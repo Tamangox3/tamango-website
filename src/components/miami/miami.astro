@@ -12,10 +12,10 @@ import MiamiLoading from './miami-loading.astro';
 		<!-- Messaggio di avviso (inizialmente nascosto) -->
 		<div
 			id="alert-container"
-			class="text-whit fixed top-0 z-50 flex hidden w-full flex-col items-center bg-[#B3232F] px-6 py-4 md:hidden"
+			class="text-whit fixed top-0 z-50 flex hidden w-full flex-row justify-center items-center gap-4 bg-[#B3232F] px-4 py-2 md:hidden items-center"
 		>
-			<p class="bold mb-2 text-center">Ricorda di togliere il silenzioso!</p>
-			<button id="close-alert" class="rounded-md bg-white px-4 py-1 font-bold text-[#B3232F]">
+			<p class="bold text-center">Ricorda di togliere il silenzioso!</p>
+			<button id="close-alert" class="rounded-md bg-white px-3 font-bold text-[#B3232F] py-1">
 				Capito
 			</button>
 		</div>
@@ -124,11 +124,11 @@ import MiamiLoading from './miami-loading.astro';
 			// Hide loading div by using transform one step at a time
 			corvoImage.style.setProperty('transition', 'transform 0.7s ease-out');
 			corvoImage.style.setProperty('transform', 'scale(1.5) translateY(0)');
-			await sleep(650);
+			await sleep(450);
 			loading.remove();
-			corvoImage.style.setProperty('transition', 'transform .2s ease-in-out');
+			corvoImage.style.setProperty('transition', 'transform .3s ease-in-out');
 			corvoImage.style.setProperty('transform', 'translateY(-200vh)');
-			await sleep(200);
+			await sleep(300);
 			corvoImage.remove();
 		});
 	}

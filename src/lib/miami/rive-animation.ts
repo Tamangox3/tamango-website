@@ -366,6 +366,8 @@ export default class SparvieroAnimation {
 			this.volumeEl.style.opacity = '0';
 			this.pausePlayEl.style.opacity = '0';
 
+			localStorage.removeItem('sparviero_seen');
+
 			setTimeout(() => {
 				this.finalButtonsWrapper.style.opacity = '1';
 				this.volumeEl.style.display = 'none';
