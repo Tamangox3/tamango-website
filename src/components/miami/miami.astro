@@ -12,7 +12,7 @@ import MiamiLoading from './miami-loading.astro';
 		<!-- Messaggio di avviso (inizialmente nascosto) -->
 		<div
 			id="alert-container"
-			class="text-whit fixed top-0 z-50 flex hidden w-full flex-row justify-center items-center gap-4 bg-[#B3232F] px-4 py-2 md:hidden items-center"
+			class="text-whit fixed top-0 z-40 hidden flex w-full flex-row justify-center gap-4 bg-[#B3232F] px-4 py-2 md:hidden items-center"
 		>
 			<p class="bold text-center">Ricorda di togliere il silenzioso!</p>
 			<button id="close-alert" class="rounded-md bg-white px-3 font-bold text-[#B3232F] py-1">
@@ -143,9 +143,12 @@ import MiamiLoading from './miami-loading.astro';
 			await sleep(300);
 			corvoImage.remove();
 
+			await sleep(500);
+			alertContainer?.classList.remove('hidden');
+
 			// GESTIONE AVVISO SCROLLA ALL'INIZIO
 			if(scrollaImage){
-				await sleep(6000);
+				await sleep(5500);
 				scrollaImage.classList.remove('hidden'); // Assicurati che l'immagine sia visibile inizialmente
 				
 				await sleep(6000);
