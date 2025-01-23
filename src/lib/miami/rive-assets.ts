@@ -39,6 +39,7 @@ export const RIVE_ASSETS = [
 	'SEQ11-7-3174123.webp',
 	'SEQ11-8-3174122.webp',
 	'SEQ11-9-3174121.webp',
+	'SEQ11-11-3262942.webp',
 	'SEQ1_00_corvoinizio1-2868367.webp',
 	'SEQ1_00_corvoinizio2-2868368.webp',
 	'SEQ1_00_corvoinizio3-2868366.webp',

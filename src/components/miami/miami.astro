@@ -12,10 +12,10 @@ import MiamiLoading from './miami-loading.astro';
 		<!-- Messaggio di avviso (inizialmente nascosto) -->
 		<div
 			id="alert-container"
-			class="text-whit fixed top-0 z-40 hidden flex w-full flex-row justify-center gap-4 bg-[#B3232F] px-4 py-2 md:hidden items-center"
+			class="text-whit fixed top-0 z-40 flex hidden w-full flex-row items-center justify-center gap-4 bg-[#B3232F] px-4 py-2 md:hidden"
 		>
 			<p class="bold text-center">Ricorda di togliere il silenzioso!</p>
-			<button id="close-alert" class="rounded-md bg-white px-3 font-bold text-[#B3232F] py-1">
+			<button id="close-alert" class="rounded-md bg-white px-3 py-1 font-bold text-[#B3232F]">
 				Capito
 			</button>
 		</div>
@@ -23,14 +23,12 @@ import MiamiLoading from './miami-loading.astro';
 		<div
 			class="relative z-[2] h-dvh w-full md:aspect-[9/16] md:h-[90svh] md:w-auto md:overflow-hidden md:rounded-[42px] md:drop-shadow-xl"
 		>
-
 			<img
 				id="miami-scrolla"
 				src="/miami/controls/scrollami.webp"
 				alt="Scrolla"
-				class="absolute bottom-7 left-1/2 transform -translate-x-1/2 m-auto w-[150px] opacity-0 z-[999] hidden pointer-events-none"
+				class="pointer-events-none absolute bottom-7 left-1/2 z-[999] m-auto hidden w-[150px] -translate-x-1/2 transform opacity-0"
 			/>
-
 
 			<!-- Corvo transition on loading -->
 			<img
@@ -61,13 +59,13 @@ import MiamiLoading from './miami-loading.astro';
 				class="pointer-events-none absolute bottom-0 left-0 right-0 mx-auto mb-[10px] hidden max-w-[320px] flex-col items-center justify-center gap-4 p-4 md:mb-[50px]"
 			>
 				<a
-					href="https://www.youtube.com/channel/UCrqm-PYcS4Dljca5O_IKpIQ"
+					href="https://youtu.be/d9zjiv3HJXo?si=QjMtyOZ8p2nFYX6G"
 					target="_blank"
 					class="pointer-events-auto"><img src="/miami/youtube-btn.webp" /></a
 				>
 				<button id="miami-credits-open" class="pointer-events-auto">
-					<img src="/miami/credits-btn.webp" class="ml-4" /></button
-				>
+					<img src="/miami/credits-btn.webp" class="ml-4" />
+				</button>
 			</div>
 
 			<!-- Debug stuff -->
@@ -115,7 +113,6 @@ import MiamiLoading from './miami-loading.astro';
 
 	const scrollaImage = document.getElementById('miami-scrolla');
 
-
 	// Contatore dei clic
 	let clickCount = 0;
 	let clickTimeout: number | undefined; // Specifica il tipo
@@ -147,12 +144,12 @@ import MiamiLoading from './miami-loading.astro';
 			alertContainer?.classList.remove('hidden');
 
 			// GESTIONE AVVISO SCROLLA ALL'INIZIO
-			if(scrollaImage){
+			if (scrollaImage) {
 				await sleep(5200);
 				scrollaImage.classList.remove('hidden'); // Assicurati che l'immagine sia visibile inizialmente
-				
+
 				await sleep(6000);
-				
+
 				// Rimuovi il contenitore dopo 3 secondi (durata animazione)
 				scrollaImage.style.display = 'none'; // Nasconde il contenitore
 			}
@@ -218,18 +215,18 @@ import MiamiLoading from './miami-loading.astro';
 		transition: opacity 0.4s ease-in-out;
 	}
 
-
 	@keyframes fadeInOut {
-	0%, 100% {
-		opacity: 0;
-	}
-	30%, 60% {
-		opacity: 1;
-	}
+		0%,
+		100% {
+			opacity: 0;
+		}
+		30%,
+		60% {
+			opacity: 1;
+		}
 	}
 
 	#miami-scrolla {
 		animation: fadeInOut 2s ease-in-out infinite; /* 3 secondi di animazione */
-
 	}
 </style>
