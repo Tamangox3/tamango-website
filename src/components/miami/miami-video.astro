@@ -25,7 +25,7 @@ import MiamiDesktopBg from './miami-desktop-bg.astro';
 				class="pointer-events-none absolute bottom-0 left-0 right-0 mx-auto mb-[32px] hidden max-w-[320px] flex-col items-center justify-center gap-4 p-4 md:mb-[32px]"
 			>
 				<a
-					href="https://www.youtube.com/channel/UCrqm-PYcS4Dljca5O_IKpIQ"
+					href="https://youtu.be/d9zjiv3HJXo?si=QjMtyOZ8p2nFYX6G"
 					target="_blank"
 					class="pointer-events-auto"><img src="/miami/youtube-btn.webp" /></a
 				>
@@ -40,10 +40,10 @@ import MiamiDesktopBg from './miami-desktop-bg.astro';
 <script>
 	import Hls from 'hls.js';
 
-	const VIDEO_ROOT = 'https://miami-bucket.tamango.co/full/playlist.m3u8';
+	const VIDEO_ROOT = 'https://miami-bucket.tamango.co/full-friday/playlist.m3u8';
 	const videoTag = document.getElementById('video') as HTMLVideoElement | null;
 	const FINAL_BUTTONS_THRESHOLD = 3 * 60 + 25; // 3 minutes and 25 seconds
-	const MAX_VIDEO_LENGTH = 3 * 60 + 27; // 3 minutes and 30 seconds
+	const MAX_VIDEO_LENGTH = 3 * 60 + 27; // 3 minutes and 27 seconds
 	const finalButtonsWrapper = document.getElementById('final-buttons-wrapper');
 	const closeCreditsBtn = document.getElementById('miami-credits-close');
 	const openCreditsBtn = document.getElementById('miami-credits-open');
